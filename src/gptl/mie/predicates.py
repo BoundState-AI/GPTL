@@ -44,6 +44,7 @@ ERROR_PRECEDENCE: Final = (
     ApplicabilityError.UNIT_MISMATCH,
 )
 DECIMAL_OPERATION_CARRY_DIGITS: Final = 1
+DECIMAL_PRODUCT_OPERAND_FACTOR: Final = 2
 
 
 class NumericValue(BaseModel):
@@ -536,7 +537,8 @@ def _numeric_pair(
         right_offset = Decimal(canonical_decimal(right_unit.offset_to_base, policy))
         with localcontext() as context:
             context.prec = (
-                2 * (policy.decimal_max_integer_digits + policy.decimal_scale)
+                DECIMAL_PRODUCT_OPERAND_FACTOR
+                * (policy.decimal_max_integer_digits + policy.decimal_scale)
                 + DECIMAL_OPERATION_CARRY_DIGITS
             )
             left_base = left_value * left_scale + left_offset

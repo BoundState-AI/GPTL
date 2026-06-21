@@ -93,6 +93,7 @@ def build_safe_refusal(
             },
             "method_ref": None,
             "assessments": (),
+            "configuration_issues": None,
             "citations": (),
             "missing_field_ids": (),
             "required_human_action": policy.required_human_action,

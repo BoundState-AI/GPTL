@@ -17,7 +17,7 @@ from gptl.mie.predicates import (
     validate_predicate_configuration,
 )
 from gptl.mie.records import CandidatePack
-from gptl.mie.schema import CandidateAssessment, Citation
+from gptl.mie.schema import CandidateAssessment, CandidateConfigurationIssue, Citation
 from gptl.mie.selection import (
     SelectableRecord,
     SelectionConfigurationError,
@@ -34,6 +34,7 @@ class CandidateSetResult(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     preserved_candidate_refs: tuple[GovernedRef, ...]
     assessments: tuple[CandidateAssessment, ...]
+    configuration_issues: tuple[CandidateConfigurationIssue, ...]
     applicability_evaluations: tuple[ApplicabilityEvaluation, ...]
     citations: tuple[Citation, ...]
     has_unknown: bool
@@ -48,6 +49,12 @@ class CandidateSetResult(BaseModel):
         )
         if assessment_keys != tuple(sorted(set(assessment_keys))):
             raise ValueError("candidate assessments must be unique and sorted")
+        issue_keys = tuple(
+            (item.candidate_ref.logical_id, item.candidate_ref.version_id)
+            for item in self.configuration_issues
+        )
+        if issue_keys != tuple(sorted(set(issue_keys))):
+            raise ValueError("candidate configuration issues must be unique and sorted")
         evaluation_keys = tuple(
             (item.predicate_ref.logical_id, item.predicate_ref.version_id)
             for item in self.applicability_evaluations
@@ -110,6 +117,7 @@ def load_candidate_set(
     selected_keys = {(item.logical_id, item.version_id) for item in selected}
     preserved = list(selected)
     assessments: list[CandidateAssessment] = []
+    configuration_issues: list[CandidateConfigurationIssue] = []
     citations: list[Citation] = []
     for candidate, evaluation in zip(pack.candidates, evaluations, strict=True):
         candidate_key = (
@@ -122,6 +130,20 @@ def load_candidate_set(
             (candidate.predicate_ref,),
         )
         if evaluation.truth == ApplicabilityTruth.INVALID:
+            configuration_issues.append(
+                CandidateConfigurationIssue(
+                    candidate_ref=candidate.failure_mode_ref,
+                    applicability_evaluation=evaluation,
+                    evidence_refs=evidence_refs,
+                )
+            )
+            citations.append(
+                Citation(
+                    record_type_id=candidate.predicate_record_type_id,
+                    record_ref=candidate.predicate_ref,
+                    evidence_location=candidate.predicate_evidence_location,
+                )
+            )
             continue
         if evaluation.truth == ApplicabilityTruth.UNKNOWN:
             preserved.append(candidate.failure_mode_ref)
@@ -186,6 +208,9 @@ def load_candidate_set(
     assessments.sort(
         key=lambda item: (item.candidate_ref.logical_id, item.candidate_ref.version_id)
     )
+    configuration_issues.sort(
+        key=lambda item: (item.candidate_ref.logical_id, item.candidate_ref.version_id)
+    )
     evaluations = tuple(
         sorted(
             evaluations,
@@ -203,6 +228,7 @@ def load_candidate_set(
     return CandidateSetResult(
         preserved_candidate_refs=sorted_unique_refs(tuple(preserved)),
         assessments=tuple(assessments),
+        configuration_issues=tuple(configuration_issues),
         applicability_evaluations=evaluations,
         citations=tuple(citations),
         has_unknown=any(item.truth == ApplicabilityTruth.UNKNOWN for item in evaluations),

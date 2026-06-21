@@ -16,7 +16,6 @@ from gptl.core.ratification import (
     IntakeValue,
     RatificationEvent,
     evaluate_ratification_gate,
-    intake_value_hash,
 )
 from gptl.core.records import GovernedRef
 from gptl.core.semantic_types import (
@@ -38,6 +37,7 @@ from gptl.mie.schema import (
     AdvisoryDecision,
     BoundDecisionContext,
     CandidateAssessment,
+    CandidateConfigurationIssue,
     Citation,
     MIEOutput,
     RefusalDecision,
@@ -125,6 +125,14 @@ class CandidateSetReadyForLaterSlice(RuntimeError):
         self.snapshot = snapshot
 
 
+class PackVersionBindingError(ValueError):
+    pass
+
+
+class RatificationStateBindingError(ValueError):
+    pass
+
+
 def build_candidate_preservation(
     request: Slice2Request,
     runtime: Slice2Runtime,
@@ -132,15 +140,26 @@ def build_candidate_preservation(
 ) -> Slice2ExecutionResult:
     pack = runtime.pack
     if request.requested_pack_version_id != pack.manifest.pack_ref.version_id:
-        raise ValueError("Slice 2 requires an exact loaded pack version")
-    gate = evaluate_ratification_gate(
+        raise PackVersionBindingError("Slice 2 requires an exact loaded pack version")
+    runtime_gate = evaluate_ratification_gate(
         runtime.intake,
         runtime.ratification_events,
         pack.manifest.pack_ref,
         request.as_of_time,
         policy.canonicalization_policy,
     )
-    snapshot = _build_runtime_snapshot(request, runtime, policy, gate.active_state_hash)
+    snapshot = _build_runtime_snapshot(request, runtime, policy, runtime_gate.active_state_hash)
+    # Eligibility must consume the event set that became durable. Reusing only
+    # pre-snapshot state would allow later snapshot assembly changes to escape replay.
+    gate = evaluate_ratification_gate(
+        runtime.intake,
+        snapshot.ratification_events,
+        snapshot.pack_ref,
+        snapshot.as_of_time,
+        policy.canonicalization_policy,
+    )
+    if gate.active_state_hash != snapshot.ratification_state_hash:
+        raise RatificationStateBindingError("snapshot ratification state hash mismatch")
     snapshot_digest = snapshot_hash(snapshot, policy.canonicalization_policy)
     context = BoundDecisionContext(
         context_kind="SNAPSHOT_BOUND",
@@ -149,13 +168,7 @@ def build_candidate_preservation(
         evidence_scope_ref=pack.manifest.evidence_scope_ref,
         knowledge_snapshot_hash=snapshot_digest,
     )
-    invalid_values = tuple(
-        value.field_id
-        for value in runtime.intake.values
-        if value.value_hash
-        != intake_value_hash(value.field_id, value.value, policy.canonicalization_policy)
-    )
-    if invalid_values:
+    if gate.integrity_failure_field_ids:
         return _refusal_result(
             request,
             runtime,
@@ -165,6 +178,7 @@ def build_candidate_preservation(
             RefusalType.INTEGRITY_FAILURE,
             policy.integrity_action,
             (),
+            None,
             (),
             (),
         )
@@ -197,6 +211,7 @@ def build_candidate_preservation(
             RefusalType.CONFIGURATION_INVALID,
             policy.configuration_action,
             (),
+            None,
             (),
             (),
         )
@@ -210,6 +225,7 @@ def build_candidate_preservation(
             RefusalType.CONFIGURATION_INVALID,
             policy.configuration_action,
             candidate_set.assessments,
+            candidate_set.configuration_issues,
             candidate_set.citations,
             (),
         )
@@ -233,6 +249,7 @@ def build_candidate_preservation(
             RefusalType.MISSING_REQUIRED_EVIDENCE,
             policy.missing_evidence_action,
             candidate_set.assessments,
+            None,
             candidate_set.citations,
             missing_fields,
         )
@@ -342,6 +359,7 @@ def _refusal_result(
     refusal_type: RefusalType,
     action: DisplayDirective,
     assessments: tuple[CandidateAssessment, ...],
+    configuration_issues: tuple[CandidateConfigurationIssue, ...] | None,
     citations: tuple[Citation, ...],
     missing_field_ids: tuple[FieldId, ...],
 ) -> Slice2ExecutionResult:
@@ -362,6 +380,7 @@ def _refusal_result(
             "context": context,
             "method_ref": runtime.pack.manifest.method_ref,
             "assessments": assessments,
+            "configuration_issues": configuration_issues,
             "citations": citations,
             "missing_field_ids": missing_field_ids,
             "required_human_action": action,

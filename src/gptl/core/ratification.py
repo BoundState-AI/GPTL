@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from gptl.core.canonical import canonical_sha256
+from gptl.core.canonical import CanonicalizationError, canonical_sha256
 from gptl.core.records import GovernedRef, sorted_unique_refs
 from gptl.core.semantic_types import (
     CanonicalizationPolicy,
@@ -81,6 +81,7 @@ class RatificationGateResult(BaseModel):
     eligible: bool
     admitted_values: tuple[IntakeValue, ...]
     unratified_field_ids: tuple[FieldId, ...]
+    integrity_failure_field_ids: tuple[FieldId, ...]
     evidence_refs: tuple[GovernedRef, ...]
     active_state_hash: Sha256Hex
 
@@ -97,10 +98,19 @@ def evaluate_ratification_gate(
     }
     admitted: list[IntakeValue] = []
     unratified: set[FieldId] = set()
+    integrity_failures: set[FieldId] = set()
     evidence: list[GovernedRef] = []
     active_event_refs: list[GovernedRef] = []
     for value in intake.values:
         evidence.append(value.source_ref)
+        try:
+            observed_hash = intake_value_hash(value.field_id, value.value, policy)
+        except CanonicalizationError:
+            observed_hash = None
+        if value.value_hash != observed_hash:
+            integrity_failures.add(value.field_id)
+            unratified.add(value.field_id)
+            continue
         if value.source_kind == "INSTRUMENT_EMITTED":
             admitted.append(value)
             continue
@@ -123,6 +133,7 @@ def evaluate_ratification_gate(
         active_event_refs.append(event.event_ref)
         evidence.append(event.event_ref)
     unratified_field_ids = tuple(sorted(unratified))
+    integrity_failure_field_ids = tuple(sorted(integrity_failures))
     ordered_active_refs = tuple(
         sorted(
             active_event_refs,
@@ -133,6 +144,7 @@ def evaluate_ratification_gate(
         eligible=not unratified and len(admitted) == len(intake.values),
         admitted_values=tuple(admitted),
         unratified_field_ids=unratified_field_ids,
+        integrity_failure_field_ids=integrity_failure_field_ids,
         evidence_refs=sorted_unique_refs(tuple(evidence)),
         active_state_hash=canonical_sha256(
             {
@@ -140,6 +152,7 @@ def evaluate_ratification_gate(
                 "governing_pack_ref": pack_ref,
                 "active_event_refs": ordered_active_refs,
                 "unratified_field_ids": unratified_field_ids,
+                "integrity_failure_field_ids": integrity_failure_field_ids,
             },
             policy,
         ),
@@ -172,6 +185,7 @@ def _event_matches(
         and event.source_ref == value.source_ref
         and event.governing_pack_ref == pack_ref
         and event.effective_at <= as_of_time
+        and event.recorded_at <= as_of_time
     )
 
 
@@ -191,4 +205,5 @@ def _event_supersedes(
         and candidate.source_ref == value.source_ref
         and candidate.governing_pack_ref == pack_ref
         and candidate.effective_at <= as_of_time
+        and candidate.recorded_at <= as_of_time
     )

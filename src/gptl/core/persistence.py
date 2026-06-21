@@ -26,7 +26,13 @@ from gptl.mie.schema import (
 )
 
 SCHEMA_VERSION: Final = "gptl.slice1.v1"
-SNAPSHOT_RUN_SCHEMA_VERSION: Final = "gptl.slice2.v1"
+SNAPSHOT_RUN_SCHEMA_VERSION: Final = "gptl.slice2.v2"
+SUPPORTED_SNAPSHOT_RUN_SCHEMA_VERSIONS: Final = frozenset(
+    {
+        "gptl.slice2.v1",
+        SNAPSHOT_RUN_SCHEMA_VERSION,
+    }
+)
 HASH_ALGORITHM: Final = "SHA-256"
 TIER1_OUTPUT_RECORD_TYPE: Final = "TIER1_OUTPUT"
 TIER2_OUTPUT_RECORD_TYPE: Final = "TIER2_OUTPUT"
@@ -487,11 +493,12 @@ class PostgresRunStore:
                     expected_schema = SCHEMA_VERSION
                     expected_record_type = TIER1_OUTPUT_RECORD_TYPE
                     expected_audit_type = PREFLIGHT_AUDIT_RECORD_TYPE
-                elif context_kind == "SNAPSHOT_BOUND" and row[3] in {
-                    TIER1_OUTPUT_RECORD_TYPE,
-                    TIER2_OUTPUT_RECORD_TYPE,
-                }:
-                    expected_schema = SNAPSHOT_RUN_SCHEMA_VERSION
+                elif (
+                    context_kind == "SNAPSHOT_BOUND"
+                    and row[3] in {TIER1_OUTPUT_RECORD_TYPE, TIER2_OUTPUT_RECORD_TYPE}
+                    and row[4] in SUPPORTED_SNAPSHOT_RUN_SCHEMA_VERSIONS
+                ):
+                    expected_schema = cast(str, row[4])
                     expected_record_type = row[3]
                     expected_audit_type = SNAPSHOT_AUDIT_RECORD_TYPE
                 else:

@@ -78,6 +78,22 @@ class CandidateAssessment(BaseModel):
         return self
 
 
+class CandidateConfigurationIssue(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    candidate_ref: GovernedRef
+    applicability_evaluation: ApplicabilityEvaluation
+    evidence_refs: tuple[GovernedRef, ...]
+
+    @model_validator(mode="after")
+    def validate_issue(self) -> CandidateConfigurationIssue:
+        if self.applicability_evaluation.truth != ApplicabilityTruth.INVALID:
+            raise ValueError("candidate configuration issue requires INVALID applicability")
+        _validate_ref_order(self.evidence_refs, "evidence_refs")
+        if self.applicability_evaluation.predicate_ref not in self.evidence_refs:
+            raise ValueError("candidate configuration issue must cite its predicate")
+        return self
+
+
 class DecisionHeader(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     decision_id: OpaqueId
@@ -119,6 +135,7 @@ class RefusalDecision(DecisionHeader):
     context: RefusalContext
     method_ref: GovernedRef | None
     assessments: tuple[CandidateAssessment, ...]
+    configuration_issues: tuple[CandidateConfigurationIssue, ...] | None
     citations: tuple[Citation, ...]
     missing_field_ids: tuple[FieldId, ...]
     required_human_action: DisplayDirective
@@ -127,7 +144,12 @@ class RefusalDecision(DecisionHeader):
     @model_validator(mode="after")
     def validate_refusal(self) -> RefusalDecision:
         if self.context.context_kind == "PREFLIGHT":
-            if self.method_ref is not None or self.assessments or self.citations:
+            if (
+                self.method_ref is not None
+                or self.assessments
+                or self.configuration_issues is not None
+                or self.citations
+            ):
                 raise ValueError("preflight refusal cannot contain bound evidence records")
         elif self.method_ref is None:
             raise ValueError("snapshot-bound refusal requires a method ref")
@@ -137,6 +159,15 @@ class RefusalDecision(DecisionHeader):
         )
         if assessment_keys != tuple(sorted(set(assessment_keys))):
             raise ValueError("candidate assessments must be unique and sorted")
+        if self.configuration_issues is not None:
+            issue_keys = tuple(
+                (item.candidate_ref.logical_id, item.candidate_ref.version_id)
+                for item in self.configuration_issues
+            )
+            if not issue_keys or issue_keys != tuple(sorted(set(issue_keys))):
+                raise ValueError("configuration issues must be nonempty, unique, and sorted")
+            if self.refusal_type != RefusalType.CONFIGURATION_INVALID:
+                raise ValueError("configuration issues require CONFIGURATION_INVALID refusal")
         citation_keys = tuple(
             (
                 item.record_type_id,
