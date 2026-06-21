@@ -1,0 +1,1 @@
+"""Vertical-slice acceptance tests."""
