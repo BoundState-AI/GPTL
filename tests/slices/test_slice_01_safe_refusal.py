@@ -10,7 +10,7 @@ import psycopg
 import pytest
 from psycopg import sql
 
-from gptl.core.canonical import canonical_bytes
+from gptl.core.canonical import canonical_bytes, canonical_sha256
 from gptl.core.pack_registry import ExactPackRegistry
 from gptl.core.persistence import (
     HASH_ALGORITHM,
@@ -46,8 +46,11 @@ def _insert_direct_complete_run(
             """
             INSERT INTO gptl_runs (
                 run_id, case_id, context_kind, as_of_time, record_type,
-                schema_version, hash_algorithm, payload_hash, payload, audit_count
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                schema_version, hash_algorithm, payload_hash, payload, audit_count,
+                snapshot_count, citation_count, bound_version_count
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
             """,
             (
                 request.run_id,
@@ -58,6 +61,9 @@ def _insert_direct_complete_run(
                 payload_hash,
                 payload,
                 1,
+                0,
+                0,
+                0,
             ),
         )
         connection.execute(
@@ -100,6 +106,10 @@ def test_absent_pack_produces_deterministic_preflight_refusal() -> None:
     assert b"pack_ref" not in serialized
     assert b"engine_policy_ref" not in serialized
     assert b"snapshot" not in serialized
+    assert (
+        canonical_sha256(first.output.decision, policy.canonicalization_policy)
+        == "41a41a3d3e171f65dd509de228dee114b2e2375282388392fe51330f3666c995"
+    )
 
 
 def test_available_exact_pack_stops_at_later_slice_boundary() -> None:
@@ -152,6 +162,7 @@ def test_migrations_are_ordered_checksummed_and_idempotent(postgres_url: str) ->
     assert [migration_id for migration_id, _ in rows] == [
         "0001_slice_1",
         "0002_persistence_invariants",
+        "0003_snapshot_bound_runs",
     ]
     assert all(len(payload_hash.strip()) == 64 for _, payload_hash in rows)
 
@@ -326,8 +337,11 @@ def test_database_rejects_run_without_declared_audit_rows(postgres_url: str) -> 
                 """
                 INSERT INTO gptl_runs (
                     run_id, case_id, context_kind, as_of_time, record_type,
-                    schema_version, hash_algorithm, payload_hash, payload, audit_count
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    schema_version, hash_algorithm, payload_hash, payload, audit_count,
+                    snapshot_count, citation_count, bound_version_count
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
                 """,
                 (
                     request.run_id,
@@ -340,6 +354,9 @@ def test_database_rejects_run_without_declared_audit_rows(postgres_url: str) -> 
                     hashlib.sha256(payload).hexdigest(),
                     payload,
                     1,
+                    0,
+                    0,
+                    0,
                 ),
             )
     finally:
@@ -359,8 +376,11 @@ def test_database_rejects_zero_audit_count(postgres_url: str) -> None:
                 """
                 INSERT INTO gptl_runs (
                     run_id, case_id, context_kind, as_of_time, record_type,
-                    schema_version, hash_algorithm, payload_hash, payload, audit_count
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    schema_version, hash_algorithm, payload_hash, payload, audit_count,
+                    snapshot_count, citation_count, bound_version_count
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
                 """,
                 (
                     request.run_id,
@@ -372,6 +392,9 @@ def test_database_rejects_zero_audit_count(postgres_url: str) -> None:
                     HASH_ALGORITHM,
                     hashlib.sha256(payload).hexdigest(),
                     payload,
+                    0,
+                    0,
+                    0,
                     0,
                 ),
             )

@@ -1,11 +1,11 @@
-"""Slice 1 MIE canonical output schema."""
+"""MIE canonical output schemas implemented through Slice 2."""
 
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from gptl.core.directives import DisplayDirective
 from gptl.core.records import GovernedRef
@@ -18,6 +18,7 @@ from gptl.core.semantic_types import (
     Sha256Hex,
     TermId,
 )
+from gptl.mie.predicates import ApplicabilityEvaluation, ApplicabilityTruth
 
 
 class RefusalType(str, Enum):
@@ -31,13 +32,6 @@ class RefusalType(str, Enum):
     CONFIGURATION_INVALID = "CONFIGURATION_INVALID"
 
 
-class ApplicabilityTruth(str, Enum):
-    TRUE = "TRUE"
-    FALSE = "FALSE"
-    UNKNOWN = "UNKNOWN"
-    INVALID = "INVALID"
-
-
 class Citation(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     record_type_id: TermId
@@ -46,8 +40,6 @@ class Citation(BaseModel):
 
 
 class CandidateAssessment(BaseModel):
-    """Complete shape reserved now so refusals cannot hide untyped content."""
-
     model_config = ConfigDict(extra="forbid", frozen=True)
     candidate_ref: GovernedRef
     applicability: ApplicabilityTruth
@@ -69,14 +61,20 @@ class CandidateAssessment(BaseModel):
     rule_refs: tuple[GovernedRef, ...]
 
     @model_validator(mode="after")
-    def validate_reference_order(self) -> CandidateAssessment:
+    def validate_state(self) -> CandidateAssessment:
         for values, label in (
             (self.evidence_refs, "evidence_refs"),
             (self.rule_refs, "rule_refs"),
         ):
-            keys = tuple((item.logical_id, item.version_id) for item in values)
-            if len(keys) != len(set(keys)) or keys != tuple(sorted(keys)):
-                raise ValueError(f"{label} must be unique and canonically sorted")
+            _validate_ref_order(values, label)
+        if self.applicability == ApplicabilityTruth.UNKNOWN:
+            if (
+                self.evidence_state != "APPLICABILITY_UNRESOLVED"
+                or self.status != "APPLICABILITY_UNRESOLVED"
+            ):
+                raise ValueError("UNKNOWN applicability must remain unresolved")
+            if self.signature_match_score is not None or self.candidate_support_score is not None:
+                raise ValueError("unresolved applicability cannot carry scores")
         return self
 
 
@@ -93,6 +91,15 @@ class DecisionHeader(BaseModel):
     as_of_time: CanonicalTimestamp
 
 
+class BoundDecisionContext(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    context_kind: Literal["SNAPSHOT_BOUND"]
+    pack_ref: GovernedRef
+    engine_policy_ref: GovernedRef
+    evidence_scope_ref: GovernedRef
+    knowledge_snapshot_hash: Sha256Hex
+
+
 class PreflightRefusalContext(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     context_kind: Literal["PREFLIGHT"]
@@ -100,10 +107,16 @@ class PreflightRefusalContext(BaseModel):
     failure_stage_id: TermId
 
 
+RefusalContext = Annotated[
+    BoundDecisionContext | PreflightRefusalContext,
+    Field(discriminator="context_kind"),
+]
+
+
 class RefusalDecision(DecisionHeader):
     verdict: Literal["REFUSED"]
     refusal_type: RefusalType
-    context: PreflightRefusalContext
+    context: RefusalContext
     method_ref: GovernedRef | None
     assessments: tuple[CandidateAssessment, ...]
     citations: tuple[Citation, ...]
@@ -112,15 +125,35 @@ class RefusalDecision(DecisionHeader):
     audit_event_ids: tuple[OpaqueId, ...]
 
     @model_validator(mode="after")
-    def validate_preflight_boundary(self) -> RefusalDecision:
-        if self.method_ref is not None or self.assessments or self.citations:
-            raise ValueError("preflight refusal cannot contain bound evidence records")
+    def validate_refusal(self) -> RefusalDecision:
+        if self.context.context_kind == "PREFLIGHT":
+            if self.method_ref is not None or self.assessments or self.citations:
+                raise ValueError("preflight refusal cannot contain bound evidence records")
+        elif self.method_ref is None:
+            raise ValueError("snapshot-bound refusal requires a method ref")
+        assessment_keys = tuple(
+            (item.candidate_ref.logical_id, item.candidate_ref.version_id)
+            for item in self.assessments
+        )
+        if assessment_keys != tuple(sorted(set(assessment_keys))):
+            raise ValueError("candidate assessments must be unique and sorted")
+        citation_keys = tuple(
+            (
+                item.record_type_id,
+                item.record_ref.logical_id,
+                item.record_ref.version_id,
+                item.evidence_location,
+            )
+            for item in self.citations
+        )
+        if citation_keys != tuple(sorted(set(citation_keys))):
+            raise ValueError("citations must be unique and sorted")
         for values, label in (
             (self.missing_field_ids, "missing_field_ids"),
             (self.audit_event_ids, "audit_event_ids"),
         ):
             if len(values) != len(set(values)) or values != tuple(sorted(values)):
-                raise ValueError(f"{label} must be unique and lexicographically sorted")
+                raise ValueError(f"{label} must be unique and sorted")
         if not self.audit_event_ids:
             raise ValueError("refusal decision requires an audit event")
         return self
@@ -131,3 +164,65 @@ class Tier1Output(BaseModel):
     output_kind: Literal["TIER1_DECISION"]
     decision: RefusalDecision
     decision_hash: Sha256Hex
+
+
+class AdvisoryDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    decision_id: OpaqueId
+    case_id: OpaqueId
+    tier: Literal[2]
+    status: Literal["ADVISORY_NO_VERDICT"]
+    dispositional: Literal[False]
+    non_record_of_record: Literal[True]
+    operational_mode: Literal["RESEARCH_ONLY", "QUALIFIED"]
+    engine_id: OpaqueId
+    engine_version: OpaqueId
+    context: BoundDecisionContext
+    as_of_time: CanonicalTimestamp
+    method_resolution: Literal["RESOLVED", "AMBIGUOUS", "UNKNOWN"]
+    method_ref: GovernedRef | None
+    proposed_field_ids: tuple[FieldId, ...]
+    candidate_failure_mode_refs: tuple[GovernedRef, ...]
+    applicability_evaluations: tuple[ApplicabilityEvaluation, ...]
+    open_discriminator_refs: tuple[GovernedRef, ...]
+    required_measurement_ids: tuple[TermId, ...]
+    required_record_type_ids: tuple[TermId, ...]
+    tier1_eligibility_gap_ids: tuple[TermId, ...]
+    next_steps: tuple[DisplayDirective, ...]
+    citations: tuple[Citation, ...]
+    audit_event_ids: tuple[OpaqueId, ...]
+
+    @model_validator(mode="after")
+    def validate_advisory(self) -> AdvisoryDecision:
+        if self.method_resolution == "RESOLVED" and self.method_ref is None:
+            raise ValueError("resolved advisory requires method ref")
+        for values, label in (
+            (self.proposed_field_ids, "proposed_field_ids"),
+            (self.required_measurement_ids, "required_measurement_ids"),
+            (self.required_record_type_ids, "required_record_type_ids"),
+            (self.tier1_eligibility_gap_ids, "tier1_eligibility_gap_ids"),
+            (self.audit_event_ids, "audit_event_ids"),
+        ):
+            if len(values) != len(set(values)) or values != tuple(sorted(values)):
+                raise ValueError(f"{label} must be unique and sorted")
+        _validate_ref_order(self.candidate_failure_mode_refs, "candidate_failure_mode_refs")
+        _validate_ref_order(self.open_discriminator_refs, "open_discriminator_refs")
+        if not self.audit_event_ids:
+            raise ValueError("advisory requires an audit event")
+        return self
+
+
+class Tier2Output(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    output_kind: Literal["TIER2_ADVISORY"]
+    advisory: AdvisoryDecision
+    advisory_hash: Sha256Hex
+
+
+MIEOutput = Annotated[Tier1Output | Tier2Output, Field(discriminator="output_kind")]
+
+
+def _validate_ref_order(refs: tuple[GovernedRef, ...], label: str) -> None:
+    keys = tuple((item.logical_id, item.version_id) for item in refs)
+    if len(keys) != len(set(keys)) or keys != tuple(sorted(keys)):
+        raise ValueError(f"{label} must be unique and sorted")

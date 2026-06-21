@@ -1,4 +1,4 @@
-"""Typed append-only audit events for Slice 1."""
+"""Typed append-only audit events."""
 
 from typing import Literal
 
@@ -27,3 +27,16 @@ class PreflightRefusalAuditEvent(BaseModel):
     display_template_ref: GovernedRef
     as_of_time: CanonicalTimestamp
     context_kind: Literal["PREFLIGHT"]
+
+
+class SnapshotDecisionAuditEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    event_id: OpaqueId
+    run_id: OpaqueId
+    sequence: NonNegativeInt
+    event_type_id: TermId
+    output_kind: Literal["TIER1_DECISION", "TIER2_ADVISORY"]
+    output_hash: Sha256Hex
+    snapshot_hash: Sha256Hex
+    as_of_time: CanonicalTimestamp
+    context_kind: Literal["SNAPSHOT_BOUND"]

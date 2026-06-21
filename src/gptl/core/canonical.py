@@ -20,7 +20,7 @@ class CanonicalizationError(ValueError):
     pass
 
 
-def _canonical_decimal(value: Decimal, policy: CanonicalizationPolicy) -> str:
+def canonical_decimal(value: Decimal, policy: CanonicalizationPolicy) -> str:
     if not value.is_finite():
         raise CanonicalizationError("non-finite Decimal is prohibited")
     quantum = Decimal(1).scaleb(-policy.decimal_scale)
@@ -60,7 +60,7 @@ def _normalize(value: Any, policy: CanonicalizationPolicy) -> Any:
     if isinstance(value, float):
         raise CanonicalizationError("float is prohibited in authoritative payloads")
     if isinstance(value, Decimal):
-        return _canonical_decimal(value, policy)
+        return canonical_decimal(value, policy)
     if isinstance(value, int):
         return value
     if isinstance(value, (list, tuple)):

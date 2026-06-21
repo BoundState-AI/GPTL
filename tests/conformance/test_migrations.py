@@ -10,6 +10,9 @@ PUBLISHED_MIGRATION_SHA256 = {
     "0002_persistence_invariants.sql": (
         "d613491e11bcfb65915636e59c198c9c9bb1834b57bcf2b9f093aaffc05f9799"
     ),
+    "0003_snapshot_bound_runs.sql": (
+        "6d0a4fcf74c0699285249a6e7b713c8f77d39c343e32c3f977ecaa114b08ae86"
+    ),
 }
 
 

@@ -12,15 +12,29 @@ from typing import Final, Protocol, cast
 import psycopg
 from psycopg import sql
 
-from gptl.core.audit import PreflightRefusalAuditEvent
+from gptl.core.audit import PreflightRefusalAuditEvent, SnapshotDecisionAuditEvent
 from gptl.core.canonical import canonical_bytes, canonical_sha256, verify_sha256
+from gptl.core.records import GovernedRef, sorted_unique_refs
 from gptl.core.semantic_types import CanonicalizationPolicy
-from gptl.mie.schema import Tier1Output
+from gptl.core.snapshot import KnowledgeSnapshot, snapshot_hash
+from gptl.mie.schema import (
+    AdvisoryDecision,
+    Citation,
+    MIEOutput,
+    RefusalDecision,
+    Tier1Output,
+)
 
 SCHEMA_VERSION: Final = "gptl.slice1.v1"
+SNAPSHOT_RUN_SCHEMA_VERSION: Final = "gptl.slice2.v1"
 HASH_ALGORITHM: Final = "SHA-256"
 TIER1_OUTPUT_RECORD_TYPE: Final = "TIER1_OUTPUT"
+TIER2_OUTPUT_RECORD_TYPE: Final = "TIER2_OUTPUT"
 PREFLIGHT_AUDIT_RECORD_TYPE: Final = "PREFLIGHT_REFUSAL_AUDIT_EVENT"
+SNAPSHOT_AUDIT_RECORD_TYPE: Final = "SNAPSHOT_DECISION_AUDIT_EVENT"
+SNAPSHOT_RECORD_TYPE: Final = "KNOWLEDGE_SNAPSHOT"
+CITATION_RECORD_TYPE: Final = "EVIDENCE_CITATION"
+BOUND_VERSION_RECORD_TYPE: Final = "BOUND_VERSION"
 MIGRATION_FILE_PATTERN = re.compile(r"^(?P<ordinal>\d{4})_[a-z0-9_]+\.sql$")
 
 
@@ -46,12 +60,16 @@ class Migration:
 @dataclass(frozen=True)
 class StoredRun:
     run_id: str
+    context_kind: str
     record_type: str
     schema_version: str
     hash_algorithm: str
     payload: bytes
     payload_hash: str
     audit_payloads: tuple[bytes, ...]
+    snapshot_payload: bytes | None
+    citation_payloads: tuple[bytes, ...]
+    bound_version_payloads: tuple[bytes, ...]
 
 
 class PostgresRunStore:
@@ -176,10 +194,11 @@ class PostgresRunStore:
         schema_version: object,
         hash_algorithm: object,
         expected_record_type: str,
+        expected_schema_version: str,
     ) -> None:
         if record_type != expected_record_type:
             raise PersistenceIntegrityError("persisted record type mismatch")
-        if schema_version != SCHEMA_VERSION:
+        if schema_version != expected_schema_version:
             raise PersistenceIntegrityError("persisted schema version mismatch")
         if hash_algorithm != HASH_ALGORITHM:
             raise PersistenceIntegrityError("persisted hash algorithm mismatch")
@@ -226,8 +245,12 @@ class PostgresRunStore:
                         INSERT INTO gptl_runs (
                             run_id, case_id, context_kind, as_of_time, record_type,
                             schema_version, hash_algorithm, payload_hash, payload,
-                            audit_count
-                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            audit_count, snapshot_count, citation_count,
+                            bound_version_count
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                            %s, %s, %s
+                        )
                         """,
                         (
                             run_id,
@@ -240,17 +263,113 @@ class PostgresRunStore:
                             output_hash,
                             output_payload,
                             len(audit_events),
+                            0,
+                            0,
+                            0,
                         ),
                     )
-                    self._insert_audit_events(cursor, audit_events)
+                    self._insert_audit_events(cursor, audit_events, SCHEMA_VERSION)
+
+    def persist_snapshot_run(
+        self,
+        run_id: str,
+        output: MIEOutput,
+        snapshot: KnowledgeSnapshot,
+        audit_events: Sequence[SnapshotDecisionAuditEvent],
+        bound_versions: Sequence[GovernedRef],
+    ) -> None:
+        body: RefusalDecision | AdvisoryDecision
+        if isinstance(output, Tier1Output):
+            body = output.decision
+            output_hash = output.decision_hash
+            expected_hash = canonical_sha256(body, self._policy)
+            record_type = TIER1_OUTPUT_RECORD_TYPE
+        else:
+            body = output.advisory
+            output_hash = output.advisory_hash
+            expected_hash = canonical_sha256(body, self._policy)
+            record_type = TIER2_OUTPUT_RECORD_TYPE
+        if body.context.context_kind != "SNAPSHOT_BOUND":
+            raise ValueError("snapshot persistence requires a snapshot-bound output")
+        if output_hash != expected_hash:
+            raise PersistenceIntegrityError("snapshot-bound output checksum mismatch")
+        snapshot_digest = snapshot_hash(snapshot, self._policy)
+        if body.context.knowledge_snapshot_hash != snapshot_digest:
+            raise PersistenceIntegrityError("output snapshot hash mismatch")
+        if tuple(body.audit_event_ids) != tuple(sorted(event.event_id for event in audit_events)):
+            raise ValueError("output audit IDs do not match supplied events")
+        if tuple(event.sequence for event in audit_events) != tuple(range(len(audit_events))):
+            raise ValueError("audit event sequence must be contiguous and zero-based")
+        if any(
+            event.run_id != run_id
+            or event.output_hash != output_hash
+            or event.snapshot_hash != snapshot_digest
+            or event.as_of_time != body.as_of_time
+            or event.output_kind != output.output_kind
+            for event in audit_events
+        ):
+            raise ValueError("snapshot audit event does not match output")
+        normalized_versions = sorted_unique_refs(tuple(bound_versions))
+        if normalized_versions != snapshot.bound_versions:
+            raise ValueError("persisted bound versions do not match snapshot")
+        citations = body.citations
+        output_payload = canonical_bytes(output, self._policy)
+        output_payload_hash = hashlib.sha256(output_payload).hexdigest()
+        snapshot_payload = canonical_bytes(snapshot, self._policy)
+        with psycopg.connect(self._database_url) as connection:
+            with connection.transaction():
+                with connection.cursor() as cursor:
+                    self._pin_search_path(cursor)
+                    cursor.execute(
+                        """
+                        INSERT INTO gptl_runs (
+                            run_id, case_id, context_kind, as_of_time, record_type,
+                            schema_version, hash_algorithm, payload_hash, payload,
+                            audit_count, snapshot_count, citation_count,
+                            bound_version_count
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                            %s, %s, %s
+                        )
+                        """,
+                        (
+                            run_id,
+                            body.case_id,
+                            body.context.context_kind,
+                            body.as_of_time,
+                            record_type,
+                            SNAPSHOT_RUN_SCHEMA_VERSION,
+                            HASH_ALGORITHM,
+                            output_payload_hash,
+                            output_payload,
+                            len(audit_events),
+                            1,
+                            len(citations),
+                            len(normalized_versions),
+                        ),
+                    )
+                    self._insert_snapshot(cursor, run_id, snapshot_payload, snapshot_digest)
+                    self._insert_citations(cursor, run_id, citations)
+                    self._insert_bound_versions(cursor, run_id, normalized_versions)
+                    self._insert_audit_events(
+                        cursor,
+                        audit_events,
+                        SNAPSHOT_RUN_SCHEMA_VERSION,
+                    )
 
     def _insert_audit_events(
         self,
         cursor: psycopg.Cursor[tuple[object, ...]],
-        audit_events: Sequence[PreflightRefusalAuditEvent],
+        audit_events: Sequence[PreflightRefusalAuditEvent | SnapshotDecisionAuditEvent],
+        schema_version: str,
     ) -> None:
         for event in sorted(audit_events, key=lambda item: item.sequence):
             payload = canonical_bytes(event, self._policy)
+            record_type = (
+                PREFLIGHT_AUDIT_RECORD_TYPE
+                if isinstance(event, PreflightRefusalAuditEvent)
+                else SNAPSHOT_AUDIT_RECORD_TYPE
+            )
             cursor.execute(
                 """
                 INSERT INTO gptl_audit_events (
@@ -262,11 +381,89 @@ class PostgresRunStore:
                     event.event_id,
                     event.run_id,
                     event.sequence,
-                    PREFLIGHT_AUDIT_RECORD_TYPE,
-                    SCHEMA_VERSION,
+                    record_type,
+                    schema_version,
                     HASH_ALGORITHM,
                     canonical_sha256(event, self._policy),
                     payload,
+                ),
+            )
+
+    def _insert_snapshot(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        run_id: str,
+        payload: bytes,
+        payload_hash: str,
+    ) -> None:
+        cursor.execute(
+            """
+            INSERT INTO gptl_snapshots (
+                run_id, payload_hash, payload, record_type, schema_version,
+                hash_algorithm
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (
+                run_id,
+                payload_hash,
+                payload,
+                SNAPSHOT_RECORD_TYPE,
+                SNAPSHOT_RUN_SCHEMA_VERSION,
+                HASH_ALGORITHM,
+            ),
+        )
+
+    def _insert_citations(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        run_id: str,
+        citations: Sequence[Citation],
+    ) -> None:
+        for citation in citations:
+            payload = canonical_bytes(citation, self._policy)
+            payload_hash = hashlib.sha256(payload).hexdigest()
+            cursor.execute(
+                """
+                INSERT INTO gptl_citations (
+                    citation_id, run_id, payload_hash, payload, record_type,
+                    schema_version, hash_algorithm
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    payload_hash,
+                    run_id,
+                    payload_hash,
+                    payload,
+                    CITATION_RECORD_TYPE,
+                    SNAPSHOT_RUN_SCHEMA_VERSION,
+                    HASH_ALGORITHM,
+                ),
+            )
+
+    def _insert_bound_versions(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        run_id: str,
+        bound_versions: Sequence[GovernedRef],
+    ) -> None:
+        for version in bound_versions:
+            payload = canonical_bytes(version, self._policy)
+            payload_hash = hashlib.sha256(payload).hexdigest()
+            cursor.execute(
+                """
+                INSERT INTO gptl_bound_versions (
+                    binding_id, run_id, payload_hash, payload, record_type,
+                    schema_version, hash_algorithm
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    version.version_id,
+                    run_id,
+                    payload_hash,
+                    payload,
+                    BOUND_VERSION_RECORD_TYPE,
+                    SNAPSHOT_RUN_SCHEMA_VERSION,
+                    HASH_ALGORITHM,
                 ),
             )
 
@@ -276,14 +473,36 @@ class PostgresRunStore:
                 self._pin_search_path(cursor)
                 cursor.execute(
                     "SELECT payload, payload_hash, audit_count, record_type, "
-                    "schema_version, hash_algorithm FROM gptl_runs WHERE run_id = %s",
+                    "schema_version, hash_algorithm, context_kind, snapshot_count, "
+                    "citation_count, bound_version_count "
+                    "FROM gptl_runs WHERE run_id = %s",
                     (run_id,),
                 )
                 row = cursor.fetchone()
                 if row is None:
                     return None
                 payload, payload_hash, audit_count = bytes(row[0]), row[1].strip(), row[2]
-                self._validate_record_metadata(row[3], row[4], row[5], TIER1_OUTPUT_RECORD_TYPE)
+                context_kind = row[6]
+                if context_kind == "PREFLIGHT":
+                    expected_schema = SCHEMA_VERSION
+                    expected_record_type = TIER1_OUTPUT_RECORD_TYPE
+                    expected_audit_type = PREFLIGHT_AUDIT_RECORD_TYPE
+                elif context_kind == "SNAPSHOT_BOUND" and row[3] in {
+                    TIER1_OUTPUT_RECORD_TYPE,
+                    TIER2_OUTPUT_RECORD_TYPE,
+                }:
+                    expected_schema = SNAPSHOT_RUN_SCHEMA_VERSION
+                    expected_record_type = row[3]
+                    expected_audit_type = SNAPSHOT_AUDIT_RECORD_TYPE
+                else:
+                    raise PersistenceIntegrityError("persisted run context is invalid")
+                self._validate_record_metadata(
+                    row[3],
+                    row[4],
+                    row[5],
+                    expected_record_type,
+                    expected_schema,
+                )
                 verify_sha256(payload, payload_hash)
                 cursor.execute(
                     "SELECT payload, payload_hash, record_type, schema_version, "
@@ -300,17 +519,107 @@ class PostgresRunStore:
                         audit_row[2],
                         audit_row[3],
                         audit_row[4],
-                        PREFLIGHT_AUDIT_RECORD_TYPE,
+                        expected_audit_type,
+                        expected_schema,
                     )
                     immutable_payload = bytes(audit_row[0])
                     verify_sha256(immutable_payload, audit_row[1].strip())
                     audit_payloads.append(immutable_payload)
+                snapshot_payload = self._load_snapshot_payload(
+                    cursor,
+                    run_id,
+                    row[7],
+                    expected_schema,
+                )
+                citation_payloads = self._load_related_payloads(
+                    cursor,
+                    "gptl_citations",
+                    "citation_id",
+                    run_id,
+                    row[8],
+                    CITATION_RECORD_TYPE,
+                    expected_schema,
+                )
+                bound_version_payloads = self._load_related_payloads(
+                    cursor,
+                    "gptl_bound_versions",
+                    "binding_id",
+                    run_id,
+                    row[9],
+                    BOUND_VERSION_RECORD_TYPE,
+                    expected_schema,
+                )
                 return StoredRun(
                     run_id=run_id,
-                    record_type=TIER1_OUTPUT_RECORD_TYPE,
-                    schema_version=SCHEMA_VERSION,
+                    context_kind=context_kind,
+                    record_type=expected_record_type,
+                    schema_version=expected_schema,
                     hash_algorithm=HASH_ALGORITHM,
                     payload=payload,
                     payload_hash=payload_hash,
                     audit_payloads=tuple(audit_payloads),
+                    snapshot_payload=snapshot_payload,
+                    citation_payloads=citation_payloads,
+                    bound_version_payloads=bound_version_payloads,
                 )
+
+    def _load_snapshot_payload(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        run_id: str,
+        expected_count: object,
+        expected_schema: str,
+    ) -> bytes | None:
+        cursor.execute(
+            "SELECT payload, payload_hash, record_type, schema_version, hash_algorithm "
+            "FROM gptl_snapshots WHERE run_id = %s",
+            (run_id,),
+        )
+        rows = cursor.fetchall()
+        if len(rows) != expected_count:
+            raise PersistenceIntegrityError("persisted snapshot count mismatch")
+        if not rows:
+            return None
+        row = cast(tuple[bytes, str, str, str, str], rows[0])
+        self._validate_record_metadata(
+            row[2],
+            row[3],
+            row[4],
+            SNAPSHOT_RECORD_TYPE,
+            expected_schema,
+        )
+        payload = bytes(row[0])
+        verify_sha256(payload, row[1].strip())
+        return payload
+
+    def _load_related_payloads(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        table_name: str,
+        order_column: str,
+        run_id: str,
+        expected_count: object,
+        expected_record_type: str,
+        expected_schema: str,
+    ) -> tuple[bytes, ...]:
+        query = sql.SQL(
+            "SELECT payload, payload_hash, record_type, schema_version, hash_algorithm "
+            "FROM {} WHERE run_id = %s ORDER BY {}"
+        ).format(sql.Identifier(table_name), sql.Identifier(order_column))
+        cursor.execute(query, (run_id,))
+        rows = cursor.fetchall()
+        if len(rows) != expected_count:
+            raise PersistenceIntegrityError(f"persisted {table_name} count mismatch")
+        payloads = []
+        for row in cast(list[tuple[bytes, str, str, str, str]], rows):
+            self._validate_record_metadata(
+                row[2],
+                row[3],
+                row[4],
+                expected_record_type,
+                expected_schema,
+            )
+            payload = bytes(row[0])
+            verify_sha256(payload, row[1].strip())
+            payloads.append(payload)
+        return tuple(payloads)

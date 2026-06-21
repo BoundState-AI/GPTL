@@ -11,7 +11,11 @@ from gptl.core.directives import (
     GovernedDisplayValue,
     TermDisplayValue,
 )
-from gptl.core.records import GovernedRef
+from gptl.core.records import (
+    GovernedRef,
+    GovernedReferenceConflictError,
+    sorted_unique_refs,
+)
 from gptl.core.semantic_types import JCS_MAX_SAFE_INTEGER
 from gptl.mie.service import SafeRefusalRequest
 from gptl.slice1_fixture import canonicalization_policy, display_registry
@@ -139,6 +143,19 @@ def test_malformed_hash_is_rejected() -> None:
             version_number=1,
             content_hash="not-a-sha256",
         )
+
+
+def test_conflicting_metadata_for_one_governed_identity_is_rejected() -> None:
+    original = GovernedRef(
+        logical_id="record.test",
+        version_id="record.test.v1",
+        version_number=1,
+        content_hash="0" * 64,
+    )
+    conflicting = original.model_copy(update={"content_hash": "f" * 64})
+
+    with pytest.raises(GovernedReferenceConflictError, match="conflicting"):
+        sorted_unique_refs((original, conflicting))
 
 
 def test_float_cannot_enter_a_decimal_field_by_coercion() -> None:
