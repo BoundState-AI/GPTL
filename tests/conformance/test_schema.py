@@ -5,6 +5,10 @@ from gptl.core.directives import (
     DecimalDisplayValue,
     DisplayDirective,
     DisplayParam,
+    DisplayParameterSpec,
+    DisplayTemplate,
+    DisplayTemplateRegistry,
+    GovernedDisplayValue,
     TermDisplayValue,
 )
 from gptl.core.records import GovernedRef
@@ -28,6 +32,26 @@ def _request(**overrides: object) -> dict[str, object]:
 
 def _context() -> dict[str, object]:
     return {"canonicalization_policy": canonicalization_policy()}
+
+
+def _registry_with_required_term() -> DisplayTemplateRegistry:
+    registry = display_registry()
+    original = registry.templates[0]
+    template = DisplayTemplate(
+        template_id=original.template_id,
+        template_ref=original.template_ref,
+        parameter_specs=(
+            DisplayParameterSpec(
+                key_id="param.required-term",
+                value_kind="TERM_REF",
+                required=True,
+            ),
+        ),
+    )
+    return DisplayTemplateRegistry(
+        registry_ref=registry.registry_ref,
+        templates=(template,),
+    )
 
 
 @pytest.mark.parametrize(
@@ -77,6 +101,34 @@ def test_unknown_display_parameter_is_rejected() -> None:
     )
     with pytest.raises(ValueError, match="unknown parameter"):
         display_registry().validate_directive(directive)
+
+
+def test_required_display_parameter_cannot_be_omitted() -> None:
+    registry = _registry_with_required_term()
+    directive = DisplayDirective(
+        template_id="action.provide-published-pack-version",
+        params=(),
+    )
+    with pytest.raises(ValueError, match="required parameter"):
+        registry.validate_directive(directive)
+
+
+def test_display_parameter_kind_must_match_registered_kind() -> None:
+    registry = _registry_with_required_term()
+    directive = DisplayDirective(
+        template_id="action.provide-published-pack-version",
+        params=(
+            DisplayParam(
+                key_id="param.required-term",
+                value=GovernedDisplayValue(
+                    kind="GOVERNED_REF",
+                    value=registry.registry_ref,
+                ),
+            ),
+        ),
+    )
+    with pytest.raises(ValueError, match="wrong value kind"):
+        registry.validate_directive(directive)
 
 
 def test_malformed_hash_is_rejected() -> None:

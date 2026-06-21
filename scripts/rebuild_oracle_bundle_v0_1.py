@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Build the deterministic single-file ORACLE review bundle."""
+"""Rebuild the immutable v0.1 ORACLE review bundle from its historical inputs."""
 
 from __future__ import annotations
 
 import hashlib
 from pathlib import Path
-
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = ROOT / "docs" / "GPTL_Manufacturing_Platform_v0.4.4.md"

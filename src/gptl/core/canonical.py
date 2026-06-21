@@ -6,12 +6,14 @@ import hashlib
 import unicodedata
 from decimal import Decimal, InvalidOperation, localcontext
 from enum import Enum
-from typing import Any
+from typing import Any, Final
 
 import rfc8785
 from pydantic import BaseModel
 
 from gptl.core.semantic_types import CanonicalizationPolicy
+
+DECIMAL_ROUNDING_CARRY_DIGITS: Final = 1
 
 
 class CanonicalizationError(ValueError):
@@ -31,7 +33,7 @@ def _canonical_decimal(value: Decimal, policy: CanonicalizationPolicy) -> str:
                     len(value.as_tuple().digits),
                     policy.decimal_max_integer_digits + policy.decimal_scale,
                 )
-                + 1
+                + DECIMAL_ROUNDING_CARRY_DIGITS
             )
             quantized = value.quantize(quantum, rounding=policy.decimal_rounding)
     except InvalidOperation as exc:

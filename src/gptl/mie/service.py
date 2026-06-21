@@ -46,7 +46,7 @@ class SafeRefusalPolicy(BaseModel):
     required_human_action: DisplayDirective
     display_registry: DisplayTemplateRegistry
 
-    def model_post_init(self, __context: object) -> None:
+    def model_post_init(self, context: object) -> None:
         self.display_registry.validate_directive(self.required_human_action)
 
 
@@ -67,7 +67,6 @@ def build_safe_refusal(
         raise PackAvailableForLaterSlice(
             "requested pack exists; execution is implemented by a later slice"
         )
-    policy.display_registry.validate_directive(policy.required_human_action)
     display_template = next(
         template
         for template in policy.display_registry.templates

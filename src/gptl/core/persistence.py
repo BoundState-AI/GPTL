@@ -46,6 +46,9 @@ class Migration:
 @dataclass(frozen=True)
 class StoredRun:
     run_id: str
+    record_type: str
+    schema_version: str
+    hash_algorithm: str
     payload: bytes
     payload_hash: str
     audit_payloads: tuple[bytes, ...]
@@ -167,6 +170,20 @@ class PostgresRunStore:
             sql.SQL("SET LOCAL search_path TO {}, pg_catalog").format(sql.Identifier(row[0]))
         )
 
+    @staticmethod
+    def _validate_record_metadata(
+        record_type: object,
+        schema_version: object,
+        hash_algorithm: object,
+        expected_record_type: str,
+    ) -> None:
+        if record_type != expected_record_type:
+            raise PersistenceIntegrityError("persisted record type mismatch")
+        if schema_version != SCHEMA_VERSION:
+            raise PersistenceIntegrityError("persisted schema version mismatch")
+        if hash_algorithm != HASH_ALGORITHM:
+            raise PersistenceIntegrityError("persisted hash algorithm mismatch")
+
     def persist_preflight_run(
         self,
         run_id: str,
@@ -258,16 +275,19 @@ class PostgresRunStore:
             with connection.cursor() as cursor:
                 self._pin_search_path(cursor)
                 cursor.execute(
-                    "SELECT payload, payload_hash, audit_count FROM gptl_runs WHERE run_id = %s",
+                    "SELECT payload, payload_hash, audit_count, record_type, "
+                    "schema_version, hash_algorithm FROM gptl_runs WHERE run_id = %s",
                     (run_id,),
                 )
                 row = cursor.fetchone()
                 if row is None:
                     return None
                 payload, payload_hash, audit_count = bytes(row[0]), row[1].strip(), row[2]
+                self._validate_record_metadata(row[3], row[4], row[5], TIER1_OUTPUT_RECORD_TYPE)
                 verify_sha256(payload, payload_hash)
                 cursor.execute(
-                    "SELECT payload, payload_hash FROM gptl_audit_events "
+                    "SELECT payload, payload_hash, record_type, schema_version, "
+                    "hash_algorithm FROM gptl_audit_events "
                     "WHERE run_id = %s ORDER BY sequence",
                     (run_id,),
                 )
@@ -275,8 +295,22 @@ class PostgresRunStore:
                 if len(audit_rows) != audit_count:
                     raise PersistenceIntegrityError("persisted audit count mismatch")
                 audit_payloads = []
-                for audit_payload, audit_hash in audit_rows:
-                    immutable_payload = bytes(audit_payload)
-                    verify_sha256(immutable_payload, audit_hash.strip())
+                for audit_row in audit_rows:
+                    self._validate_record_metadata(
+                        audit_row[2],
+                        audit_row[3],
+                        audit_row[4],
+                        PREFLIGHT_AUDIT_RECORD_TYPE,
+                    )
+                    immutable_payload = bytes(audit_row[0])
+                    verify_sha256(immutable_payload, audit_row[1].strip())
                     audit_payloads.append(immutable_payload)
-                return StoredRun(run_id, payload, payload_hash, tuple(audit_payloads))
+                return StoredRun(
+                    run_id=run_id,
+                    record_type=TIER1_OUTPUT_RECORD_TYPE,
+                    schema_version=SCHEMA_VERSION,
+                    hash_algorithm=HASH_ALGORITHM,
+                    payload=payload,
+                    payload_hash=payload_hash,
+                    audit_payloads=tuple(audit_payloads),
+                )

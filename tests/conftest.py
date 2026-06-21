@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import socket
+import stat
 import subprocess
 import tempfile
 from collections.abc import Iterator
@@ -35,9 +37,27 @@ def _unused_tcp_port() -> int:
         return listener.getsockname()[1]
 
 
+def _postgres_temp_directory() -> Path:
+    # WSL may inherit Windows TEMP on drvfs, where chmod cannot establish the
+    # owner-only directory required by Linux PostgreSQL.
+    candidate_bases: tuple[Path | None, ...] = (None,) if os.name == "nt" else (None, Path.home())
+    for base in candidate_bases:
+        root = Path(tempfile.mkdtemp(prefix="gptl-postgres-", dir=base))
+        if os.name == "nt":
+            return root
+        try:
+            root.chmod(0o700)
+            if stat.S_IMODE(root.stat().st_mode) == 0o700:
+                return root
+        except OSError:
+            pass
+        shutil.rmtree(root, ignore_errors=True)
+    raise RuntimeError("no temporary filesystem can enforce PostgreSQL permissions")
+
+
 @pytest.fixture(scope="session")
 def postgres_cluster_url() -> Iterator[str]:
-    root = Path(tempfile.mkdtemp(prefix="gptl-postgres-", dir="/tmp"))
+    root = _postgres_temp_directory()
     data_directory = root / "data"
     socket_directory = root / "socket"
     socket_directory.mkdir()

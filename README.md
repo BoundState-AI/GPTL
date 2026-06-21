@@ -31,4 +31,4 @@ uv run pytest -q
 uv run python scripts/run_slice.py safe-refusal --database-url "$GPTL_DATABASE_URL"
 ```
 
-The database URL is mandatory. There is no embedded-database fallback or application default. The ORACLE v0.1 review bundle remains an immutable historical review input.
+The database URL is mandatory. There is no embedded-database fallback or application default. The ORACLE v0.1 review bundle remains an immutable historical review input; `scripts/rebuild_oracle_bundle_v0_1.py` reproduces that artifact and intentionally does not use the active contract.
