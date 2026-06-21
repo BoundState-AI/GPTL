@@ -3,24 +3,44 @@
 from __future__ import annotations
 
 import hashlib
+import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.resources import files
-from typing import Sequence
+from typing import Final, Protocol, cast
 
 import psycopg
+from psycopg import sql
 
 from gptl.core.audit import PreflightRefusalAuditEvent
 from gptl.core.canonical import canonical_bytes, canonical_sha256, verify_sha256
 from gptl.core.semantic_types import CanonicalizationPolicy
 from gptl.mie.schema import Tier1Output
 
-
-SCHEMA_VERSION = "gptl.slice1.v1"
-MIGRATION_ID = "0001_slice_1"
+SCHEMA_VERSION: Final = "gptl.slice1.v1"
+HASH_ALGORITHM: Final = "SHA-256"
+TIER1_OUTPUT_RECORD_TYPE: Final = "TIER1_OUTPUT"
+PREFLIGHT_AUDIT_RECORD_TYPE: Final = "PREFLIGHT_REFUSAL_AUDIT_EVENT"
+MIGRATION_FILE_PATTERN = re.compile(r"^(?P<ordinal>\d{4})_[a-z0-9_]+\.sql$")
 
 
 class PersistenceIntegrityError(RuntimeError):
     pass
+
+
+class MigrationResource(Protocol):
+    @property
+    def name(self) -> str: ...
+
+    def read_text(self, encoding: str | None = None) -> str: ...
+
+
+@dataclass(frozen=True)
+class Migration:
+    ordinal: int
+    migration_id: str
+    payload: str
+    payload_hash: str
 
 
 @dataclass(frozen=True)
@@ -32,8 +52,6 @@ class StoredRun:
 
 
 class PostgresRunStore:
-    """Persist canonical runs without database selection or policy defaults."""
-
     def __init__(self, database_url: str, policy: CanonicalizationPolicy) -> None:
         if not database_url:
             raise ValueError("an explicit PostgreSQL database URL is required")
@@ -43,42 +61,111 @@ class PostgresRunStore:
         self._policy = policy
 
     def initialize(self) -> None:
-        """Apply the immutable Slice 1 migration or reject checksum drift."""
-
-        migration_path = files("gptl.core").joinpath("migrations/0001_slice_1.sql")
-        migration_sql = migration_path.read_text(encoding="utf-8")
-        migration_hash = hashlib.sha256(migration_sql.encode("utf-8")).hexdigest()
+        migrations = self._load_migrations()
         with psycopg.connect(self._database_url) as connection:
             with connection.transaction():
                 with connection.cursor() as cursor:
+                    self._pin_search_path(cursor)
                     cursor.execute(
                         """
-                        SELECT to_regclass('public.gptl_schema_migrations')
+                        SELECT to_regclass('gptl_schema_migrations')
                         """
                     )
-                    exists = cursor.fetchone()[0] is not None
-                    if exists:
-                        # Reusing a migration ID for different SQL would make two
-                        # nominally identical installations enforce different rules.
-                        cursor.execute(
-                            "SELECT migration_hash FROM gptl_schema_migrations "
-                            "WHERE migration_id = %s",
-                            (MIGRATION_ID,),
+                    existence_row = cursor.fetchone()
+                    if existence_row is None:
+                        raise PersistenceIntegrityError(
+                            "PostgreSQL did not return schema existence state"
                         )
-                        row = cursor.fetchone()
-                        if row is None:
-                            raise PersistenceIntegrityError(
-                                "database schema exists without required migration"
-                            )
-                        if row[0].strip() != migration_hash:
-                            raise PersistenceIntegrityError("migration checksum mismatch")
-                        return
-                    cursor.execute(migration_sql)
-                    cursor.execute(
-                        "INSERT INTO gptl_schema_migrations "
-                        "(migration_id, migration_hash) VALUES (%s, %s)",
-                        (MIGRATION_ID, migration_hash),
-                    )
+                    exists = existence_row[0] is not None
+                    applied = self._load_applied_migrations(cursor) if exists else {}
+                    if exists:
+                        self._validate_migration_history(migrations, applied)
+
+                    for migration in migrations:
+                        applied_hash = applied.get(migration.migration_id)
+                        if applied_hash is not None:
+                            # A migration ID is historical identity. Accepting new SQL
+                            # under it would make replay semantics installation-dependent.
+                            if applied_hash != migration.payload_hash:
+                                raise PersistenceIntegrityError(
+                                    f"migration checksum mismatch: {migration.migration_id}"
+                                )
+                            continue
+                        cursor.execute(migration.payload)
+                        cursor.execute(
+                            "INSERT INTO gptl_schema_migrations "
+                            "(migration_id, migration_hash) VALUES (%s, %s)",
+                            (migration.migration_id, migration.payload_hash),
+                        )
+
+    @staticmethod
+    def _load_migrations() -> tuple[Migration, ...]:
+        migration_root = files("gptl.core").joinpath("migrations")
+        migration_files = sorted(
+            (
+                entry
+                for entry in migration_root.iterdir()
+                if entry.is_file() and MIGRATION_FILE_PATTERN.fullmatch(entry.name)
+            ),
+            key=lambda entry: entry.name,
+        )
+        if not migration_files:
+            raise PersistenceIntegrityError("no PostgreSQL migrations are packaged")
+        migrations = tuple(PostgresRunStore._read_migration(path) for path in migration_files)
+        if tuple(migration.ordinal for migration in migrations) != tuple(
+            range(1, len(migrations) + 1)
+        ):
+            raise PersistenceIntegrityError(
+                "PostgreSQL migration ordinals must be contiguous and start at 0001"
+            )
+        return migrations
+
+    @staticmethod
+    def _read_migration(path: MigrationResource) -> Migration:
+        payload = path.read_text(encoding="utf-8")
+        match = MIGRATION_FILE_PATTERN.fullmatch(path.name)
+        if match is None:
+            raise PersistenceIntegrityError(f"invalid migration filename: {path.name}")
+        return Migration(
+            ordinal=int(match.group("ordinal")),
+            migration_id=path.name.removesuffix(".sql"),
+            payload=payload,
+            payload_hash=hashlib.sha256(payload.encode("utf-8")).hexdigest(),
+        )
+
+    @staticmethod
+    def _load_applied_migrations(
+        cursor: psycopg.Cursor[tuple[object, ...]],
+    ) -> dict[str, str]:
+        cursor.execute(
+            "SELECT migration_id, migration_hash FROM gptl_schema_migrations ORDER BY migration_id"
+        )
+        rows = cast(list[tuple[str, str]], cursor.fetchall())
+        return {migration_id: migration_hash.strip() for migration_id, migration_hash in rows}
+
+    @staticmethod
+    def _validate_migration_history(
+        migrations: tuple[Migration, ...],
+        applied: dict[str, str],
+    ) -> None:
+        packaged_ids = tuple(migration.migration_id for migration in migrations)
+        applied_ids = tuple(applied)
+        if not applied_ids or applied_ids != packaged_ids[: len(applied_ids)]:
+            raise PersistenceIntegrityError(
+                "applied migrations must be an exact prefix of packaged migrations"
+            )
+
+    @staticmethod
+    def _pin_search_path(cursor: psycopg.Cursor[tuple[object, ...]]) -> None:
+        cursor.execute("SELECT current_schema()")
+        row = cursor.fetchone()
+        if row is None or not isinstance(row[0], str):
+            raise PersistenceIntegrityError("PostgreSQL connection has no active schema")
+        # Later search-path entries must not be able to shadow GPTL relations or
+        # change which objects a trigger function resolves after publication.
+        cursor.execute(
+            sql.SQL("SET LOCAL search_path TO {}, pg_catalog").format(sql.Identifier(row[0]))
+        )
 
     def persist_preflight_run(
         self,
@@ -86,8 +173,6 @@ class PostgresRunStore:
         output: Tier1Output,
         audit_events: Sequence[PreflightRefusalAuditEvent],
     ) -> None:
-        """Atomically persist one preflight envelope and its complete audit set."""
-
         if output.decision.context.context_kind != "PREFLIGHT":
             raise ValueError("persist_preflight_run accepts PREFLIGHT decisions only")
         if tuple(output.decision.audit_event_ids) != tuple(
@@ -96,16 +181,29 @@ class PostgresRunStore:
             raise ValueError("decision audit IDs do not match supplied events")
         if any(event.run_id != run_id for event in audit_events):
             raise ValueError("audit event run ID mismatch")
+        if tuple(event.sequence for event in audit_events) != tuple(range(len(audit_events))):
+            raise ValueError("audit event sequence must be contiguous and zero-based")
         if canonical_sha256(output.decision, self._policy) != output.decision_hash:
             raise PersistenceIntegrityError("decision checksum mismatch")
+        if any(event.decision_hash != output.decision_hash for event in audit_events):
+            raise ValueError("audit event decision hash mismatch")
+        if any(
+            event.requested_pack_id != output.decision.context.requested_pack_id
+            for event in audit_events
+        ):
+            raise ValueError("audit event requested pack mismatch")
+        if any(event.as_of_time != output.decision.as_of_time for event in audit_events):
+            raise ValueError("audit event as_of_time mismatch")
 
         output_payload = canonical_bytes(output, self._policy)
         output_hash = hashlib.sha256(output_payload).hexdigest()
         with psycopg.connect(self._database_url) as connection:
-            # The run row deliberately precedes its FK-dependent audit rows inside
-            # one transaction; any audit failure aborts both, leaving no partial run.
+            # The FK requires the run first, but exposing it without its audit would
+            # violate the record contract; one transaction makes either both durable
+            # or neither visible.
             with connection.transaction():
                 with connection.cursor() as cursor:
+                    self._pin_search_path(cursor)
                     cursor.execute(
                         """
                         INSERT INTO gptl_runs (
@@ -119,9 +217,9 @@ class PostgresRunStore:
                             output.decision.case_id,
                             output.decision.context.context_kind,
                             output.decision.as_of_time,
-                            "TIER1_OUTPUT",
+                            TIER1_OUTPUT_RECORD_TYPE,
                             SCHEMA_VERSION,
-                            "SHA-256",
+                            HASH_ALGORITHM,
                             output_hash,
                             output_payload,
                             len(audit_events),
@@ -147,22 +245,20 @@ class PostgresRunStore:
                     event.event_id,
                     event.run_id,
                     event.sequence,
-                    "PREFLIGHT_REFUSAL_AUDIT_EVENT",
+                    PREFLIGHT_AUDIT_RECORD_TYPE,
                     SCHEMA_VERSION,
-                    "SHA-256",
+                    HASH_ALGORITHM,
                     canonical_sha256(event, self._policy),
                     payload,
                 ),
             )
 
     def load_run(self, run_id: str) -> StoredRun | None:
-        """Load a complete run only after verifying every persisted checksum."""
-
         with psycopg.connect(self._database_url) as connection:
             with connection.cursor() as cursor:
+                self._pin_search_path(cursor)
                 cursor.execute(
-                    "SELECT payload, payload_hash, audit_count FROM gptl_runs "
-                    "WHERE run_id = %s",
+                    "SELECT payload, payload_hash, audit_count FROM gptl_runs WHERE run_id = %s",
                     (run_id,),
                 )
                 row = cursor.fetchone()

@@ -8,6 +8,7 @@ from gptl.core.directives import (
     TermDisplayValue,
 )
 from gptl.core.records import GovernedRef
+from gptl.core.semantic_types import JCS_MAX_SAFE_INTEGER
 from gptl.mie.service import SafeRefusalRequest
 from gptl.slice1_fixture import canonicalization_policy, display_registry
 
@@ -50,9 +51,7 @@ def test_malformed_identifiers_are_rejected(field: str, value: str) -> None:
 )
 def test_noncanonical_timestamps_are_rejected(timestamp: str) -> None:
     with pytest.raises(ValidationError):
-        SafeRefusalRequest.model_validate(
-            _request(as_of_time=timestamp), context=_context()
-        )
+        SafeRefusalRequest.model_validate(_request(as_of_time=timestamp), context=_context())
 
 
 def test_timestamp_policy_context_is_mandatory() -> None:
@@ -93,3 +92,14 @@ def test_malformed_hash_is_rejected() -> None:
 def test_float_cannot_enter_a_decimal_field_by_coercion() -> None:
     with pytest.raises(ValidationError):
         DecimalDisplayValue(kind="DECIMAL", value=0.1, unit_id=None)
+
+
+@pytest.mark.parametrize("version_number", (True, JCS_MAX_SAFE_INTEGER + 1))
+def test_record_versions_are_strict_jcs_safe_integers(version_number: object) -> None:
+    with pytest.raises(ValidationError):
+        GovernedRef(
+            logical_id="record.test",
+            version_id="record.test.v1",
+            version_number=version_number,
+            content_hash="0" * 64,
+        )

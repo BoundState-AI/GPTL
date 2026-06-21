@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import shutil
 import socket
 import subprocess
@@ -46,62 +47,61 @@ def postgres_cluster_url() -> Iterator[str]:
     initdb = _postgres_binary("initdb")
     pg_ctl = _postgres_binary("pg_ctl")
 
-    subprocess.run(
-        [
-            initdb,
-            "--pgdata",
-            str(data_directory),
-            "--username",
-            database_user,
-            "--auth",
-            "trust",
-            "--no-locale",
-            "--encoding",
-            "UTF8",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    server_options = (
-        f"-F -h 127.0.0.1 -p {port} -k {socket_directory} "
-        "-c log_statement=none"
-    )
-    subprocess.run(
-        [
-            pg_ctl,
-            "--pgdata",
-            str(data_directory),
-            "--log",
-            str(log_path),
-            "--options",
-            server_options,
-            "--wait",
-            "start",
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    started = False
     try:
-        yield f"postgresql://{database_user}@127.0.0.1:{port}/postgres"
-    finally:
         subprocess.run(
-            [pg_ctl, "--pgdata", str(data_directory), "--wait", "stop"],
+            [
+                initdb,
+                "--pgdata",
+                str(data_directory),
+                "--username",
+                database_user,
+                "--auth",
+                "trust",
+                "--no-locale",
+                "--encoding",
+                "UTF8",
+            ],
             check=True,
             capture_output=True,
             text=True,
         )
-        shutil.rmtree(root)
+        server_options = f"-F -h 127.0.0.1 -p {port} -k {socket_directory} -c log_statement=none"
+        subprocess.run(
+            [
+                pg_ctl,
+                "--pgdata",
+                str(data_directory),
+                "--log",
+                str(log_path),
+                "--options",
+                server_options,
+                "--wait",
+                "start",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        started = True
+        yield f"postgresql://{database_user}@127.0.0.1:{port}/postgres"
+    finally:
+        try:
+            if started:
+                subprocess.run(
+                    [pg_ctl, "--pgdata", str(data_directory), "--wait", "stop"],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+        finally:
+            shutil.rmtree(root, ignore_errors=True)
 
 
 @pytest.fixture
 def postgres_url(postgres_cluster_url: str, request: pytest.FixtureRequest) -> str:
-    database_name = "test_" + "".join(
-        character if character.isalnum() else "_" for character in request.node.name
-    )
+    node_hash = hashlib.sha256(request.node.nodeid.encode("utf-8")).hexdigest()
+    database_name = f"gptl_{node_hash[:24]}"
     with psycopg.connect(postgres_cluster_url, autocommit=True) as connection:
-        connection.execute(
-            sql.SQL("CREATE DATABASE {}").format(sql.Identifier(database_name))
-        )
+        connection.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(database_name)))
     return postgres_cluster_url.rsplit("/", 1)[0] + "/" + database_name

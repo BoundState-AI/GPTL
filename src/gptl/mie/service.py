@@ -13,8 +13,8 @@ from gptl.core.directives import DisplayDirective, DisplayTemplateRegistry
 from gptl.core.pack_registry import ExactPackRegistry
 from gptl.core.persistence import PostgresRunStore
 from gptl.core.semantic_types import (
-    CanonicalTimestamp,
     CanonicalizationPolicy,
+    CanonicalTimestamp,
     OpaqueId,
     TermId,
 )
@@ -22,7 +22,7 @@ from gptl.mie.schema import RefusalDecision, RefusalType, Tier1Output
 
 
 class PackAvailableForLaterSlice(RuntimeError):
-    """The request passed Slice 1 preflight and belongs to a later slice."""
+    pass
 
 
 class SafeRefusalRequest(BaseModel):
@@ -43,12 +43,12 @@ class SafeRefusalPolicy(BaseModel):
     engine_version: OpaqueId
     failure_stage_id: TermId
     audit_event_type_id: TermId
-    refusal_type_id: TermId
     required_human_action: DisplayDirective
     display_registry: DisplayTemplateRegistry
 
     def model_post_init(self, __context: object) -> None:
         self.display_registry.validate_directive(self.required_human_action)
+
 
 @dataclass(frozen=True)
 class SafeRefusalResult:
@@ -61,10 +61,8 @@ def build_safe_refusal(
     pack_registry: ExactPackRegistry,
     policy: SafeRefusalPolicy,
 ) -> SafeRefusalResult:
-    """Build the only honest Slice 1 result when an exact pack ID is absent."""
-
-    # Pack presence crosses the Slice 1 authority boundary. Stop before inventing
-    # later execution behavior or misclassifying an available pack as unavailable.
+    # A present pack cannot truthfully produce PACK_VERSION_UNAVAILABLE, while
+    # executing it here would claim authority assigned to Slice 2.
     if pack_registry.contains_exact(request.requested_pack_id):
         raise PackAvailableForLaterSlice(
             "requested pack exists; execution is implemented by a later slice"
@@ -120,7 +118,7 @@ def build_safe_refusal(
             "event_type_id": policy.audit_event_type_id,
             "decision_hash": decision_hash,
             "requested_pack_id": request.requested_pack_id,
-            "refusal_type_id": policy.refusal_type_id,
+            "refusal_type": RefusalType.PACK_VERSION_UNAVAILABLE,
             "display_registry_ref": policy.display_registry.registry_ref,
             "display_template_ref": display_template.template_ref,
             "as_of_time": request.as_of_time,

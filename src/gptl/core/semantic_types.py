@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from decimal import ROUND_HALF_EVEN
-from typing import Annotated, Literal, NewType
+from typing import Annotated, Final, Literal, NewType
 
 from pydantic import (
     AfterValidator,
@@ -16,13 +15,20 @@ from pydantic import (
     ValidationInfo,
 )
 
-
 OpaqueId = Annotated[
     str,
     StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]*$"),
 ]
 Sha256Hex = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
-NonNegativeInt = Annotated[int, Field(ge=0)]
+JCS_MAX_SAFE_INTEGER: Final = 9_007_199_254_740_991
+NonNegativeInt = Annotated[
+    int,
+    Field(strict=True, ge=0, le=JCS_MAX_SAFE_INTEGER),
+]
+PositiveInt = Annotated[
+    int,
+    Field(strict=True, ge=1, le=JCS_MAX_SAFE_INTEGER),
+]
 CanonicalDecimal = Annotated[Decimal, Field(strict=True)]
 
 LogicalId = NewType("LogicalId", OpaqueId)
@@ -35,15 +41,13 @@ EvidenceLocator = NewType("EvidenceLocator", OpaqueId)
 
 
 class CanonicalizationPolicy(BaseModel):
-    """Explicit numeric and timestamp policy required by authoritative paths."""
-
     model_config = ConfigDict(extra="forbid", frozen=True)
     policy_id: OpaqueId
     policy_version: OpaqueId
-    timestamp_fraction_digits: Annotated[int, Field(ge=1)]
+    timestamp_fraction_digits: PositiveInt
     decimal_scale: NonNegativeInt
-    decimal_rounding: Literal[ROUND_HALF_EVEN]
-    decimal_max_integer_digits: Annotated[int, Field(ge=1)]
+    decimal_rounding: Literal["ROUND_HALF_EVEN"]
+    decimal_max_integer_digits: PositiveInt
     decimal_overflow: Literal["REJECT"]
 
 
@@ -78,8 +82,6 @@ def _validate_canonical_timestamp(value: str, info: ValidationInfo) -> str:
 
 CanonicalTimestamp = Annotated[
     str,
-    StringConstraints(
-        pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$"
-    ),
+    StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$"),
     AfterValidator(_validate_canonical_timestamp),
 ]

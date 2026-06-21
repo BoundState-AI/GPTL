@@ -15,7 +15,7 @@ from gptl.core.semantic_types import CanonicalizationPolicy
 
 
 class CanonicalizationError(ValueError):
-    """Raised when a value cannot enter an authoritative canonical payload."""
+    pass
 
 
 def _canonical_decimal(value: Decimal, policy: CanonicalizationPolicy) -> str:
@@ -24,13 +24,25 @@ def _canonical_decimal(value: Decimal, policy: CanonicalizationPolicy) -> str:
     quantum = Decimal(1).scaleb(-policy.decimal_scale)
     try:
         with localcontext() as context:
-            context.prec = max(len(value.as_tuple().digits) + policy.decimal_scale + 2, 28)
+            # Rounding can carry into one additional integer digit. Preserve that
+            # carry so the declared overflow rule, not Decimal context, rejects it.
+            context.prec = (
+                max(
+                    len(value.as_tuple().digits),
+                    policy.decimal_max_integer_digits + policy.decimal_scale,
+                )
+                + 1
+            )
             quantized = value.quantize(quantum, rounding=policy.decimal_rounding)
     except InvalidOperation as exc:
         raise CanonicalizationError("Decimal exceeds canonical policy capacity") from exc
     integer_digits = max(quantized.copy_abs().adjusted() + 1, 1)
     if integer_digits > policy.decimal_max_integer_digits:
         raise CanonicalizationError("Decimal exceeds declared overflow limit")
+    # Signed zero compares equal but serializes differently; retaining its sign
+    # would make decision hashes depend on a non-semantic representation detail.
+    if quantized.is_zero():
+        quantized = quantized.copy_abs()
     return format(quantized, f".{policy.decimal_scale}f")
 
 
@@ -67,8 +79,6 @@ def _normalize(value: Any, policy: CanonicalizationPolicy) -> Any:
 
 
 def canonical_bytes(value: Any, policy: CanonicalizationPolicy) -> bytes:
-    """Return RFC 8785 bytes after GPTL NFC and Decimal normalization."""
-
     try:
         return rfc8785.dumps(_normalize(value, policy))
     except (rfc8785.CanonicalizationError, UnicodeError) as exc:

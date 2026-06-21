@@ -24,6 +24,9 @@ Slice 1 implements deterministic safe refusal, RFC 8785 canonical hashing, gover
 
 ```bash
 uv sync --group dev
+uv run ruff check src tests scripts/run_slice.py
+uv run ruff format --check src tests scripts/run_slice.py
+uv run mypy src
 uv run pytest -q
 uv run python scripts/run_slice.py safe-refusal --database-url "$GPTL_DATABASE_URL"
 ```

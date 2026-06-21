@@ -69,7 +69,7 @@ class CandidateAssessment(BaseModel):
     rule_refs: tuple[GovernedRef, ...]
 
     @model_validator(mode="after")
-    def validate_reference_order(self) -> "CandidateAssessment":
+    def validate_reference_order(self) -> CandidateAssessment:
         for values, label in (
             (self.evidence_refs, "evidence_refs"),
             (self.rule_refs, "rule_refs"),
@@ -112,7 +112,7 @@ class RefusalDecision(DecisionHeader):
     audit_event_ids: tuple[OpaqueId, ...]
 
     @model_validator(mode="after")
-    def validate_preflight_boundary(self) -> "RefusalDecision":
+    def validate_preflight_boundary(self) -> RefusalDecision:
         if self.method_ref is not None or self.assessments or self.citations:
             raise ValueError("preflight refusal cannot contain bound evidence records")
         for values, label in (

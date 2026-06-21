@@ -34,6 +34,13 @@ def test_decimal_uses_explicit_fixed_scale_policy() -> None:
     assert payload == b'{"value":"1.2000"}'
 
 
+def test_signed_decimal_zero_has_one_canonical_representation() -> None:
+    policy = canonicalization_policy()
+    assert canonical_bytes({"value": Decimal("-0")}, policy) == canonical_bytes(
+        {"value": Decimal("0")}, policy
+    )
+
+
 def test_decimal_overflow_is_rejected_by_explicit_policy() -> None:
     with pytest.raises(CanonicalizationError, match="overflow limit"):
         canonical_bytes(

@@ -22,7 +22,7 @@ class PreflightRefusalAuditEvent(BaseModel):
     event_type_id: TermId
     decision_hash: Sha256Hex
     requested_pack_id: OpaqueId | None
-    refusal_type_id: TermId
+    refusal_type: Literal["PACK_VERSION_UNAVAILABLE"]
     display_registry_ref: GovernedRef
     display_template_ref: GovernedRef
     as_of_time: CanonicalTimestamp

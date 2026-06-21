@@ -47,7 +47,7 @@ class DisplayDirective(BaseModel):
     params: tuple[DisplayParam, ...]
 
     @model_validator(mode="after")
-    def validate_param_order(self) -> "DisplayDirective":
+    def validate_param_order(self) -> DisplayDirective:
         keys = tuple(param.key_id for param in self.params)
         if len(keys) != len(set(keys)):
             raise ValueError("display parameter keys must be unique")
@@ -73,7 +73,7 @@ class DisplayTemplate(BaseModel):
     parameter_specs: tuple[DisplayParameterSpec, ...]
 
     @model_validator(mode="after")
-    def validate_spec_order(self) -> "DisplayTemplate":
+    def validate_spec_order(self) -> DisplayTemplate:
         keys = tuple(spec.key_id for spec in self.parameter_specs)
         if len(keys) != len(set(keys)):
             raise ValueError("template parameter keys must be unique")
@@ -88,7 +88,7 @@ class DisplayTemplateRegistry(BaseModel):
     templates: tuple[DisplayTemplate, ...]
 
     @model_validator(mode="after")
-    def validate_template_order(self) -> "DisplayTemplateRegistry":
+    def validate_template_order(self) -> DisplayTemplateRegistry:
         ids = tuple(template.template_id for template in self.templates)
         if len(ids) != len(set(ids)):
             raise ValueError("template IDs must be unique")
@@ -113,9 +113,7 @@ class DisplayTemplateRegistry(BaseModel):
         unknown = set(supplied) - set(allowed)
         if unknown:
             raise ValueError("display directive contains an unknown parameter")
-        missing = {
-            key for key, spec in allowed.items() if spec.required and key not in supplied
-        }
+        missing = {key for key, spec in allowed.items() if spec.required and key not in supplied}
         if missing:
             raise ValueError("display directive omits a required parameter")
         if any(supplied[key] != allowed[key].value_kind for key in supplied):

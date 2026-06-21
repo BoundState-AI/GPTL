@@ -1,7 +1,6 @@
 """Fixed synthetic Slice 1 records used by the demo and acceptance tests."""
 
 import hashlib
-from decimal import ROUND_HALF_EVEN
 
 from gptl.core.directives import (
     DisplayDirective,
@@ -10,7 +9,13 @@ from gptl.core.directives import (
 )
 from gptl.core.pack_registry import ExactPackRegistry
 from gptl.core.records import GovernedRef
-from gptl.core.semantic_types import CanonicalizationPolicy
+from gptl.core.semantic_types import (
+    CanonicalizationPolicy,
+    LogicalId,
+    TemplateId,
+    TermId,
+    VersionId,
+)
 from gptl.mie.service import SafeRefusalPolicy, SafeRefusalRequest
 
 
@@ -24,7 +29,7 @@ def canonicalization_policy() -> CanonicalizationPolicy:
         policy_version="1",
         timestamp_fraction_digits=3,
         decimal_scale=4,
-        decimal_rounding=ROUND_HALF_EVEN,
+        decimal_rounding="ROUND_HALF_EVEN",
         decimal_max_integer_digits=18,
         decimal_overflow="REJECT",
     )
@@ -33,17 +38,17 @@ def canonicalization_policy() -> CanonicalizationPolicy:
 def display_registry() -> DisplayTemplateRegistry:
     return DisplayTemplateRegistry(
         registry_ref=GovernedRef(
-            logical_id="display-registry.slice1",
-            version_id="display-registry.slice1.v1",
+            logical_id=LogicalId("display-registry.slice1"),
+            version_id=VersionId("display-registry.slice1.v1"),
             version_number=1,
             content_hash=_fixture_hash("fixture:display-registry.slice1:v1"),
         ),
         templates=(
             DisplayTemplate(
-                template_id="action.provide-published-pack-version",
+                template_id=TemplateId("action.provide-published-pack-version"),
                 template_ref=GovernedRef(
-                    logical_id="template.provide-published-pack-version",
-                    version_id="template.provide-published-pack-version.v1",
+                    logical_id=LogicalId("template.provide-published-pack-version"),
+                    version_id=VersionId("template.provide-published-pack-version.v1"),
                     version_number=1,
                     content_hash=_fixture_hash(
                         "fixture:template.provide-published-pack-version:v1"
@@ -62,11 +67,10 @@ def safe_refusal_policy() -> SafeRefusalPolicy:
         operational_mode="RESEARCH_ONLY",
         engine_id="mie.diagnostic-engine",
         engine_version="slice1.v1",
-        failure_stage_id="preflight.pack-resolution",
-        audit_event_type_id="audit.preflight-refusal",
-        refusal_type_id="refusal.pack-version-unavailable",
+        failure_stage_id=TermId("preflight.pack-resolution"),
+        audit_event_type_id=TermId("audit.preflight-refusal"),
         required_human_action=DisplayDirective(
-            template_id="action.provide-published-pack-version",
+            template_id=TemplateId("action.provide-published-pack-version"),
             params=(),
         ),
         display_registry=registry,
