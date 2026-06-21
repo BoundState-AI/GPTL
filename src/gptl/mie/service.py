@@ -63,6 +63,8 @@ def build_safe_refusal(
 ) -> SafeRefusalResult:
     """Build the only honest Slice 1 result when an exact pack ID is absent."""
 
+    # Pack presence crosses the Slice 1 authority boundary. Stop before inventing
+    # later execution behavior or misclassifying an available pack as unavailable.
     if pack_registry.contains_exact(request.requested_pack_id):
         raise PackAvailableForLaterSlice(
             "requested pack exists; execution is implemented by a later slice"

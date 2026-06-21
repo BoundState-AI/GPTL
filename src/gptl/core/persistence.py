@@ -32,6 +32,8 @@ class StoredRun:
 
 
 class PostgresRunStore:
+    """Persist canonical runs without database selection or policy defaults."""
+
     def __init__(self, database_url: str, policy: CanonicalizationPolicy) -> None:
         if not database_url:
             raise ValueError("an explicit PostgreSQL database URL is required")
@@ -41,6 +43,8 @@ class PostgresRunStore:
         self._policy = policy
 
     def initialize(self) -> None:
+        """Apply the immutable Slice 1 migration or reject checksum drift."""
+
         migration_path = files("gptl.core").joinpath("migrations/0001_slice_1.sql")
         migration_sql = migration_path.read_text(encoding="utf-8")
         migration_hash = hashlib.sha256(migration_sql.encode("utf-8")).hexdigest()
@@ -54,6 +58,8 @@ class PostgresRunStore:
                     )
                     exists = cursor.fetchone()[0] is not None
                     if exists:
+                        # Reusing a migration ID for different SQL would make two
+                        # nominally identical installations enforce different rules.
                         cursor.execute(
                             "SELECT migration_hash FROM gptl_schema_migrations "
                             "WHERE migration_id = %s",
@@ -80,6 +86,8 @@ class PostgresRunStore:
         output: Tier1Output,
         audit_events: Sequence[PreflightRefusalAuditEvent],
     ) -> None:
+        """Atomically persist one preflight envelope and its complete audit set."""
+
         if output.decision.context.context_kind != "PREFLIGHT":
             raise ValueError("persist_preflight_run accepts PREFLIGHT decisions only")
         if tuple(output.decision.audit_event_ids) != tuple(
@@ -94,6 +102,8 @@ class PostgresRunStore:
         output_payload = canonical_bytes(output, self._policy)
         output_hash = hashlib.sha256(output_payload).hexdigest()
         with psycopg.connect(self._database_url) as connection:
+            # The run row deliberately precedes its FK-dependent audit rows inside
+            # one transaction; any audit failure aborts both, leaving no partial run.
             with connection.transaction():
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -146,6 +156,8 @@ class PostgresRunStore:
             )
 
     def load_run(self, run_id: str) -> StoredRun | None:
+        """Load a complete run only after verifying every persisted checksum."""
+
         with psycopg.connect(self._database_url) as connection:
             with connection.cursor() as cursor:
                 cursor.execute(

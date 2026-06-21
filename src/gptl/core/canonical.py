@@ -57,6 +57,8 @@ def _normalize(value: Any, policy: CanonicalizationPolicy) -> Any:
             if not isinstance(key, str):
                 raise CanonicalizationError("authoritative object keys must be strings")
             canonical_key = unicodedata.normalize("NFC", key)
+            # NFC may collapse visually equivalent source keys. Reject instead of
+            # allowing iteration order to decide which authoritative value survives.
             if canonical_key in normalized:
                 raise CanonicalizationError("duplicate object key after NFC normalization")
             normalized[canonical_key] = _normalize(item, policy)
