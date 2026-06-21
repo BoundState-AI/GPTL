@@ -10,11 +10,12 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from gptl.core.audit import SnapshotDecisionAuditEvent
 from gptl.core.canonical import canonical_sha256
 from gptl.core.directives import DisplayDirective, DisplayTemplateRegistry
-from gptl.core.persistence import PostgresRunStore
+from gptl.core.persistence import SNAPSHOT_RUN_SCHEMA_VERSION, PostgresRunStore
 from gptl.core.ratification import (
     IntakeRecord,
     IntakeValue,
     RatificationEvent,
+    RatificationGateResult,
     evaluate_ratification_gate,
 )
 from gptl.core.records import GovernedRef
@@ -26,12 +27,13 @@ from gptl.core.semantic_types import (
     TermId,
 )
 from gptl.core.snapshot import KnowledgeSnapshot, build_snapshot, snapshot_hash
+from gptl.mie.calibration import CalibrationEvaluation
 from gptl.mie.candidates import (
     CandidatePackConfigurationError,
     CandidateSetResult,
     load_candidate_set,
 )
-from gptl.mie.predicates import ApplicabilityTruth, ContextValue
+from gptl.mie.predicates import ApplicabilityEvaluation, ApplicabilityTruth, ContextValue
 from gptl.mie.records import CandidatePack
 from gptl.mie.schema import (
     AdvisoryDecision,
@@ -70,6 +72,10 @@ class Slice2Policy(BaseModel):
     integrity_action: DisplayDirective
     unratified_next_step: DisplayDirective
     tier1_unratified_gap_id: TermId
+    unratified_route_reason_id: TermId
+    integrity_failure_route_reason_id: TermId
+    configuration_invalid_route_reason_id: TermId
+    missing_context_route_reason_id: TermId
     snapshot_refusal_event_type_id: TermId
     advisory_event_type_id: TermId
     required_measurement_ids: tuple[TermId, ...]
@@ -114,6 +120,13 @@ class Slice2ExecutionResult:
     bound_versions: tuple[GovernedRef, ...]
 
 
+@dataclass(frozen=True)
+class Slice2IntakeReady:
+    gate: RatificationGateResult
+    snapshot: KnowledgeSnapshot
+    context: BoundDecisionContext
+
+
 class CandidateSetReadyForLaterSlice(RuntimeError):
     def __init__(
         self,
@@ -138,6 +151,89 @@ def build_candidate_preservation(
     runtime: Slice2Runtime,
     policy: Slice2Policy,
 ) -> Slice2ExecutionResult:
+    intake_result = prepare_snapshot_bound_intake(request, runtime, policy)
+    if isinstance(intake_result, Slice2ExecutionResult):
+        return intake_result
+    gate = intake_result.gate
+    snapshot = intake_result.snapshot
+    context = intake_result.context
+    pack = runtime.pack
+    context_values = context_values_from_intake(gate.admitted_values)
+    try:
+        candidate_set = load_candidate_set(
+            pack,
+            context_values,
+            policy.canonicalization_policy,
+        )
+    except CandidatePackConfigurationError:
+        return build_snapshot_refusal(
+            request,
+            runtime,
+            policy,
+            snapshot,
+            context,
+            RefusalType.CONFIGURATION_INVALID,
+            policy.configuration_action,
+            policy.configuration_invalid_route_reason_id,
+            None,
+            None,
+            (),
+            None,
+            (),
+            (),
+        )
+    if candidate_set.has_invalid:
+        return build_snapshot_refusal(
+            request,
+            runtime,
+            policy,
+            snapshot,
+            context,
+            RefusalType.CONFIGURATION_INVALID,
+            policy.configuration_action,
+            policy.configuration_invalid_route_reason_id,
+            None,
+            None,
+            candidate_set.assessments,
+            candidate_set.configuration_issues,
+            candidate_set.citations,
+            (),
+        )
+    if candidate_set.has_unknown:
+        missing_fields = tuple(
+            sorted(
+                {
+                    field
+                    for evaluation in candidate_set.applicability_evaluations
+                    if evaluation.truth == ApplicabilityTruth.UNKNOWN
+                    for field in evaluation.missing_field_ids
+                }
+            )
+        )
+        return build_snapshot_refusal(
+            request,
+            runtime,
+            policy,
+            snapshot,
+            context,
+            RefusalType.MISSING_REQUIRED_EVIDENCE,
+            policy.missing_evidence_action,
+            policy.missing_context_route_reason_id,
+            None,
+            None,
+            candidate_set.assessments,
+            None,
+            candidate_set.citations,
+            missing_fields,
+        )
+    raise CandidateSetReadyForLaterSlice(candidate_set, snapshot)
+
+
+def prepare_snapshot_bound_intake(
+    request: Slice2Request,
+    runtime: Slice2Runtime,
+    policy: Slice2Policy,
+) -> Slice2IntakeReady | Slice2ExecutionResult:
     pack = runtime.pack
     if request.requested_pack_version_id != pack.manifest.pack_ref.version_id:
         raise PackVersionBindingError("Slice 2 requires an exact loaded pack version")
@@ -169,7 +265,7 @@ def build_candidate_preservation(
         knowledge_snapshot_hash=snapshot_digest,
     )
     if gate.integrity_failure_field_ids:
-        return _refusal_result(
+        return build_snapshot_refusal(
             request,
             runtime,
             policy,
@@ -177,6 +273,9 @@ def build_candidate_preservation(
             context,
             RefusalType.INTEGRITY_FAILURE,
             policy.integrity_action,
+            policy.integrity_failure_route_reason_id,
+            None,
+            None,
             (),
             None,
             (),
@@ -194,66 +293,7 @@ def build_candidate_preservation(
             context,
             unratified_fields,
         )
-    context_values = _context_values(gate.admitted_values)
-    try:
-        candidate_set = load_candidate_set(
-            pack,
-            context_values,
-            policy.canonicalization_policy,
-        )
-    except CandidatePackConfigurationError:
-        return _refusal_result(
-            request,
-            runtime,
-            policy,
-            snapshot,
-            context,
-            RefusalType.CONFIGURATION_INVALID,
-            policy.configuration_action,
-            (),
-            None,
-            (),
-            (),
-        )
-    if candidate_set.has_invalid:
-        return _refusal_result(
-            request,
-            runtime,
-            policy,
-            snapshot,
-            context,
-            RefusalType.CONFIGURATION_INVALID,
-            policy.configuration_action,
-            candidate_set.assessments,
-            candidate_set.configuration_issues,
-            candidate_set.citations,
-            (),
-        )
-    if candidate_set.has_unknown:
-        missing_fields = tuple(
-            sorted(
-                {
-                    field
-                    for evaluation in candidate_set.applicability_evaluations
-                    if evaluation.truth == ApplicabilityTruth.UNKNOWN
-                    for field in evaluation.missing_field_ids
-                }
-            )
-        )
-        return _refusal_result(
-            request,
-            runtime,
-            policy,
-            snapshot,
-            context,
-            RefusalType.MISSING_REQUIRED_EVIDENCE,
-            policy.missing_evidence_action,
-            candidate_set.assessments,
-            None,
-            candidate_set.citations,
-            missing_fields,
-        )
-    raise CandidateSetReadyForLaterSlice(candidate_set, snapshot)
+    return Slice2IntakeReady(gate=gate, snapshot=snapshot, context=context)
 
 
 def execute_candidate_preservation(
@@ -269,6 +309,7 @@ def execute_candidate_preservation(
         result.snapshot,
         result.audit_events,
         result.bound_versions,
+        SNAPSHOT_RUN_SCHEMA_VERSION,
     )
     return result
 
@@ -331,7 +372,7 @@ def _build_runtime_snapshot(
     )
 
 
-def _context_values(values: tuple[IntakeValue, ...]) -> tuple[ContextValue, ...]:
+def context_values_from_intake(values: tuple[IntakeValue, ...]) -> tuple[ContextValue, ...]:
     context_values = []
     for raw_value in values:
         refs = [raw_value.source_ref]
@@ -350,7 +391,7 @@ def _context_values(values: tuple[IntakeValue, ...]) -> tuple[ContextValue, ...]
     return tuple(context_values)
 
 
-def _refusal_result(
+def build_snapshot_refusal(
     request: Slice2Request,
     runtime: Slice2Runtime,
     policy: Slice2Policy,
@@ -358,6 +399,9 @@ def _refusal_result(
     context: BoundDecisionContext,
     refusal_type: RefusalType,
     action: DisplayDirective,
+    route_reason_id: TermId | None,
+    calibration_evaluation: CalibrationEvaluation | None,
+    msa_applicability_evaluations: tuple[ApplicabilityEvaluation, ...] | None,
     assessments: tuple[CandidateAssessment, ...],
     configuration_issues: tuple[CandidateConfigurationIssue, ...] | None,
     citations: tuple[Citation, ...],
@@ -379,6 +423,9 @@ def _refusal_result(
             "refusal_type": refusal_type,
             "context": context,
             "method_ref": runtime.pack.manifest.method_ref,
+            "route_reason_id": route_reason_id,
+            "calibration_evaluation": calibration_evaluation,
+            "msa_applicability_evaluations": msa_applicability_evaluations,
             "assessments": assessments,
             "configuration_issues": configuration_issues,
             "citations": citations,
@@ -394,7 +441,7 @@ def _refusal_result(
         decision=decision,
         decision_hash=decision_digest,
     )
-    return _execution_result(
+    return finalize_snapshot_output(
         request,
         runtime,
         policy,
@@ -429,6 +476,7 @@ def _advisory_result(
             "as_of_time": request.as_of_time,
             "method_resolution": "RESOLVED",
             "method_ref": runtime.pack.manifest.method_ref,
+            "route_reason_id": policy.unratified_route_reason_id,
             "proposed_field_ids": proposed_fields,
             "candidate_failure_mode_refs": runtime.pack.manifest.candidate_refs,
             "applicability_evaluations": (),
@@ -448,7 +496,7 @@ def _advisory_result(
         advisory=advisory,
         advisory_hash=advisory_digest,
     )
-    return _execution_result(
+    return finalize_snapshot_output(
         request,
         runtime,
         policy,
@@ -459,7 +507,7 @@ def _advisory_result(
     )
 
 
-def _execution_result(
+def finalize_snapshot_output(
     request: Slice2Request,
     runtime: Slice2Runtime,
     policy: Slice2Policy,

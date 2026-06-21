@@ -21,16 +21,23 @@ from gptl.mie.schema import (
     AdvisoryDecision,
     Citation,
     MIEOutput,
-    RefusalDecision,
+    Tier1Decision,
     Tier1Output,
 )
 
 SCHEMA_VERSION: Final = "gptl.slice1.v1"
 SNAPSHOT_RUN_SCHEMA_VERSION: Final = "gptl.slice2.v2"
+SLICE3_RUN_SCHEMA_VERSION: Final = "gptl.slice3.v1"
+WRITABLE_SNAPSHOT_RUN_SCHEMA_VERSIONS: Final = frozenset(
+    {
+        SNAPSHOT_RUN_SCHEMA_VERSION,
+        SLICE3_RUN_SCHEMA_VERSION,
+    }
+)
 SUPPORTED_SNAPSHOT_RUN_SCHEMA_VERSIONS: Final = frozenset(
     {
         "gptl.slice2.v1",
-        SNAPSHOT_RUN_SCHEMA_VERSION,
+        *WRITABLE_SNAPSHOT_RUN_SCHEMA_VERSIONS,
     }
 )
 HASH_ALGORITHM: Final = "SHA-256"
@@ -283,8 +290,11 @@ class PostgresRunStore:
         snapshot: KnowledgeSnapshot,
         audit_events: Sequence[SnapshotDecisionAuditEvent],
         bound_versions: Sequence[GovernedRef],
+        schema_version: str,
     ) -> None:
-        body: RefusalDecision | AdvisoryDecision
+        if schema_version not in WRITABLE_SNAPSHOT_RUN_SCHEMA_VERSIONS:
+            raise ValueError("snapshot run schema is not writable")
+        body: Tier1Decision | AdvisoryDecision
         if isinstance(output, Tier1Output):
             body = output.decision
             output_hash = output.decision_hash
@@ -344,7 +354,7 @@ class PostgresRunStore:
                             body.context.context_kind,
                             body.as_of_time,
                             record_type,
-                            SNAPSHOT_RUN_SCHEMA_VERSION,
+                            schema_version,
                             HASH_ALGORITHM,
                             output_payload_hash,
                             output_payload,
@@ -354,13 +364,24 @@ class PostgresRunStore:
                             len(normalized_versions),
                         ),
                     )
-                    self._insert_snapshot(cursor, run_id, snapshot_payload, snapshot_digest)
-                    self._insert_citations(cursor, run_id, citations)
-                    self._insert_bound_versions(cursor, run_id, normalized_versions)
+                    self._insert_snapshot(
+                        cursor,
+                        run_id,
+                        snapshot_payload,
+                        snapshot_digest,
+                        schema_version,
+                    )
+                    self._insert_citations(cursor, run_id, citations, schema_version)
+                    self._insert_bound_versions(
+                        cursor,
+                        run_id,
+                        normalized_versions,
+                        schema_version,
+                    )
                     self._insert_audit_events(
                         cursor,
                         audit_events,
-                        SNAPSHOT_RUN_SCHEMA_VERSION,
+                        schema_version,
                     )
 
     def _insert_audit_events(
@@ -401,6 +422,7 @@ class PostgresRunStore:
         run_id: str,
         payload: bytes,
         payload_hash: str,
+        schema_version: str,
     ) -> None:
         cursor.execute(
             """
@@ -414,7 +436,7 @@ class PostgresRunStore:
                 payload_hash,
                 payload,
                 SNAPSHOT_RECORD_TYPE,
-                SNAPSHOT_RUN_SCHEMA_VERSION,
+                schema_version,
                 HASH_ALGORITHM,
             ),
         )
@@ -424,6 +446,7 @@ class PostgresRunStore:
         cursor: psycopg.Cursor[tuple[object, ...]],
         run_id: str,
         citations: Sequence[Citation],
+        schema_version: str,
     ) -> None:
         for citation in citations:
             payload = canonical_bytes(citation, self._policy)
@@ -441,7 +464,7 @@ class PostgresRunStore:
                     payload_hash,
                     payload,
                     CITATION_RECORD_TYPE,
-                    SNAPSHOT_RUN_SCHEMA_VERSION,
+                    schema_version,
                     HASH_ALGORITHM,
                 ),
             )
@@ -451,6 +474,7 @@ class PostgresRunStore:
         cursor: psycopg.Cursor[tuple[object, ...]],
         run_id: str,
         bound_versions: Sequence[GovernedRef],
+        schema_version: str,
     ) -> None:
         for version in bound_versions:
             payload = canonical_bytes(version, self._policy)
@@ -468,7 +492,7 @@ class PostgresRunStore:
                     payload_hash,
                     payload,
                     BOUND_VERSION_RECORD_TYPE,
-                    SNAPSHOT_RUN_SCHEMA_VERSION,
+                    schema_version,
                     HASH_ALGORITHM,
                 ),
             )

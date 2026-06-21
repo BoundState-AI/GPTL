@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from enum import Enum
 from typing import Annotated, Literal
 
@@ -17,7 +18,9 @@ from gptl.core.semantic_types import (
     OpaqueId,
     Sha256Hex,
     TermId,
+    UnitId,
 )
+from gptl.mie.calibration import CalibrationEvaluation
 from gptl.mie.predicates import ApplicabilityEvaluation, ApplicabilityTruth
 
 
@@ -134,6 +137,9 @@ class RefusalDecision(DecisionHeader):
     refusal_type: RefusalType
     context: RefusalContext
     method_ref: GovernedRef | None
+    route_reason_id: TermId | None
+    calibration_evaluation: CalibrationEvaluation | None
+    msa_applicability_evaluations: tuple[ApplicabilityEvaluation, ...] | None
     assessments: tuple[CandidateAssessment, ...]
     configuration_issues: tuple[CandidateConfigurationIssue, ...] | None
     citations: tuple[Citation, ...]
@@ -148,6 +154,8 @@ class RefusalDecision(DecisionHeader):
                 self.method_ref is not None
                 or self.assessments
                 or self.configuration_issues is not None
+                or self.calibration_evaluation is not None
+                or self.msa_applicability_evaluations is not None
                 or self.citations
             ):
                 raise ValueError("preflight refusal cannot contain bound evidence records")
@@ -168,6 +176,13 @@ class RefusalDecision(DecisionHeader):
                 raise ValueError("configuration issues must be nonempty, unique, and sorted")
             if self.refusal_type != RefusalType.CONFIGURATION_INVALID:
                 raise ValueError("configuration issues require CONFIGURATION_INVALID refusal")
+        if self.msa_applicability_evaluations is not None:
+            evaluation_keys = tuple(
+                (item.predicate_ref.logical_id, item.predicate_ref.version_id)
+                for item in self.msa_applicability_evaluations
+            )
+            if evaluation_keys != tuple(sorted(set(evaluation_keys))):
+                raise ValueError("MSA applicability evaluations must be unique and sorted")
         citation_keys = tuple(
             (
                 item.record_type_id,
@@ -190,10 +205,98 @@ class RefusalDecision(DecisionHeader):
         return self
 
 
+class InvestigationDecision(DecisionHeader):
+    context: BoundDecisionContext
+    method_ref: GovernedRef
+    route_reason_id: TermId
+    calibration_evaluation: CalibrationEvaluation
+    msa_applicability_evaluations: tuple[ApplicabilityEvaluation, ...]
+    assessments: tuple[CandidateAssessment, ...]
+    citations: tuple[Citation, ...]
+    missing_field_ids: tuple[FieldId, ...]
+    required_human_action: DisplayDirective
+    audit_event_ids: tuple[OpaqueId, ...]
+
+    @model_validator(mode="after")
+    def validate_investigation(self) -> InvestigationDecision:
+        assessment_keys = tuple(
+            (item.candidate_ref.logical_id, item.candidate_ref.version_id)
+            for item in self.assessments
+        )
+        if assessment_keys != tuple(sorted(set(assessment_keys))):
+            raise ValueError("candidate assessments must be unique and sorted")
+        evaluation_keys = tuple(
+            (item.predicate_ref.logical_id, item.predicate_ref.version_id)
+            for item in self.msa_applicability_evaluations
+        )
+        if evaluation_keys != tuple(sorted(set(evaluation_keys))):
+            raise ValueError("MSA applicability evaluations must be unique and sorted")
+        citation_keys = tuple(
+            (
+                item.record_type_id,
+                item.record_ref.logical_id,
+                item.record_ref.version_id,
+                item.evidence_location,
+            )
+            for item in self.citations
+        )
+        if citation_keys != tuple(sorted(set(citation_keys))):
+            raise ValueError("citations must be unique and sorted")
+        if not self.citations:
+            raise ValueError("investigation decision requires authoritative citations")
+        for values, label in (
+            (self.missing_field_ids, "missing_field_ids"),
+            (self.audit_event_ids, "audit_event_ids"),
+        ):
+            if values != tuple(sorted(set(values))):
+                raise ValueError(f"{label} must be unique and sorted")
+        if not self.audit_event_ids:
+            raise ValueError("investigation decision requires an audit event")
+        return self
+
+
+class WithinMeasurementVariationDecision(InvestigationDecision):
+    verdict: Literal["WITHIN_MEASUREMENT_VARIATION"]
+    msa_study_ref: GovernedRef
+    measured_deviation: CanonicalDecimal
+    measured_uncertainty: CanonicalDecimal
+    uncertainty_unit_id: UnitId
+
+    @model_validator(mode="after")
+    def validate_measurement_values(self) -> WithinMeasurementVariationDecision:
+        if self.measured_deviation < Decimal("0") or self.measured_uncertainty < Decimal("0"):
+            raise ValueError("measurement comparison values cannot be negative")
+        return self
+
+
+class IndeterminateDecision(InvestigationDecision):
+    verdict: Literal["INDETERMINATE"]
+    msa_study_ref: GovernedRef
+    measured_deviation: CanonicalDecimal
+    measured_uncertainty: CanonicalDecimal
+    uncertainty_unit_id: UnitId
+    open_discriminator_refs: tuple[GovernedRef, ...]
+
+    @model_validator(mode="after")
+    def validate_open_discriminators(self) -> IndeterminateDecision:
+        _validate_ref_order(self.open_discriminator_refs, "open_discriminator_refs")
+        if not self.open_discriminator_refs:
+            raise ValueError("indeterminate decision requires an open discriminator")
+        if self.measured_deviation < Decimal("0") or self.measured_uncertainty < Decimal("0"):
+            raise ValueError("measurement comparison values cannot be negative")
+        return self
+
+
+Tier1Decision = Annotated[
+    RefusalDecision | WithinMeasurementVariationDecision | IndeterminateDecision,
+    Field(discriminator="verdict"),
+]
+
+
 class Tier1Output(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     output_kind: Literal["TIER1_DECISION"]
-    decision: RefusalDecision
+    decision: Tier1Decision
     decision_hash: Sha256Hex
 
 
@@ -212,6 +315,7 @@ class AdvisoryDecision(BaseModel):
     as_of_time: CanonicalTimestamp
     method_resolution: Literal["RESOLVED", "AMBIGUOUS", "UNKNOWN"]
     method_ref: GovernedRef | None
+    route_reason_id: TermId | None
     proposed_field_ids: tuple[FieldId, ...]
     candidate_failure_mode_refs: tuple[GovernedRef, ...]
     applicability_evaluations: tuple[ApplicabilityEvaluation, ...]

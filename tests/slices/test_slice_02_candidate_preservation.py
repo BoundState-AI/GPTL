@@ -604,6 +604,7 @@ def test_snapshot_write_failure_rolls_back_every_dependent_record(
             result.snapshot,
             result.audit_events,
             result.bound_versions,
+            SNAPSHOT_RUN_SCHEMA_VERSION,
         )
 
     with psycopg.connect(postgres_url) as connection:
@@ -704,4 +705,5 @@ def test_store_rejects_output_snapshot_hash_mismatch(postgres_url: str) -> None:
             result.snapshot,
             result.audit_events,
             result.bound_versions,
+            SNAPSHOT_RUN_SCHEMA_VERSION,
         )

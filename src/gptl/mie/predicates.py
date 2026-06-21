@@ -551,6 +551,42 @@ def _numeric_pair(
         return ApplicabilityError.TYPE_MISMATCH
 
 
+def convert_numeric_value(
+    value: NumericValue,
+    target_unit_id: UnitId,
+    unit_registry: UnitRegistry,
+    policy: CanonicalizationPolicy,
+) -> NumericValue | ApplicabilityError:
+    units = {item.unit_id: item for item in unit_registry.units}
+    source_unit = units.get(value.unit_id)
+    target_unit = units.get(target_unit_id)
+    if source_unit is None or target_unit is None:
+        return ApplicabilityError.UNIT_MISMATCH
+    if source_unit.dimension_id != target_unit.dimension_id:
+        return ApplicabilityError.UNIT_MISMATCH
+    try:
+        source_value = Decimal(canonical_decimal(value.value, policy))
+        source_scale = Decimal(canonical_decimal(source_unit.scale_to_base, policy))
+        source_offset = Decimal(canonical_decimal(source_unit.offset_to_base, policy))
+        target_scale = Decimal(canonical_decimal(target_unit.scale_to_base, policy))
+        target_offset = Decimal(canonical_decimal(target_unit.offset_to_base, policy))
+        with localcontext() as context:
+            context.prec = (
+                DECIMAL_PRODUCT_OPERAND_FACTOR
+                * (policy.decimal_max_integer_digits + policy.decimal_scale)
+                + DECIMAL_OPERATION_CARRY_DIGITS
+            )
+            base_value = source_value * source_scale + source_offset
+            converted = (base_value - target_offset) / target_scale
+        return NumericValue(
+            kind="NUMERIC",
+            value=Decimal(canonical_decimal(converted, policy)),
+            unit_id=target_unit_id,
+        )
+    except (CanonicalizationError, InvalidOperation, ZeroDivisionError):
+        return ApplicabilityError.TYPE_MISMATCH
+
+
 def _combine(kind: str, states: tuple[_EvaluationState, ...]) -> _EvaluationState:
     evidence = _sort_refs(tuple(ref for state in states for ref in state.evidence))
     errors = tuple(state.error for state in states if state.error is not None)

@@ -4,8 +4,8 @@ Canonical architecture and implementation contracts for the BoundState General P
 
 Current governing specification:
 
-- [GPTL Manufacturing Intelligence Platform v0.4.6](docs/GPTL_Manufacturing_Platform_v0.4.6.md)
-- [MIE Build 0 vertical-slice plan v0.6](docs/GPTL_BUILD_PLAN_v0.6.md)
+- [GPTL Manufacturing Intelligence Platform v0.4.7](docs/GPTL_Manufacturing_Platform_v0.4.7.md)
+- [MIE Build 0 vertical-slice plan v0.7](docs/GPTL_BUILD_PLAN_v0.7.md)
 
 Immutable ORACLE review input:
 
@@ -14,15 +14,17 @@ Immutable ORACLE review input:
 
 Prior immutable revision:
 
+- [GPTL Manufacturing Intelligence Platform v0.4.6](docs/GPTL_Manufacturing_Platform_v0.4.6.md)
+- [MIE Build 0 vertical-slice plan v0.6](docs/GPTL_BUILD_PLAN_v0.6.md)
 - [GPTL Manufacturing Intelligence Platform v0.4.5](docs/GPTL_Manufacturing_Platform_v0.4.5.md)
 - [MIE Build 0 vertical-slice plan v0.5](docs/GPTL_BUILD_PLAN_v0.5.md)
 - [GPTL Manufacturing Intelligence Platform v0.4.4](docs/GPTL_Manufacturing_Platform_v0.4.4.md)
 - [MIE Build 0 vertical-slice plan v0.4](docs/GPTL_BUILD_PLAN_v0.4.md)
 - [GPTL Manufacturing Intelligence Platform v0.4.3](docs/GPTL_Manufacturing_Platform_v0.4.3.md)
 
-v0.4.6 defines the owner-ratified platform architecture and the deterministic, vector-free, model-optional, PostgreSQL-backed, `RESEARCH_ONLY` MIE Build 0 contract. Production method knowledge, vendor instrument adapters, and qualification are explicitly later work.
+v0.4.7 defines the owner-ratified platform architecture and the deterministic, vector-free, model-optional, PostgreSQL-backed, `RESEARCH_ONLY` MIE Build 0 contract. Production method knowledge, vendor instrument adapters, and qualification are explicitly later work.
 
-Slice 1 implements deterministic safe refusal. Slice 2 adds governed candidate packs, ratification gating, four-state applicability, scoped selection, immutable knowledge snapshots, and atomic snapshot-bound PostgreSQL persistence. It preserves missing-context candidates as unresolved and stops when a fully resolved candidate set reaches the Slice 3 MSA boundary.
+Slice 1 implements deterministic safe refusal. Slice 2 adds governed candidate preservation and snapshot-bound PostgreSQL persistence. Slice 3 adds deterministic calibration and qualified, scope-matched MSA hard gates, then stops before Slice 4 signature scoring and confirmation.
 
 ```bash
 uv sync --group dev
@@ -32,6 +34,7 @@ uv run mypy src
 uv run pytest -q
 uv run python scripts/run_slice.py safe-refusal --database-url "$GPTL_DATABASE_URL"
 uv run python scripts/run_slice.py candidate-preservation --database-url "$GPTL_DATABASE_URL"
+uv run python scripts/run_slice.py msa-gate --database-url "$GPTL_DATABASE_URL"
 ```
 
 The database URL is mandatory. There is no embedded-database fallback or application default. The ORACLE v0.1 review bundle remains an immutable historical review input; `scripts/rebuild_oracle_bundle_v0_1.py` reproduces that artifact and intentionally does not use the active contract.
