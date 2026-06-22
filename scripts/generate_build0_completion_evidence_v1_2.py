@@ -446,22 +446,35 @@ def _cross_minor_artifacts(uv: str) -> dict[str, Any]:
     outputs = {}
     script = str(Path(__file__).resolve().relative_to(ROOT))
     for minor in SUPPORTED_PYTHON_MINORS:
-        result = _run(
-            [
-                uv,
-                "run",
-                "--isolated",
-                "--python",
-                minor,
-                "--group",
-                "dev",
-                "python",
-                script,
-                "--emit-canonical-samples",
-            ]
+        command = [
+            uv,
+            "run",
+            "--isolated",
+            "--python",
+            minor,
+            "--group",
+            "dev",
+            "python",
+            script,
+            "--emit-canonical-samples",
+        ]
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            capture_output=True,
+            env={**os.environ, "PYTHONHASHSEED": "0"},
+            check=False,
         )
-        outputs[minor] = result
-    payloads = {result["output"] for result in outputs.values()}
+        if completed.returncode != 0:
+            raise RuntimeError(f"canonical sample emission failed for Python {minor}")
+        outputs[minor] = {
+            "command": _normalize_command(command),
+            "exit_code": completed.returncode,
+            "canonical_bytes_sha256": _sha256(completed.stdout),
+            "canonical_bytes_utf8": completed.stdout.decode("utf-8").rstrip() + "\n",
+            "diagnostic_output": _normalize_command_output(completed.stderr.decode("utf-8")),
+        }
+    payloads = {result["canonical_bytes_utf8"] for result in outputs.values()}
     if len(payloads) != 1:
         raise RuntimeError("canonical artifacts differ across supported Python minors")
     return {
