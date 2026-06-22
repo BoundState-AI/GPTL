@@ -1,0 +1,5711 @@
+# GPTL MIE Build 0 ORACLE Freeze Closeout Bundle
+## Source-Audited Specification, Plan, and Executed Evidence - v1.1
+
+**Governing specification:** GPTL Manufacturing Intelligence Platform v0.4.15
+
+**Build plan:** GPTL MIE Build 0 Plan v0.16
+
+**Audited implementation commit:** `a1f83b265fbad3630e86c5196433e6ee1b0902d8`
+
+**Evidence commit:** `9cea19fe5b4fbdcfa2cd70f64ddb1a52a2a1b8d8`
+
+**Spec SHA-256:** `7a17b347b6f474ff108df79d091a2839f4ac4b0c055f13367555cee7425c83b4`
+
+**Plan SHA-256:** `599f86a2411edceaef3cbc367294e25b92c24c1ea9bdfa4fcc8b378bffc5ec4f`
+
+**Evidence Markdown SHA-256:** `9162209010d44d81cc5ea2d9472d01da4542e507339db9118ed0facf498cb315`
+
+**Evidence JSON SHA-256:** `a746238f29ea3cba2178e33efde4a316f5acba1c6f071b7b0e8f77cbe85447f0`
+
+---
+
+## ORACLE Closeout Charter
+
+This is the only input document for the final MIE Build 0 freeze review. It embeds the complete governing specification, build plan, human-readable executed evidence, and machine-readable evidence record. Do not request a second document or import any section as a separate rule pack.
+
+The prior ORACLE session `20260622-215552` did not reject the architecture. It required a source audit and objective gate-to-test evidence. The repository audit resolved each finding as follows:
+
+1. Timestamp width is mandatory bound `CanonicalizationPolicy` input on preflight, snapshot, persistence, and replay paths. Every lexical comparison domain validates one width; no global or application default was introduced.
+2. Authoritative identifiers are typed caller inputs retained in the exact replay recipe. The engine does not generate identity.
+3. Calibration, refusal, replay-recipe, and replay-result contracts now state the exact implemented closed schemas. An unavailable calibration still cites its explicit immutable calibration record.
+4. One run persists exactly one `Tier1Output` or `Tier2Output`. Tier 2 deterministically reproduces the Tier 1 eligibility attempt but does not invent an implicit paired refusal transaction.
+5. Replay byte surfaces, ordering, metadata validation, and success/failure result boundaries are explicit.
+6. The generated evidence maps 26 gates to 288 exact test nodes and records PostgreSQL, static, package, cross-interpreter, canonical-hash, schema, source, and migration evidence against one immutable implementation commit.
+
+Review the revised contract and the evidence as a freeze closeout, not as permission to redesign ratified architecture or demand production qualification. Production method packs, real-lab MSA, vendor adapters, cryptographic production governance, distributed performance, and SpaceX-specific integration remain Build 1-3 or qualification work and are not Build 0 defects.
+
+### Questions ORACLE Must Answer
+
+1. Do v0.4.15 and v0.16 now state one coherent contract matching the source-audited boundaries above?
+2. Does the evidence record bind the exact source commit, governing-document hashes, test inventory, gate mappings, executed command results, canonical artifacts, closed schemas, source files, and migrations without narrative-only assertions?
+3. Are PostgreSQL atomicity, append-only enforcement, restart/cross-process replay, tamper/missing-content refusal, and pack lifecycle evolution each supported by exact named passing tests?
+4. Does any remaining bundle-established contradiction permit missing or ambiguous evidence to become a false negative, material-truth conclusion, silent default, or unreconstructable decision?
+5. Is any remaining issue genuinely Build 0 release-blocking rather than deferred production integration, qualification, performance, or security work?
+
+### Evidence Rules
+
+- A finding must cite the exact specification section, plan gate, and evidence/test item that conflict.
+- Source behavior established by the source-audited evidence must not be replaced with a preferred architecture.
+- Do not treat lack of real SpaceX equipment, LIMS schemas, vendor files, production MSA, or lab qualification as a Build 0 defect; Build 0 is explicitly synthetic/reference and `RESEARCH_ONLY`.
+- If direct repository inspection beyond the embedded source/schema/migration digests is still desired, label it `OPTIONAL_SOURCE_CONFIRMATION`; do not call the existing executed evidence absent.
+- Rejected prior proposals remain out of scope: magic constants, uncertainty bands, weakened replay integrity, vector/model authority, arbitrary performance gates, and Build 3 cryptography.
+
+### Required Finding Format
+
+For every finding provide: finding ID; severity `BLOCKER|MAJOR|MINOR|NIT`; exact specification section; exact plan/evidence reference; contradiction or unsupported claim; minimum correction preserving ratified constraints; freeze impact; and whether it is established from this bundle.
+
+Do not report preferences, optional enhancements, or explicitly deferred work as defects.
+
+### Required Final Disposition
+
+Return exactly one:
+
+- `BUILD_0_COMPLETE_READY_TO_FREEZE`
+- `BUILD_0_COMPLETE_WITH_NONBLOCKING_FINDINGS`
+- `BUILD_0_NOT_COMPLETE`
+
+`BUILD_0_NOT_COMPLETE` requires at least one bundle-established `BLOCKER` or `MAJOR` contradiction that violates a Build 0 invariant or leaves a completion gate unsupported.
+
+---
+
+# Embedded Governing Specification
+
+<!-- BEGIN GPTL_SPEC_V0.4.15 -->
+# GPTL Manufacturing Intelligence Platform
+## Architecture Baseline and MIE Build 0 Contract — v0.4.15
+
+**Author:** Joe Wilde, BoundState AI LLC
+**Status:** **OWNER-RATIFIED ARCHITECTURE BASELINE; RESEARCH-ONLY BUILD CONTRACT.** This document is the governing architecture and the implementation contract **for the MIE Build 0 wedge only** (§§5–9, §18). All [HORIZON] modules and the domain-neutral GPTL contract *names* in this document are architecture-baseline intent, not field-level implementation contracts, and are explicitly marked as such. Build 0 is deterministic and audit-reconstructable but not qualified for production reliance. Supersedes v0.3, v0.4, the ORACLE-generated v0.4.1/v0.4.2 drafts, v0.4.3, v0.4.4, v0.4.5, v0.4.6, v0.4.7, v0.4.8, v0.4.9, v0.4.10, v0.4.11, v0.4.12, v0.4.13, v0.4.14, and prior BoundState GPTL/MIE/SENTINEL architectural statements.
+**Self-contained:** defines the system from first principles; requires no external context.
+
+> **Change basis (v0.3 → v0.4):** closes ten adversarial-review findings. The load-bearing six: numeric determinism via `Decimal` (§2.12, §8, §9); **order-independent evidence aggregation** (§8.7 — scoring no longer depends on discriminator order); production-context-graph and core contracts re-scoped honestly as architecture baseline (§1.5, §3, §6); typed closed-schema outputs replacing open dicts/strings (§9); completeness language replaced with bounded-catalog language throughout (§2.9, §8.8, §9); and **the foundational architecture resolved — shared substrate, multiple reasoning engines; MIE is the first *diagnostic engine*, not an Authority Pack** (§1.3, §4). Plus: advisory penalties removed from Build 0 (§8.4); Problem Solver presents options, never declares action "justified" (§13.5); expanded permutation/edge-case test classes (§17).
+
+> **Change basis (v0.4 → v0.4.2):** incorporates the accepted ORACLE findings: disjoint verdict/refusal/advisory output kinds; canonical serialization and hashing; immutable logical-record/version identity; snapshot-bound supersession; class-scoped MSA eligibility; governed applicability predicates and attestations; authoritative/display separation; a typed Tier 2 output; governed meta-approval records; and explicit `RESEARCH_ONLY` Build 0 operation.
+
+> **Change basis (v0.4.2 → v0.4.3):** closes the final execution-level gaps found during human verification. Applicability now returns four states rather than `bool`; missing context cannot silently remove a candidate; precedence is restricted to an explicit selection group; the predicate AST can represent range bounds; candidates without sufficient evidence remain `OPEN_UNASSESSED` and cannot be ruled out; authoritative identifiers/references use constrained types rather than comments over open strings; the shared-substrate/bounded-engine amendment is owner-ratified; and synthetic fixtures, instrument adapters, and production qualification are separated explicitly.
+
+> **Change basis (v0.4.3 → v0.4.4):** binds every MSA qualification and snapshot-bound decision to a governed evidence scope. Synthetic MSA can qualify only an isolated `TEST_FIXTURE` scope, always forces `RESEARCH_ONLY`, and can never satisfy a bench, vendor, company, or production-scoped run. This closes the test-fixture qualification gap without weakening the MSA gate.
+
+> **Change basis (v0.4.4 → v0.4.5):** owner decision replaces the Build 0 SQLite profile with PostgreSQL. Build 0 now uses transactional PostgreSQL persistence, database-enforced append-only records, forward-only migrations, and deterministic custom lexical scoring. PostgreSQL text search may accelerate bounded lookup only when equivalence tests prove it cannot change canonical membership or ordering.
+
+> **Change basis (v0.4.5 → v0.4.6):** closes the Slice 2 safe-refusal review without overloading valid candidate evidence states. Runtime-invalid applicability now emits typed candidate configuration issues carrying the exact evaluation, error code, and evidence. Ratification verifies value integrity before active-state resolution, is re-evaluated from the event set bound into the snapshot, and requires decision-effective events to be both effective and recorded by the run's explicit `as_of_time`; later-recorded backdated events affect later runs but cannot rewrite historical eligibility.
+
+Snapshot-bound output records written under this revision use schema version `gptl.slice2.v2`. Readers MUST continue to verify and load immutable `gptl.slice2.v1` records; historical payloads are never rewritten to the new schema.
+
+> **Change basis (v0.4.6 → v0.4.7):** implements the Slice 3 calibration and MSA hard gates. Ratified intake must pass governed calibration before MSA evaluation. Method/class/measurand identity is carried by a governed `MethodMeasurementContract`; MSA failure precedence is explicit in a snapshot-bound route policy; exact compared deviation and uncertainty values are retained in both terminal comparison decisions; and scope, qualification, implemented class, applicability, and selection are all fail-closed.
+
+Snapshot-bound Slice 3 outputs use schema version `gptl.slice3.v1`. Readers retain verified compatibility with immutable Slice 2 v1/v2 records; no historical payload or migration is rewritten.
+
+> **Change basis (v0.4.7 → v0.4.8):** implements Slice 4 artifact confirmation. Every signature weight, evidence threshold, discriminating power, confirmation threshold, verdict threshold, dominance margin, and high-power boundary resolves through a provenance-complete `GovernedNumericPolicy`; no domain numeric value enters generic engine code. Slice 3 exposes a typed outside-variation continuation so Slice 4 consumes the exact prior snapshot and gate evaluations. Discriminator results, role authorization, and attestations use explicit immutable supersession plus effective and recorded times. Structured and attested confirmation are both fail-closed, and `METHOD_ARTIFACT` retains the selected MSA comparison and exact candidate assessments.
+
+Snapshot-bound Slice 4 outputs use schema version `gptl.slice4.v1`. Readers retain verified compatibility with immutable Slice 2 v1/v2 and Slice 3 v1 records; no historical payload or migration is rewritten.
+
+> **Change basis (v0.4.8 → v0.4.9):** closes the Slice 4 safe-refusal review. `CONFIRMED` remains a candidate-level status; `METHOD_ARTIFACT` requires exactly one dominant named winner but does not erase a lower-support confirmed candidate. Closed-schema validation of an engine-generated decision is an engine invariant, so a failure returns governed `ENGINE_FAILURE` rather than escaping or being mislabeled as input configuration. Partial required signature evidence cannot enter support aggregation, multiple active authorities remain integrity failures, and renderer independence is regression-protected.
+
+This clarification does not revise the `gptl.slice4.v1` payload schema or rewrite historical records.
+
+> **Change basis (v0.4.9 → v0.4.10):** implements Slice 5 honest bounded-catalog negatives. Hard elimination is a governed predicate record evaluated before signature scoring. `RULED_OUT` requires an evaluable candidate, support at or below a governed `tau_ruleout`, and every discriminator named by the candidate's exact `RuleOutEvidenceRequirement` resolving `CONSISTENT_WITH_REAL`; support alone cannot exclude. `KNOWN_ARTIFACTS_EXCLUDED` is reachable only when every applicable published candidate is terminally eliminated or ruled out, the exact high-power discriminator denominator is known, and the governed minimum evaluated fraction is met. Positive artifact routing retains precedence, known unevaluated categories remain explicit, and every terminal exclusion carries ruling citations.
+
+Snapshot-bound Slice 5 outputs use schema version `gptl.slice5.v1`. Readers retain verified compatibility with immutable Slice 2 v1/v2, Slice 3 v1, and Slice 4 v1 records; no historical payload or migration is rewritten.
+
+> **Change basis (v0.4.10 → v0.4.11):** closes the Slice 5 adversarial review without changing verdict semantics or the `gptl.slice5.v1` payload schema. Regression gates now pin the absence of any real-material assertion, exact named-gap content, fail-closed uncited exclusions, and all registered directive classes. Citation intersections compare the complete immutable `GovernedRef`, not a partial lookup key. Governed record evidence references remain snapshot-bound unless they are independently citable records with their own type and evidence location; the engine never fabricates citation metadata to surface a bare reference.
+
+This clarification does not rewrite historical payloads or migrations.
+
+> **Change basis (v0.4.11 → v0.4.12):** implements Slice 6 deterministic Tier 2 advisory. Method resolution follows the fixed exact-ID/alias → controlled-term → relational → lexical lane order under a snapshot-bound resolver policy. NFKC/casefold/ASCII-alphanumeric normalization, every lane weight, the minimum lexical score, catalog membership, route rules, and stable full-reference tie-break are explicit and replayable. Eligibility gaps are derived from the actual Tier 1 attempt rather than reconstructed in advisory code. `AdvisoryDecision` carries no verdict, refusal, candidate support, retrieval score, or model-derived field; unknown and ambiguous methods cannot select a method. Optional acceleration must reproduce canonical membership and ordering exactly, and prose remains a separate `RenderedArtifact` over the advisory hash.
+
+> **Change basis (v0.4.12 → v0.4.13):** closes the Slice 6 adversarial review. Lexical normalization now binds the frozen UCD 3.2.0 table explicitly rather than inheriting CPython's release-dependent default Unicode database; ASCII case folding after fixed-table NFKC makes replay stable across supported interpreter minors. A resolved advisory path rejects any Tier 1 non-refusal before route selection, so fixture content cannot silently convert a verdict into advisory output. Regression gates also recompute every ineligible fixture's advisory hash and pin the public Slice 6 contracts.
+
+> **Change basis (v0.4.13 → v0.4.14):** implements Slice 7 replay and integrity closure. Each replay-qualified run atomically stores an append-only `gptl.replay-recipe.v1` capsule containing its exact typed request, runtime, policy, and query under `BUILD0_EXACT_REPLAY_V1`. Replay reconstructs Slices 1–6 without network access or implicit-latest resolution and requires byte identity across output, snapshot, audit, citation, and bound-version payloads. Missing, altered, non-canonical, or algorithm-incompatible replay material returns typed `INTEGRITY_FAILURE`. Explicit as-of pack lifecycle records govern new-run eligibility; upgrades, rollback, deprecation, revocation, supersession, and corrected input never mutate historical output.
+
+Snapshot-bound Slice 6 outputs use schema version `gptl.slice6.v1`. Readers retain verified compatibility with every earlier snapshot-bound schema; no historical payload or migration is rewritten.
+
+> **Change basis (v0.4.14 → v0.4.15):** closes the source-audited Build 0 contract review. Canonical timestamp width remains an explicit bound `CanonicalizationPolicy` value with no platform default; every timestamp comparison domain must validate all members under that one policy before lexical comparison. Run, decision, case, audit, snapshot, and replay identifiers are caller-supplied typed inputs preserved in the exact replay recipe, never engine-generated state. Tier 2 persists one advisory artifact per run after deterministically reproducing the Tier 1 eligibility attempt over the same bound inputs; it does not create an implicit paired refusal. The exact implemented calibration, refusal, replay-recipe, and replay-result schemas and replay byte surfaces are now stated explicitly. The Build 0 freeze additionally requires a repository-derived gate-to-test evidence manifest; narrative pass counts alone are not completion evidence.
+
+---
+
+## 0. Normative Language and Scope
+
+**MUST / MUST NOT / SHALL / SHALL NOT / SHOULD / MAY** are normative. **[OWNER DECISION]** = author-ratified. **[BENCH-OPEN]** = requires empirical data; cannot be closed by specification. **[HORIZON]** = architecture-baseline intent, not near-term build, not claimed buildable now.
+
+This document does not certify any part of the platform for laboratory, QMS, regulatory, or flight use. The platform is a **non-dispositional advisory system**; a responsible human owns every engineering determination. Exports of any decision or rendered artifact MUST carry a non-record-of-record marker. The platform implements no e-signature or QMS record-of-record semantics; those controls are outside Build 0.
+
+---
+
+## 1. What This Platform Is
+
+### 1.1 The Problem
+A serious materials/production operation generates a large, fragmented data pile — lab results, instrument outputs, continuous process/sensor streams, material-lot genealogy, part/serial records, equipment logs, operator/environment records, nonconformance histories, specifications, and a large body of undocumented experiential knowledge ("vibes," tribal knowledge). The data and decent tools exist. **What does not exist is a system that turns the pile into evidence-backed action for solving production problems** — without fabricating, without laundering tribal knowledge into false fact, and without making the engineering decision for the human.
+
+### 1.2 GPTL and the Eight Questions
+**GPTL — General Purpose Translation Layer.** No other expansion is valid. The reusable architecture and contract set for translating human questions and governed domain knowledge into bounded, evidence-linked, auditable intelligence. Not a chatbot, model, vector index, or database product. Central method — **negative selection**:
+
+> Define the valid domain and eliminate what cannot satisfy it. Reason only over what remains. Refuse when the governed evidence cannot support a conclusion. Where a negative result is reported, prove knowledge of the negatives that could exist — never claim their absence.
+
+For any production problem the platform answers eight questions: (1) what changed; (2) what population is affected; (3) what explanations are impossible; (4) which hypotheses remain; (5) what evidence supports each (cited to governed rows); (6) what to check next; (7) what containment/corrective action the evidence *supports for human approval* (and what is not yet supported); (8) what remains unknown (the surfaced dark space).
+
+### 1.3 Architecture: Shared Substrate, Bounded Reasoning Engines [OWNER DECISION — RATIFIED]
+
+The prior "single engine + Authority Packs" framing was a simplification that does not survive contact with what different domains actually *compute*. There are three layers:
+
+```
+                         GPTL PLATFORM
+┌─────────────────────────────────────────────────────────────────────┐
+│ LAYER 1 — SHARED SAFETY SUBSTRATE                                    │
+│   invariants (§2) · governed relational store · BSMS retrieval       │
+│   primitives · provenance · content-hashed snapshots · production    │
+│   context graph · Authority Pack contract format · refusal taxonomy  │
+│   (ONE substrate. ONE bouncer framework. ONE citation format.        │
+│    ONE provenance model. This is the anti-sprawl core.)              │
+├─────────────────────────────────────────────────────────────────────┤
+│ LAYER 2 — REASONING ENGINES (a small, bounded set, by COMPUTATION)   │
+│   • Retrieval Engine   — BSMS retrieve-and-cite, or refuse           │
+│       (for lookup/compliance domains: materials compatibility,        │
+│        PFAS liability, clause review, Spec Compliance)               │
+│   • Diagnostic Engine  — abductive hypothesis-elimination            │
+│       (for diagnosis domains: Method Integrity [MIE], FRACAS)        │
+│   Each engine is a generic, versioned algorithm. Engine count is     │
+│   bounded by COMPUTATION TYPE, never by domain count.                │
+├─────────────────────────────────────────────────────────────────────┤
+│ LAYER 3 — AUTHORITY PACKS (domain knowledge; declare their engine)   │
+│   Method Integrity Pack → Diagnostic Engine                          │
+│   Spec Compliance Pack  → Retrieval Engine                           │
+│   (a pack is data: schemas, rules, vocabularies, thresholds,         │
+│    evidence — never code)                                            │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Why this and not "one engine":** an Authority Pack is *data*. MIE's diagnostic core — the hypothesis-elimination loop, the bounded support aggregation, the discriminator interrogation, the verdict gates — is *compute*, a different *algorithm* than retrieve-and-cite. A retrieval domain (Spec Compliance: find the governing clause, cite it, or refuse) and a diagnostic domain (MIE: reason abductively over competing failure modes) cannot run the same algorithm. They share the *substrate*, not the *engine*. **MIE is the first Diagnostic Engine; it consumes the Method Integrity Authority Pack.** That dissolves the pack-vs-sibling question: MIE is a diagnostic *engine* consuming a method-integrity *pack* — both, at different layers.
+
+**This is not sprawl.** Anti-sprawl means *not* building five retrieval architectures, five bouncer frameworks, five citation formats. The multi-engine model has exactly one of each of those. It has a *minimal* set of reasoning engines distinguished by *what they compute* (retrieve vs diagnose), with every domain that retrieves sharing the retrieval engine and every domain that diagnoses sharing the diagnostic engine. Engine count grows with computation types (a small, bounded number), never with domains.
+
+**Relationship to the locked BoundState Platform Principles ("Single Engine"):** that principle was written for retrieval domains (materials compatibility, PFAS, clause review), all of which correctly share the Retrieval Engine. MIE is the specific real-world case where "single engine" fails because diagnosis is not retrieval. This document satisfies the principles' amendment requirement and ratifies the replacement principle:
+
+> **One shared safety substrate supports a closed, bounded set of reasoning engines selected by computation type. MIE uses the Diagnostic Engine. Adding an engine type requires an owner-ratified architecture revision.**
+
+Code-sharing percentage does not determine engine boundaries; computation semantics and output contracts do. Shared mechanisms remain in the substrate. Engine-specific decision procedures remain isolated behind a common versioned engine contract.
+
+### 1.4 The Module Roadmap
+Packs/engines over the shared substrate and production context graph: **Method Integrity (MIE)** [Diagnostic Engine, first build, Parts 5–9]; Material/Lot Genealogy, Process Integrity & Drift, Nonconformance/FRACAS, Specification Compliance, and the Production Problem Solver orchestrator — all **[HORIZON]** (§13).
+
+### 1.5 Scope Discipline (read before judging scope)
+This document describes the **complete platform** as the architectural destination, so the foundation is laid with the whole structure in view. **It does not claim the whole platform is buildable in the near term.** The near-term buildable artifact is **MIE Build 0 only** (§18) — and *that* is specified at implementation-contract fidelity. Everything marked [HORIZON], and the domain-neutral GPTL contract *names* in §6, are architecture baseline. A reviewer MUST evaluate Build 0 for buildability and [HORIZON] items for architectural coherence only.
+
+---
+
+## 2. Non-Negotiable Invariants (govern every engine and pack)
+
+### 2.1 Deterministic Decision Core
+Given identical ratified input, pack version, knowledge snapshot, threshold table, engine policy version, engine version, and explicit `as_of_time`, an authoritative (Tier 1) decision MUST produce a **byte-identical canonical decision payload under §2.13.** Natural-language rendering need not be byte-identical and is never authoritative; it is a separate `RenderedArtifact` (§9).
+
+### 2.2 No Vector Retrieval
+FAISS, pgvector, Pinecone, Weaviate, Chroma, embedding similarity, nearest-neighbor search, hybrid vector ranking SHALL NOT participate in runtime candidate generation, evidence retrieval, record resolution, scoring, verdicts, discriminator selection, or pack publication/validation. Temperature zero does not make a model deterministic and does not make vector proximity evidence. Embeddings MAY be used only in a segregated research sandbox; sandbox output is untrusted and enters the governed system only through the same human validation/provenance process as any external suggestion. **Rationale:** vector retrieval fails open (returns the nearest thing, confidently, when nothing matches) — fabrication with a score. The platform fails closed: the governed row exists or it does not; absence is a first-class signal.
+
+### 2.3 Models Are Translators, Not Decision-Makers
+An LLM SHALL NOT create/remove an authoritative candidate, narrow the mandatory candidate universe, supply an unratified scoring field, set/modify any deterministic score, mark a discriminator result, satisfy a confirm test, issue/suppress/overturn a verdict, invent evidence/citations/identifiers/records, or publish/validate a pack. LLM roles: **translation** and **scoped tool-calling** with typed, validated, deterministic-effect tools.
+
+### 2.4 Ratification Firewall
+Only instrument-emitted or explicitly human-ratified typed values may enter an authoritative decision. Model output is a *proposal* until a named human ratifies it (append-only event linked to value, source text, actor, timestamp, pack version). An `LLM_PROPOSED` value is never silently promoted by timeout, reuse, navigation, or model agreement.
+
+Value content hashes MUST verify before ratification eligibility or active-state hashing. A decision-effective event participates only when both `effective_at <= as_of_time` and `recorded_at <= as_of_time`. Eligibility MUST be resolved from the exact event set bound into the knowledge snapshot and MUST reproduce that snapshot's active-state hash. A later-recorded backdated event can affect a later run whose `as_of_time` includes it, but cannot alter historical eligibility.
+
+### 2.5 Governed Evidence
+Every authoritative factual input MUST resolve to a governed row with a stable primary key, source record, version, and evidence location. Free-text prose is not a fact store.
+
+### 2.6 Attributed Observation vs Governed Fact [OWNER DECISION — tribal-knowledge discipline]
+Experiential knowledge enters as an **`AttributedObservation`, not a fact**: the claim, named source, timestamp, attached production context, and `validation_state = UNVALIDATED`. It MAY inform Tier 2 advisory and MAY be surfaced as "a technician observed X (unvalidated, attributed to …)". It SHALL NOT enter an authoritative decision as fact until it passes the same validation/ratification process as any governed record and is promoted to a governed row. This lets the system ingest tribal knowledge without laundering it into false ground truth.
+
+### 2.7 Fail Closed
+Missing inputs/evidence, unresolved candidates, stale calibration, ambiguous identity, version mismatch, failed validation, unavailable storage, or engine errors MUST produce an explicit non-verdict or refusal — never a best guess.
+
+### 2.8 No Probabilistic Theater
+No model confidence, generic confidence, confidence intervals, pseudo-posteriors, or probability-like transforms of deterministic scores. Permitted deterministic quantities: scores, coverage, counts, measured uncertainty from a governed study — labeled as such, never as probabilities. No confidence interval in authoritative output. A probability field requires an owner-approved revision plus a separate statistical validity case.
+
+### 2.9 Surface the Boundary, Never Claim Completeness [OWNER DECISION — dark-space discipline]
+A product MUST NOT assert the absence of a condition it cannot enumerate. *"You can't prove a negative; you can prove you know about the negatives that could exist and bite you."* A negative result SHALL emit: (a) the falsifiable record of what was evaluated, with citations; (b) the named categories known to apply but not evaluated (the dark space); (c) an explicit non-exhaustiveness boundary. **No fraction over an unknown denominator.** A fraction whose denominator is a *known bounded set* (e.g., the published catalog) is permitted and MUST be named to make the denominator explicit (e.g. `evaluated_fraction_within_published_catalog`); a fraction implying coverage of *all possible* conditions is prohibited. All "completeness/complete" language referring to candidate sets is replaced platform-wide by "published/bounded" language (e.g. `published_candidate_set`).
+
+### 2.10 Human Authority and Non-Disposition
+Every output MUST set `dispositional = false`. The platform informs a human determination; it is not the determination, a quality record of record, or a substitute for organizational approval.
+
+### 2.11 Zero Magic Values, Zero Hardcoded Domain Policy
+Engine code is generic, versioned algorithms only. All domain behavior — thresholds, weights, required fields, vocabularies, failure classes, trust-model ordering, units/conversions, MSA criteria, refusal triggers, applicability predicates, selection groups, and evidence-sufficiency gates — MUST be explicit in a fully resolved, versioned pack or engine-policy artifact. Each decision-affecting numeric policy carries value, units, scope, derivation, governing source IDs, owner/approver, qualification state, validation-corpus version, validation result, and effective/expiration dates. Missing/ambiguous policy → pack publication fails, or runtime `CONFIGURATION_INVALID`. An unqualified numeric policy is exercisable only in `RESEARCH_ONLY` mode.
+
+### 2.12 Determinism Contract (with numeric representation) [closes finding 1]
+The authoritative engine is a pure deterministic function of (ratified_input, run_context, pack_version, knowledge_snapshot, engine_policy_version, engine_version, explicit_as_of_time). **All decision-affecting numeric values — scores, masses, thresholds, coverage, measured uncertainty — MUST use `Decimal` with a pack-declared precision (scale), rounding mode, overflow behavior, and canonical string serialization.** Floating-point (`float`/IEEE-754) SHALL NOT be used anywhere a value can affect a boundary decision or appear in the canonical payload. Boundary comparisons MUST be tested at the exact value and at the nearest representable values on both sides under the declared `Decimal` scale. Also prohibited in the authoritative path: random/unseeded algorithms; model output; wall-clock time not supplied as input; unordered query results or collection iteration; locale-dependent parsing; network retrieval outside the bound snapshot; result-changing retry; policy-altering environment variables; implicit latest-version resolution after a run begins. Canonical serialization is governed by §2.13.
+
+Build 0 does not generate authoritative identifiers. `run_id`, `decision_id`, `case_id`, `audit_event_id`, `snapshot_id`, and `replay_id` are constrained caller-supplied inputs before execution and are preserved in the exact typed replay recipe or verification request. They may be opaque and need not be derivable from domain content; determinism requires that replay consume the identical bound identifiers, not that identity be a content hash. Random, sequence-allocated, or wall-clock-derived identity created *inside* the authoritative engine is prohibited.
+
+### 2.13 Canonical Serialization and Hashing Contract
+RFC 8785 (JSON Canonicalization Scheme) is the locked normative standard for Build 0. Before serialization, every string MUST be normalized to Unicode NFC. Object keys follow RFC 8785 ordering. Decision-affecting numerics are emitted as canonical `Decimal` strings, never JSON numbers. Timestamps use RFC 3339 UTC with `Z` and the exact fractional width declared by the bound `CanonicalizationPolicy`; that policy is mandatory for preflight, snapshot-bound execution, persistence, and replay and has no application default. Every timestamp in one comparison domain is validated under the same policy before comparison, so lexical and chronological order are equivalent; mixed-width or policy-free comparison is prohibited. Every authoritative list declares a semantic sort key in its schema; no list relies on insertion or query order. Absent optional fields are omitted unless the schema explicitly defines `null` as semantically distinct. SHA-256 is computed over the canonical UTF-8 bytes, and the hash algorithm identifier is stored with the snapshot. A self-hash field is never part of its own hash input: record `content_hash`, snapshot hash, and decision/advisory envelope hashes are computed over the explicitly named payload and then stored alongside it. Two conforming implementations MUST produce identical bytes and hashes for identical bound inputs.
+
+---
+
+## 3. The Production Context Graph (platform spine) [HORIZON contracts; schema-baseline]
+
+The abstraction connecting the fragmented data. Every node/edge is a governed record with provenance. **[HORIZON]:** governing factory data deterministically requires temporal and identity contracts not yet specified at field level here — canonical identity/dedup, source precedence, units, **valid-time vs ingestion-time**, late-arriving events, corrections and supersession, sampling windows, missingness semantics, lineage, and decision invalidation. These are required before any graph-dependent pack can claim deterministic answers to "what changed?" or "what population is affected?" The graph here is a schema baseline, not an implementation contract. **MIE Build 0 does not depend on these deferred contracts; it operates only over explicit snapshot-bound record versions (§6.1, §7.7, §18).**
+
+**Correction propagation and decision invalidation [HORIZON].** Source systems publish correction/supersession events against a `logical_id`; a lineage service identifies every `DecisionRun` that bound a superseded `version_id`; those runs receive an external lifecycle state `STALE_EVIDENCE` and are routed for re-evaluation. The original decision and snapshot remain immutable and replay unchanged. Build 0 handles a corrected input by creating a new record version and a new run over a new snapshot; it does not implement platform-wide propagation.
+
+```
+MaterialLot → Part/Serial → ProcessStep → Machine/Tool → Parameters+TimeSeries
+  → Operator/Environment → Inspection/TestMethod(→MIE) → Result/Deviation
+  → Disposition/Outcome → InstitutionalMemory(governed, post-validation)
+```
+
+Nodes: `MaterialLot, PartSerial, ProcessStepRecord, MachineToolRecord, ParameterSeries, OperatorEnvRecord, InspectionRecord, DispositionRecord, AttributedObservation`. Edges are typed, directional, governed; genealogy queries are FK/relational traversals, never vector similarity. Each node/edge record MUST carry (when implemented) canonical ID, source precedence, valid-time and ingestion-time, supersession pointer, and lineage — per the deferred contracts above.
+
+---
+
+## 4. GPTL Runtime: BSMS, and Engine Selection
+
+**BSMS = Bouncer → Sonnet 1 → MAPTIS-equivalent store + reasoning engine → Sonnet 2.** GPTL is the architecture; BSMS the runtime pattern; Authority Packs the knowledge; the **reasoning engine** (Retrieval or Diagnostic, §1.3) is selected by the pack's declared computation type.
+
+1. **Bouncer** — authn/authz; scope/injection detection; identity resolution against governed records; required-field completeness; typed-intake proposal; deterministic Tier 1/Tier 2 routing; **selects the reasoning engine from the pack's declared type.** NL input → `PROPOSED` typed query, cannot enter Tier 1 until ratified.
+2. **Sonnet 1 (optional, non-authoritative)** — explain missing fields, propose a typed query plan, propose source-text→vocabulary mappings, order already-governed open discriminators for convenience, summarize bounded governed rows. For Tier 1 the engine independently constructs/executes the mandatory plan; Sonnet 1 cannot narrow the mandatory candidate/evidence set.
+3. **MAPTIS-equivalent store + reasoning engine** — authoritative. Shared: relational store, published pack, exact/controlled-vocabulary resolver, candidate/evidence loader, citation + canonical-decision builder, append-only audit. Engine-specific: Retrieval Engine (retrieve-and-cite or refuse) **or** Diagnostic Engine (negative selection → signature match → bounded support aggregation → discrimination → verdict gates).
+4. **Sonnet 2 (optional, non-authoritative)** — renders a persisted structured result as prose into a separate `RenderedArtifact` (§9), without modifying the authoritative payload.
+
+The authoritative core has **no model dependency** and runs with all model adapters disabled.
+
+---
+
+## 5. Method Integrity (MIE) — the First Diagnostic Engine
+
+MIE captures why lab methods work, how their data becomes trustworthy, and how their measurement chains fail; it investigates anomalous results and determines whether a known method artifact is supported, ruled out, or open. **MIE does not model material truth** and SHALL NOT convert "no known artifact found" into "real material behavior confirmed" (§2.9). In platform terms MIE is the `InspectionRecord → Result/Deviation` reasoning that lets the Problem Solver trust a test result as evidence at all.
+
+### 5.1 Two Tiers
+- **Tier 1 — Deterministic Investigation Verdict.** Available only when method identity resolves uniquely; required typed intake is complete and ratified; the pack version is published; calibration/run context is available or explicitly marked unavailable; the engine can load the **published candidate set** without an unresolved applicability result; **a qualified MSA study of an implemented method class applies (§7.6, hard gate)**; and no integrity/version check fails. Build 0 implements `QUANT_NONDESTRUCTIVE` only. Returns `METHOD_ARTIFACT`, `KNOWN_ARTIFACTS_EXCLUDED`, `INDETERMINATE`, `WITHIN_MEASUREMENT_VARIATION`, or `REFUSED`.
+- **Tier 2 — Advisory Guided Investigation.** Applies when typed input is incomplete/unratified, applicability is `UNKNOWN`, no qualified MSA study exists, or the method's MSA class is not implemented by the running build. No verdict and no candidate support score. Emits a typed `AdvisoryDecision` (§9) with status `ADVISORY_NO_VERDICT`.
+
+Each Build 0 run persists exactly one `MIEOutput`: either `Tier1Output` or `Tier2Output`. A Tier 2 run deterministically executes the Tier 1 eligibility path over its exact request, runtime, policy, query, snapshot, and `as_of_time`; it may persist an advisory only when that attempt returns an eligible `RefusalDecision` or the method resolver is explicitly unknown/ambiguous. The eligibility attempt is internal evidence for route construction and is reproduced by exact replay; it is not persisted as a second implicit output. A consumer that requires both records must submit two explicit runs with distinct run/decision/audit identities. Build 0 defines no combined output kind and no hidden dual-artifact transaction.
+
+### 5.2 Tier 2 Retrieval Without Vectors
+Order: exact method ID/alias; controlled-vocabulary token match; relational joins (method/observable/instrument/failure-class); deterministic custom lexical scoring over normalized tokens with published weights and stable governed-ID tie-break; optional model explanation over the bounded rows. PostgreSQL `tsvector`/trigram MAY accelerate bounded lookup only when equivalence tests prove that enabling or disabling the accelerator cannot change canonical membership or ordering. No match → `UNKNOWN_METHOD_OR_FAILURE_MODE`. All lexical policy is explicit governed records.
+
+Build 0 implements this order as `BUILD0_LEXICAL_V1`. Text normalization is the versioned `NFKC_UCD_3_2_ASCII_CASEFOLD_ALNUM_V1` algorithm: NFKC normalization against the frozen UCD 3.2.0 table, ASCII uppercase-to-lowercase folding, then ASCII letter/digit token extraction. The resolver policy binds `unicode_data_version="3.2.0"`; an unavailable or mismatched table fails closed before retrieval. Non-ASCII source text may resolve only through the fixed table's NFKC ASCII compatibility form or separately governed controlled/relational fields; every unsupported character is a token separator, and no transliteration or fuzzy substitution occurs. The resolver policy also binds the exact lane order, positive `Decimal` weight for each lane, minimum non-exact score, evidence, and immutable policy identity. The exact typed `AdvisoryQuery` is itself an immutable governed input, snapshot-bound and cited before resolution, so replay never depends on an unrecorded search string.
+
+The first lane with eligible rows controls membership. Within that lane, rows order by descending exact `Decimal` score then complete immutable method reference. A unique top score resolves the method; a tied top score is `AMBIGUOUS` and selects none; no eligible row is `UNKNOWN` and selects none. All rows admitted by the controlling lane remain visible to advisory candidate construction even when one method resolves. Retrieval scores are internal ordering evidence and never enter `AdvisoryDecision`.
+
+Tier 2 eligibility state is taken from the deterministic Tier 1 attempt executed over the same bound inputs and snapshot. A resolved method may enter Tier 2 only from `RefusalDecision`; any Tier 1 verdict fails closed before route selection. Unknown and ambiguous method triggers are resolver outcomes and do not consume or replace the separate bound method runtime's Tier 1 result. A governed `AdvisoryRouteRule` maps the exact source route reason, or explicit unknown/ambiguous method trigger, to the advisory route reason, eligibility-gap term, proposed fields, required records/measurements, and registered next-step directive. Advisory code cannot infer or replace a gate outcome. PostgreSQL text-search acceleration receives no decision authority: a membership or ordering difference is `CONFIGURATION_INVALID` at the advisory boundary.
+
+---
+
+## 6. GPTL Core Data Contracts [HORIZON — names, not field-level; architecture baseline]
+
+Domain-neutral records every GPTL implementation SHALL provide. **These are contract *names* at baseline fidelity; field-level schemas are specified per engine/pack as built.** `AuthorityPackVersion, SourceRecord, EvidenceRecord, ControlledTerm, ConstraintRule, EvidenceRequirement, TypedQueryProposal, RatificationEvent, DecisionRun, DecisionEvent, EvidenceCitation, RefusalRecord, PackReleaseRecord, AttributedObservation, AttestationEvent, GovernanceApprovalEvent.` Common properties: stable logical identity, immutable version identity, schema version, lifecycle state, provenance, content hash, created/validated actors, and effective timestamps. The MIE records (§7) and output (§9) are Build 0 implementation contracts.
+
+### 6.1 Record Identity and Versioning Model
+Every governed record uses one platform-wide model:
+
+- `logical_id`: stable across revisions of the same logical record.
+- `version_id`: immutable and unique per revision; never reused.
+- `version_number`: monotonic integer within one `logical_id`.
+- `content_hash`: SHA-256 over canonical record content (§2.13).
+- `supersedes_version_id`: prior revision's `version_id`, absent for the first revision.
+
+A revision creates a new `version_id` and increments `version_number` under the same `logical_id`; the prior version is never mutated. Citations carry `logical_id` plus `version_number`; snapshots additionally bind the exact `version_id` and `content_hash`. Supersession, deduplication, foreign-key references, and rollback operate on explicit identifiers, never timestamps or an implicit "latest" query.
+
+---
+
+## 7. MIE Records and the MSA Hard Gate
+
+### 7.1 Common Executable Types
+Build 0 schemas MUST use constrained semantic types. A comment describing a plain `str` as an ID, controlled term, canonical timestamp, decimal, or governed reference is not sufficient. The implementation SHALL define and validate at least these distinct types:
+
+```python
+OpaqueId = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/-]*$")]
+Sha256Hex = Annotated[str, StringConstraints(pattern=r"^[0-9a-f]{64}$")]
+NonNegativeInt = Annotated[int, Field(ge=0)]
+LogicalId = NewType("LogicalId", OpaqueId)
+VersionId = NewType("VersionId", OpaqueId)
+FieldId = NewType("FieldId", OpaqueId)
+TermId = NewType("TermId", OpaqueId)
+UnitId = NewType("UnitId", OpaqueId)
+TemplateId = NewType("TemplateId", OpaqueId)
+EvidenceLocator = NewType("EvidenceLocator", OpaqueId)
+CanonicalTimestamp = Annotated[
+    str,
+    StringConstraints(
+        pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z$"
+    ),
+    AfterValidator(validate_utc_timestamp_and_policy_precision),
+]
+
+class GovernedRef(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    logical_id: LogicalId
+    version_id: VersionId
+    version_number: NonNegativeInt
+    content_hash: Sha256Hex
+```
+
+`validate_utc_timestamp_and_policy_precision` parses the timestamp strictly, rejects nonexistent calendar/time values, and verifies fractional precision against the explicitly supplied `CanonicalizationPolicy`. The same validation context is mandatory on the preflight path, where the policy is carried by `SafeRefusalPolicy`, and on every snapshot-bound path. Nested timestamp-bearing records in one runtime/catalog are validated under that same context before any lexical comparison. Missing context, mixed width, or a replay-policy/recipe-policy parameter mismatch fails closed; no platform or application default supplies precision. The concrete implementation MAY use Pydantic custom scalar classes instead of `NewType`, but it MUST preserve these semantic distinctions and reject malformed values. Authoritative free text is prohibited. Human-readable prose belongs only in `RenderedArtifact` (§9).
+
+### 7.2 Method, Variant, and Applicability
+`MethodRecord` governs identity, aliases, category, measurement principle, calibration requirements, signal chain, preparation requirements, validity criteria, standards, method class, MSA class, owner, lifecycle, and revalidation interval. `MethodVariant` contains explicit field-level overrides; unspecified fields inherit. Failure modes merge by union unless a governed suppression record explicitly names the suppressed failure-mode version and supporting evidence.
+
+Every `MethodFailureMode` and `MSAStudy` carries an `applicability_predicate`. Applicability is not executable code, SQL, or an open DSL. It is the following closed, JSON-serializable AST:
+
+```python
+class NumericOperand(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["NUMERIC"]
+    value: Decimal
+    unit_id: UnitId
+
+class EnumOperand(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["ENUM"]
+    value: TermId
+
+ScalarOperand = Annotated[
+    Union[NumericOperand, EnumOperand], Field(discriminator="kind")
+]
+
+class RangeOperand(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    low: Decimal
+    high: Decimal
+    unit_id: UnitId
+    low_bound: Literal["INCLUSIVE", "EXCLUSIVE"]
+    high_bound: Literal["INCLUSIVE", "EXCLUSIVE"]
+
+class EqualityComparison(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    op: Literal["eq", "neq"]
+    field_id: FieldId
+    operand: ScalarOperand
+
+class OrderedComparison(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    op: Literal["lt", "lte", "gt", "gte"]
+    field_id: FieldId
+    operand: NumericOperand
+
+class MembershipComparison(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    op: Literal["in"]
+    field_id: FieldId
+    allowed_terms: list[TermId]
+
+class RangeComparison(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    op: Literal["range"]
+    field_id: FieldId
+    operand: RangeOperand
+
+class PresenceComparison(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    op: Literal["present", "absent"]
+    field_id: FieldId
+
+Comparison = Annotated[Union[
+    EqualityComparison, OrderedComparison, MembershipComparison,
+    RangeComparison, PresenceComparison,
+], Field(discriminator="op")]
+
+class ComparisonPredicate(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["comparison"]
+    comparison: Comparison
+
+class AllPredicate(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["all"]
+    terms: list["Predicate"]
+
+class AnyPredicate(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["any"]
+    terms: list["Predicate"]
+
+class NotPredicate(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["not"]
+    term: "Predicate"
+
+Predicate = Annotated[Union[
+    ComparisonPredicate, AllPredicate, AnyPredicate, NotPredicate,
+], Field(discriminator="kind")]
+
+class ApplicabilityTruth(StrEnum):
+    TRUE = "TRUE"
+    FALSE = "FALSE"
+    UNKNOWN = "UNKNOWN"
+    INVALID = "INVALID"
+
+class ApplicabilityEvaluation(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    truth: ApplicabilityTruth
+    predicate_ref: GovernedRef
+    missing_field_ids: list[FieldId]
+    error_code: Literal[
+        "TYPE_MISMATCH", "UNIT_MISMATCH", "UNKNOWN_FIELD",
+        "INVALID_AST", "INVALID_RANGE",
+    ] | None
+    evidence_refs: list[GovernedRef]
+
+class SelectionBinding(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    selection_group_ref: GovernedRef
+    precedence_rank: Decimal
+```
+
+Normative evaluation rules:
+
+1. Context fields come from a closed governed registry. Numeric comparison converts both values through the snapshot-bound unit registry before comparison. Incompatible units are `INVALID`.
+2. Missing context produces `UNKNOWN`, not `FALSE`. `all`, `any`, and `not` use Kleene three-valued logic; `INVALID` dominates and terminates evaluation.
+3. `TRUE` includes the record. `FALSE` excludes it and records the predicate evaluation as evidence.
+4. For a failure mode, `UNKNOWN` MUST NOT remove the candidate. It records the candidate as `APPLICABILITY_UNRESOLVED`, blocks `KNOWN_ARTIFACTS_EXCLUDED`, and routes the case to Tier 2 or `REFUSED{MISSING_REQUIRED_EVIDENCE}` according to the ratified intake state.
+5. For an MSA study, `UNKNOWN` means no applicable study has been established and routes to `REFUSED{MSA_UNCHARACTERIZED}`; Tier 2 MAY also be emitted.
+6. `INVALID` always returns `REFUSED{CONFIGURATION_INVALID}`. A runtime-invalid candidate is retained as a typed `CandidateConfigurationIssue` containing its candidate reference, complete applicability evaluation and error code, and governed evidence references; it is never mislabeled as a valid candidate evidence state. Publication-time type, unit, registry, or AST errors prevent pack publication.
+7. `all.terms`, `any.terms`, and `allowed_terms` MUST be non-empty; membership terms MUST be unique; range `low` MUST NOT exceed `high`; and every recursive model MUST be rebuilt/resolved before pack validation. Empty or unresolved AST structures are publication errors.
+8. `ApplicabilityEvaluation.error_code` is present if and only if `truth == INVALID`. `missing_field_ids` is non-empty if `truth == UNKNOWN` and empty otherwise. These invariants are schema-validated.
+
+Applicability overlap is resolved only inside an explicit `SelectionBinding`. Records with different groups, or no binding, do not compete and all `TRUE` records remain applicable. Within one group, lower governed `precedence_rank` wins; a rank tie is a pack-publication error. The referenced selection-group record MUST include a governed rationale and evidence for why its members are alternatives. Precedence MUST NOT choose between distinct failure mechanisms merely because both apply.
+
+Multiple failure modes may legitimately apply and remain separate candidates. Multiple MSA studies that could simultaneously apply to the same method/measurand/range/conditions MUST either share one explicit selection group or declare a governed combination contract. Build 0 supports selection, not MSA-study combination; overlapping ungrouped MSA studies are a pack-publication error.
+
+### 7.3 Failure Modes, Signatures, and Observables
+`MethodFailureMode` contains a governed mechanism term, failure class, typed signature features, discriminator references, confirm-test reference, rule-out-evidence-requirement reference, severity term, known-mask references, evidence, provenance, applicability predicate, optional selection group, and precedence rank when grouped. `SignatureFeature` references exactly one registered observable and declares expected typed value/range, unit, weight, and match operator. `ObservableRegistry` is the closed vocabulary shared by intake and signatures; unknown observables cannot enter Tier 1. `material_class` is a governed enumerated field, ratifiable and never model-inferred into scoring.
+
+Build 0 represents the Slice 2 failure-mode identity and its Slice 4 diagnostic fields as two exact-bound governed records. `CandidateDiagnosticContract` binds one published failure mode to its complete ordered signature-feature set, required signature fields, discriminator set, confirm test, minimum-coverage policy, confirmation threshold, verdict threshold, author, approver, and provenance. The split preserves immutable historical Slice 2 records; it does not make any diagnostic field optional. Every published candidate in a Slice 4 pack MUST resolve exactly one contract.
+
+Every decision-affecting diagnostic numeric is a `GovernedNumericPolicy` carrying policy kind, canonical `Decimal` value, unit, exact pack scope, derivation, governing sources, distinct owner and approver, qualification state, validation corpus and result, effective/expiration interval, evidence location, and governed evidence. The runtime policy set MUST equal the set referenced by the diagnostic contracts, features, discriminators, and route policy; missing, extra, expired, failed, mis-scoped, wrong-kind, or wrong-unit policies are `CONFIGURATION_INVALID`. Generic engine modules contain only the mathematical identities zero and one; fixture/domain values live in governed policy records.
+
+### 7.4 Instruments and Runs
+`InstrumentRecord` governs identity, supported methods, quirks, and calibration state. `RunContext` references the instrument, method, variant, operator, run parameters, calibration state at run, sample context, and canonical timestamp. These are immutable governed records bound by `version_id` into the snapshot. Vendor-native raw files are source artifacts referenced by these records; vendor parser/adapters are not part of Build 0 (§18).
+
+Build 0 calibration eligibility is derived from an immutable `CalibrationRecord` and snapshot-bound `CalibrationValidityPolicy`. A calibrated record carries an inclusive `valid_from`/`valid_until` interval; a pre-interval run is `INVALID`, a post-interval run is `STALE`, and only an in-interval run is `VALID`. Explicit `INVALID` and `UNAVAILABLE` records carry no validity interval. Gate precedence is fixed: ratification/integrity → calibration → MSA → candidate loading/scoring. Stale or invalid calibration returns `STALE_OR_INVALID_CALIBRATION`; unavailable calibration returns `MISSING_REQUIRED_EVIDENCE`. No downstream MSA or candidate state may override an earlier gate.
+
+The canonical evaluation embedded in Tier 1 decisions is the following closed schema:
+
+```python
+class CalibrationTruth(str, Enum):
+    VALID = "VALID"
+    STALE = "STALE"
+    INVALID = "INVALID"
+    UNAVAILABLE = "UNAVAILABLE"
+
+class CalibrationEvaluation(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    state: CalibrationTruth
+    calibration_ref: GovernedRef
+    policy_ref: GovernedRef
+    evidence_refs: tuple[GovernedRef, ...]
+```
+
+`calibration_ref` always identifies the evaluated immutable `CalibrationRecord`, including an explicit `UNAVAILABLE` record; unavailable is evidence state, not absence of a record. `evidence_refs` is non-empty, unique, sorted by complete governed reference, and contains both `calibration_ref` and `policy_ref`. Validity bounds and the evaluation time are not duplicated in this object: they remain in the cited calibration record and decision header bound into the same snapshot.
+
+### 7.5 Discriminators and Confirm Tests
+```python
+class Discriminator(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    discriminator_ref: GovernedRef
+    observable_id: FieldId
+    artifact_predicate: Predicate
+    real_predicate: Predicate
+    discriminating_power: Decimal
+
+class DiscriminatorResult(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    result_ref: GovernedRef
+    discriminator_ref: GovernedRef
+    supersedes_version_id: VersionId | None
+    outcome: Literal[
+        "CONSISTENT_WITH_ARTIFACT", "CONSISTENT_WITH_REAL", "INCONCLUSIVE"
+    ]
+    observed_value_ref: GovernedRef | None
+    answered_by_actor_id: OpaqueId
+    effective_at: CanonicalTimestamp
+    recorded_at: CanonicalTimestamp
+
+class RuleOutEvidenceRequirement(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    requirement_ref: GovernedRef
+    candidate_ref: GovernedRef
+    required_discriminator_refs: list[GovernedRef]
+    aggregation: Literal["ALL_CONSISTENT_WITH_REAL"]
+    tau_ruleout_policy_ref: GovernedRef
+    evidence_refs: list[GovernedRef]
+
+class HardEliminationRule(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    rule_ref: GovernedRef
+    candidate_ref: GovernedRef
+    predicate_ref: GovernedRef
+    predicate: Predicate
+    evidence_refs: list[GovernedRef]
+
+class StructuredConfirmTest(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["STRUCTURED"]
+    predicate: Predicate
+    required_evidence_types: list[TermId]
+
+class HumanAttestedConfirmTest(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["HUMAN_ATTESTED"]
+    authorized_role_policy_ref: GovernedRef
+    required_evidence_types: list[TermId]
+
+ConfirmTest = Annotated[
+    Union[StructuredConfirmTest, HumanAttestedConfirmTest],
+    Field(discriminator="kind"),
+]
+
+class AttestationEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    attestation_ref: GovernedRef
+    failure_mode_ref: GovernedRef
+    method_ref: GovernedRef
+    attester_id: OpaqueId
+    attester_role_id: TermId
+    supporting_evidence: list[GovernedRef]
+    effective_at: CanonicalTimestamp
+    recorded_at: CanonicalTimestamp
+    state: Literal["ACTIVE", "REVOKED", "SUPERSEDED"]
+    supersedes_version_id: VersionId | None
+```
+
+Each failure mode resolves exactly one `RuleOutEvidenceRequirement`; Build 0 rule-out requires every named discriminator to resolve `CONSISTENT_WITH_REAL` and support to be at or below that requirement's governed `tau_ruleout`. The required list MUST be non-empty and a discriminator cannot be borrowed from another candidate. A low support score alone never satisfies rule-out.
+
+A `HardEliminationRule` belongs to one published candidate and is evaluated before signature scoring. Only `TRUE` eliminates; `FALSE` leaves the candidate open, `UNKNOWN` supplies no negative evidence, and `INVALID` returns `CONFIGURATION_INVALID`. Every elimination retains the rule, predicate evaluation, exact input evidence, and governing citations.
+
+For a discriminator observation, exactly one of `artifact_predicate` or `real_predicate` may evaluate `TRUE`. If neither is true, the result is `INCONCLUSIVE`. If either is `UNKNOWN`, the result is `INCONCLUSIVE` with missing fields recorded. If both are true, or either is `INVALID`, the pack/run returns `CONFIGURATION_INVALID`; overlapping outcome predicates are also a pack-publication error when statically detectable.
+
+`CONFIRMED` is unreachable without a passing structured confirm test or an active governed attestation. The attester role MUST be allowed by the snapshot-bound role policy. The attester MUST NOT be the author or approver of the governing failure-mode record. Revoked or superseded attestations cannot satisfy a confirm test.
+
+`AuthorizedRolePolicy` binds allowed governed roles to the exact method. `RoleAuthorizationEvent` binds actor, role, and policy with effective time, recorded time, state, and explicit supersession. Discriminator-result, role-authorization, and attestation chains have one root, monotonic version order, stable bound identity, and at most one successor per version. Eligibility uses only events with both timestamps at or before `as_of_time`; the unique unsuperseded head controls state. Missing supersession targets, forks, multiple active authorizations, multiple satisfying attestations, observation/result disagreement, or contradictory unsuperseded results are `INTEGRITY_FAILURE`.
+
+### 7.6 MSA Hard Precondition [OWNER DECISION]
+`MSAStudy` references method, measurand, range, conditions, study type, measured uncertainty, class-appropriate capability evidence, applicability predicate, optional selection group, precedence rank when grouped, qualification state, **qualification-scope reference**, effective time, and expiration time. One global Gage R&R rule is prohibited: `QUANT_NONDESTRUCTIVE` uses a governed Gage R&R contract; `DESTRUCTIVE` uses nested-design reproducibility; `QUALITATIVE` uses governed attribute agreement; `CONDITION_SENSITIVE` uses a per-condition uncertainty contract.
+
+`MethodMeasurementContract` binds the exact method, implemented-MSA class, and deviation field used by the gate. `ImplementedMSAClassRegistry` is bound to the running engine ID/version. Runtime MSA failure-reason precedence is an explicit ordered field of the snapshot-bound route policy; application branch order is not policy. Measurement comparisons convert deviation and uncertainty through the snapshot unit registry into the contract measurand's canonical unit, use canonical `Decimal`, and retain both compared values and the selected study reference in the decision.
+
+No qualified, applicable MSA study of a class implemented by the running engine **and valid for the run's bound evidence scope** means Tier 1 SHALL NOT issue an investigation verdict. It returns `RefusalDecision{verdict="REFUSED", refusal_type="MSA_UNCHARACTERIZED"}`; Tier 2 advisory MAY also run. Build 0 implements `QUANT_NONDESTRUCTIVE` only. Eligibility is earned per method; no application default bypass exists.
+
+A synthetic MSA fixture MAY be qualified only inside an isolated governed `TEST_FIXTURE` evidence scope. That study can satisfy the gate only for a run bound to the identical scope and always forces `operational_mode = RESEARCH_ONLY`. It cannot satisfy a bench, vendor, company, or production-scoped run. Scope mismatch behaves as no applicable qualified study. This is test data isolation, not an MSA bypass.
+
+### 7.7 Cases and Snapshots
+`TriageCase` references intake, tier, run context, pack version, engine version, knowledge snapshot, MSA result, candidates, discriminator results, canonical result, actions, provenance, and non-dispositional state. `KnowledgeSnapshot` binds every exact governed `version_id` and `content_hash` used, plus engine policy, algorithms, unit registry, precision/rounding policy, serialization policy, lexical policy, and explicit `as_of_time`.
+
+Governed records are immutable. Any correction creates a new `version_id` under the same `logical_id`; mutation of a published version is prohibited. The snapshot references specific versions only. A content-hash mismatch is tamper evidence and returns `INTEGRITY_FAILURE`. Replay never resolves an implicit latest version.
+
+Build 0 exact replay uses a separately versioned replay capsule stored atomically beside the immutable run. The capsule preserves the complete typed executable request, runtime, policy, and query, including explicit null input fields required to reconstruct existing closed schemas; its metadata binds the complete governed replay-policy reference, recipe schema, and algorithm ID. It is reconstruction material, not a decision input: it does not enter the original snapshot, decision, advisory, or audit hash. `BUILD0_EXACT_REPLAY_V1` re-executes only that capsule and compares canonical output, snapshot, audit, citation, and bound-version bytes. It performs no network retrieval, accepts no latest-version resolver, and cannot substitute current pack or lifecycle state. Capsule absence, checksum failure, schema/algorithm/policy unavailability, missing bound content, or re-execution drift returns `INTEGRITY_FAILURE` without changing the original run.
+
+`gptl.replay-recipe.v1` is a closed discriminated union selected by `recipe_kind`:
+
+```python
+class SafeRefusalReplayRecipe(BaseModel):
+    recipe_kind: Literal["SAFE_REFUSAL"]
+    request: SafeRefusalRequest
+    pack_registry: ExactPackRegistry
+    policy: SafeRefusalPolicy
+
+class CandidatePreservationReplayRecipe(BaseModel):
+    recipe_kind: Literal["CANDIDATE_PRESERVATION"]
+    request: Slice2Request
+    runtime: Slice2Runtime
+    policy: Slice2Policy
+
+class MSAGateReplayRecipe(BaseModel):
+    recipe_kind: Literal["MSA_GATE"]
+    request: Slice2Request
+    runtime: Slice3Runtime
+    policy: Slice3Policy
+
+class ArtifactConfirmationReplayRecipe(BaseModel):
+    recipe_kind: Literal["ARTIFACT_CONFIRMATION"]
+    request: Slice2Request
+    runtime: Slice4Runtime
+    policy: Slice4Policy
+
+class HonestNegativeReplayRecipe(BaseModel):
+    recipe_kind: Literal["HONEST_NEGATIVE"]
+    request: Slice2Request
+    runtime: Slice5Runtime
+    policy: Slice5Policy
+
+class Tier2AdvisoryReplayRecipe(BaseModel):
+    recipe_kind: Literal["TIER2_ADVISORY"]
+    request: Slice2Request
+    query: AdvisoryQuery
+    runtime: Slice6Runtime
+    policy: Slice6Policy
+```
+
+Every recipe and nested member is immutable and `extra="forbid"`. Explicit nulls are retained in recipe bytes because current closed request/runtime schemas distinguish a present no-value field from omission. Capsule metadata stores `algorithm_id`, `recipe_schema_version`, the complete `replay_policy_ref`, SHA-256 of the exact canonical recipe bytes, record type, run schema version, and hash algorithm. The recipe's canonicalization parameters must equal the replay policy's parameters except for policy identity; mismatch is invalid recipe material.
+
+Replay compares these byte surfaces: output envelope in stored order; audit events in explicit sequence order; snapshot as one canonical object; citations as a sorted set of canonical citation bytes; and bound versions as a sorted set of canonical complete-`GovernedRef` bytes. Preflight requires snapshot/citation/bound-version surfaces to be absent. Each stored surface carries its own declared record type, schema version, hash algorithm, and SHA-256 digest, all verified before re-execution. The verification result is a separate closed union, never an MIE verdict:
+
+```python
+class ReplayVerified(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    replay_id: OpaqueId
+    run_id: OpaqueId
+    status: Literal["VERIFIED"]
+    algorithm_id: Literal["BUILD0_EXACT_REPLAY_V1"]
+    replay_policy_ref: GovernedRef
+    recipe_schema_version: Literal["gptl.replay-recipe.v1"]
+    source_run_schema_version: OpaqueId
+    output_hash: Sha256Hex
+    snapshot_hash: Sha256Hex | None
+    bound_version_refs: tuple[GovernedRef, ...]
+
+class ReplayIntegrityFailure(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    replay_id: OpaqueId
+    run_id: OpaqueId
+    status: Literal["INTEGRITY_FAILURE"]
+    algorithm_id: Literal["BUILD0_EXACT_REPLAY_V1"]
+    replay_policy_ref: GovernedRef
+    reason_id: TermId
+```
+
+For `ReplayVerified`, snapshot hash and non-empty sorted unique bound-version references appear together; both are absent for preflight. Audit, citation, and bound-version byte equality are verified before success even though their individual hashes are not duplicated into the result. Any failed metadata, digest, schema, canonical-form, availability, or byte comparison returns only `ReplayIntegrityFailure` and never reconstructs or modifies an engineering decision.
+
+---
+
+## 8. Deterministic MIE Pipeline (Diagnostic Engine)
+
+### 8.0 Step 0 — Integrity and Tier Routing
+Validate schema, actor, pack version, hashes, method identity, units, required fields, ratification status, calibration, and implemented MSA class; confirm a fully resolved pack with no missing policy; route in the fixed precedence order; no runtime default injection.
+
+### 8.1 Step 1 — Snapshot
+Create `DecisionRun`; bind the immutable content-hashed `KnowledgeSnapshot`, including exact `version_id` references, before evaluation.
+
+### 8.1A Calibration Precondition (hard gate, §7.4)
+After ratification and integrity succeed, evaluate the snapshot-bound calibration record under its governed validity policy. Only `VALID` proceeds. `STALE` or `INVALID` returns `REFUSED{STALE_OR_INVALID_CALIBRATION}`. `UNAVAILABLE` returns `REFUSED{MISSING_REQUIRED_EVIDENCE}` with the governed calibration-unavailable route reason. MSA is not evaluated on a failed calibration route.
+
+### 8.2 Step 2 — MSA Precondition (hard gate, §7.6)
+Evaluate every potentially applicable study through §7.2. No qualified `TRUE` study, an `UNKNOWN` study with no established applicable alternative, or an unimplemented MSA class → `REFUSED{MSA_UNCHARACTERIZED}`; Tier 2 may run. `INVALID` → `REFUSED{CONFIGURATION_INVALID}`. A study applies and deviation is within its governed uncertainty → `WITHIN_MEASUREMENT_VARIATION`. A study applies and deviation exceeds uncertainty → proceed.
+
+### 8.3 Step 3 — Published Candidate Set
+Load every published failure mode in scope for the method and evaluate its applicability predicate (§7.2). Every `TRUE` candidate enters the `published_candidate_set`, subject only to scoped `SelectionBinding` resolution. Every `FALSE` exclusion records its governed predicate evaluation. An `UNKNOWN` candidate is recorded as `APPLICABILITY_UNRESOLVED`, remains inside the evaluated boundary, and blocks Tier 1 negative conclusions; it is never silently dropped. `INVALID` returns `CONFIGURATION_INVALID`. The set is bounded and named, never described as complete or all possible. Models cannot change it.
+
+### 8.4 Step 4 — Deterministic Negative Selection
+Apply hard impossibility rules; each elimination records the rule reference, exact input facts, evaluation, and evidence. Hard elimination is distinct from low support. Advisory penalties are not part of Build 0. Ordering of open candidates for display uses the schema-declared stable candidate key only.
+
+### 8.5 Step 5 — Signature Match (`Decimal`)
+```text
+signature_match_score(m) = Σ_observed weight(f)·match(f) / Σ_observed weight(f)
+signature_coverage(m)    = Σ_observed weight(f) / Σ_all-features weight(f)
+```
+All values are `Decimal`. Missing data lowers coverage and never creates a match or mismatch. Zero observed features means `signature_match_score = UNDEFINED`; unless a hard impossibility rule eliminates it, the candidate remains `OPEN_UNASSESSED` until the pack-required signature evidence is present. Discriminator observations are retained but do not manufacture a base score. The engine MUST NOT substitute an application default or configurable "neutral floor."
+
+### 8.6 Step 6 — Evidence State and Initial Support
+Each candidate receives one evidence state before aggregation:
+
+```text
+ELIMINATED          = a hard impossibility rule evaluated TRUE
+OPEN_UNASSESSED     = signature score is undefined
+EVALUABLE           = signature score is defined and required evidence policy is satisfied
+APPLICABILITY_UNRESOLVED = applicability evaluated UNKNOWN
+```
+
+Only `EVALUABLE` candidates receive `candidate_support_0 = signature_match_score`. Build 0 has no expert prior, context modifier, or undefined-signature substitute. `OPEN_UNASSESSED` and `APPLICABILITY_UNRESOLVED` candidates cannot become `RULED_OUT` and block `KNOWN_ARTIFACTS_EXCLUDED`.
+
+### 8.7 Step 7 — Discrimination: Order-Independent Aggregation
+
+The v0.3 sequential update (`support += d·(1−support)` / `support −= d·support`) was **order-dependent** and is replaced. Discriminator results are aggregated **set-wise**, so the score is a function of *what evidence exists*, not *what order it arrived*:
+
+```text
+Collect ALL DiscriminatorResults for candidate m, then compute once:
+
+  # commutative product over a SET → order-independent by construction
+  artifact_mass(m) = 1 − Π over {results CONSISTENT_WITH_ARTIFACT} of (1 − d_k)
+  real_mass(m)     = 1 − Π over {results CONSISTENT_WITH_REAL}     of (1 − d_k)
+  # INCONCLUSIVE results contribute to neither mass; they affect coverage only
+
+  candidate_support_score(m) = COMBINE(candidate_support_0(m),
+                                       artifact_mass(m),
+                                       real_mass(m))
+```
+
+- Each mass is a **commutative product over a set**, so it is independent of the order results were obtained — order independence is **structural**, not a consequence of stable sorting.
+- `COMBINE` is evaluated **exactly once** over the aggregated masses (never incrementally), is a versioned/qualified deterministic `Decimal` function, and MUST be bounded to `[0,1]`.
+- **Build 0 `COMBINE` candidate (RESEARCH_ONLY until qualified, §2.11):**
+  `support = clamp01( candidate_support_0·(1 − real_mass) + artifact_mass·(1 − candidate_support_0) )`.
+  This is bounded, deterministic, a pure function of the aggregated masses, and **invariant to discriminator order** by construction. The exact `COMBINE` form is `[BENCH-OPEN]`; the order-independence property is **normative and permanent**.
+- Discriminator aggregation runs only for an `EVALUABLE` candidate. Discriminator evidence for an `OPEN_UNASSESSED` candidate is retained and cited but does not manufacture a base score; the case remains open until the pack's required signature evidence is present.
+- Duplicate discriminator results are reduced by the explicit snapshot-bound supersession chain (`result_ref.version_id` / `supersedes_version_id`), never by timestamp or an implicit latest query. Contradictory results without a supersession relationship return an explicit integrity error. Results arriving after a run create a new run and snapshot; they never mutate replay.
+
+### 8.8 Step 8 — Status and Verdict Gates
+```text
+ELIMINATED      = hard impossibility rule satisfied
+OPEN_UNASSESSED = evidence state is not EVALUABLE
+CONFIRMED       = EVALUABLE AND support ≥ tau_confirm
+                  AND required coverage satisfied AND confirm test satisfied
+RULED_OUT       = EVALUABLE AND support ≤ tau_ruleout
+                  AND governed rule-out evidence requirement satisfied
+CANDIDATE       = EVALUABLE and no terminal candidate status above applies
+```
+`evaluated_fraction_within_published_catalog = answered_high_power / total_high_power`; the denominator is the governed high-power discriminator set on applicable candidates, and "answered" excludes `INCONCLUSIVE`. The exact high-power threshold and rule-out evidence requirement are qualified pack policy. A score below a floor, by itself, is never rule-out evidence.
+
+For the bounded negative gate, `total_high_power` is enumerated from every applicable published candidate before considering which candidates reached discriminator execution. A hard-eliminated candidate therefore remains in the known denominator; its unevaluated discriminators count unanswered rather than disappearing. An empty or otherwise unenumerable denominator is `CONFIGURATION_INVALID`, never a fabricated zero or one.
+
+- **`METHOD_ARTIFACT`**: a confirmed dominant candidate (support ≥ `tau_verdict`, dominance margin ≥ `delta_dom` over the next evaluable candidate), required coverage, satisfied confirm test, and no unresolved applicability that could change dominance.
+- **`KNOWN_ARTIFACTS_EXCLUDED`** (cited coverage record, not a determination of real behavior): every candidate in the `published_candidate_set` is explicitly `ELIMINATED` or `RULED_OUT`; no candidate is `OPEN_UNASSESSED` or `APPLICABILITY_UNRESOLVED`; `evaluated_fraction_within_published_catalog` meets the governed minimum; and the mandatory boundary fields are present (§9). It asserts only that the published catalog did not explain the anomaly after the recorded investigation.
+- Otherwise **`INDETERMINATE`** with open discriminators and the facts to continue.
+
+`CONFIRMED` describes each candidate independently. A `METHOD_ARTIFACT` verdict names exactly one confirmed candidate that also satisfies the verdict threshold and dominance margin. Other candidates MAY remain `CONFIRMED` when they satisfy their own confirmation contracts but are not verdict-dominant; their assessments remain visible in the canonical result.
+
+### 8.9 Step 9 — Canonical Result and Rendering
+Build, canonically serialize, and persist the authoritative structured result first. Optional prose rendering occurs afterward into a separate non-authoritative `RenderedArtifact`; it cannot modify the decision.
+
+Failure to construct a closed-schema authoritative result from otherwise accepted internal state is `REFUSED{ENGINE_FAILURE}` with a governed route reason and human action. It is not `CONFIGURATION_INVALID`, because no external configuration correction can repair an engine invariant violation. Rendering is outside this boundary and cannot be required to produce or validate the structured result.
+
+---
+
+## 9. Canonical Output Contract
+
+All models use `extra="forbid"` and immutable values recursively. All numerics are `Decimal`. Authoritative maps are prohibited; governed keyed values use sorted typed arrays. Authoritative prose is prohibited.
+
+```python
+class Citation(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    record_type_id: TermId
+    record_ref: GovernedRef
+    evidence_location: EvidenceLocator
+
+class RefusalType(str, Enum):
+    MSA_UNCHARACTERIZED = "MSA_UNCHARACTERIZED"
+    UNKNOWN_METHOD_OR_FAILURE_MODE = "UNKNOWN_METHOD_OR_FAILURE_MODE"
+    MISSING_REQUIRED_EVIDENCE = "MISSING_REQUIRED_EVIDENCE"
+    STALE_OR_INVALID_CALIBRATION = "STALE_OR_INVALID_CALIBRATION"
+    PACK_VERSION_UNAVAILABLE = "PACK_VERSION_UNAVAILABLE"
+    INTEGRITY_FAILURE = "INTEGRITY_FAILURE"
+    ENGINE_FAILURE = "ENGINE_FAILURE"
+    CONFIGURATION_INVALID = "CONFIGURATION_INVALID"
+
+class GovernedDisplayValue(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["GOVERNED_REF"]
+    value: GovernedRef
+
+class TermDisplayValue(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["TERM_REF"]
+    value: TermId
+
+class DecimalDisplayValue(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    kind: Literal["DECIMAL"]
+    value: Decimal
+    unit_id: UnitId | None
+
+DisplayValue = Annotated[Union[
+    GovernedDisplayValue, TermDisplayValue, DecimalDisplayValue,
+], Field(discriminator="kind")]
+
+class DisplayParam(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    key_id: TermId
+    value: DisplayValue
+
+class DisplayDirective(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    template_id: TemplateId
+    params: list[DisplayParam]
+
+class RenderedArtifact(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    decision_id: OpaqueId
+    renderer_id: OpaqueId
+    renderer_version: OpaqueId
+    rendered_text: str                         # non-authoritative prose allowed here only
+    generated_from_decision_hash: Sha256Hex
+    non_record_of_record: Literal[True]
+
+class CandidateAssessment(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    candidate_ref: GovernedRef
+    applicability: ApplicabilityTruth
+    evidence_state: Literal[
+        "ELIMINATED", "OPEN_UNASSESSED", "EVALUABLE", "APPLICABILITY_UNRESOLVED"
+    ]
+    status: Literal[
+        "ELIMINATED", "OPEN_UNASSESSED", "CANDIDATE", "CONFIRMED",
+        "RULED_OUT", "APPLICABILITY_UNRESOLVED"
+    ]
+    signature_match_score: Decimal | None
+    signature_coverage: Decimal
+    candidate_support_score: Decimal | None
+    evidence_refs: list[GovernedRef]
+    rule_refs: list[GovernedRef]
+
+class CandidateConfigurationIssue(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    candidate_ref: GovernedRef
+    applicability_evaluation: ApplicabilityEvaluation
+    evidence_refs: list[GovernedRef]
+
+class EvaluatedArtifact(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    failure_mode_ref: GovernedRef
+    terminal_status: Literal["ELIMINATED", "RULED_OUT"]
+    discriminator_refs: list[GovernedRef]
+    ruling_citations: list[Citation]
+
+class KnownGap(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    category_id: TermId
+    why_unevaluated: DisplayDirective
+    what_would_enable: DisplayDirective
+
+class DecisionHeader(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    decision_id: OpaqueId
+    case_id: OpaqueId
+    tier: Literal[1]
+    dispositional: Literal[False]
+    non_record_of_record: Literal[True]
+    operational_mode: Literal["RESEARCH_ONLY", "QUALIFIED"]
+    engine_id: OpaqueId
+    engine_version: OpaqueId
+    as_of_time: CanonicalTimestamp
+
+class BoundDecisionContext(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    context_kind: Literal["SNAPSHOT_BOUND"]
+    pack_ref: GovernedRef
+    engine_policy_ref: GovernedRef
+    evidence_scope_ref: GovernedRef
+    knowledge_snapshot_hash: Sha256Hex
+
+class PreflightRefusalContext(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    context_kind: Literal["PREFLIGHT"]
+    requested_pack_id: OpaqueId | None
+    failure_stage_id: TermId
+
+RefusalContext = Annotated[
+    Union[BoundDecisionContext, PreflightRefusalContext],
+    Field(discriminator="context_kind"),
+]
+
+class MIEDecisionBase(DecisionHeader):
+    context: BoundDecisionContext
+    method_ref: GovernedRef | None
+    route_reason_id: TermId
+    calibration_evaluation: CalibrationEvaluation
+    msa_applicability_evaluations: list[ApplicabilityEvaluation]
+    assessments: list[CandidateAssessment]
+    citations: list[Citation]
+    missing_field_ids: list[FieldId]
+    required_human_action: DisplayDirective
+    audit_event_ids: list[OpaqueId]
+
+class MethodArtifactDecision(MIEDecisionBase):
+    verdict: Literal["METHOD_ARTIFACT"]
+    msa_study_ref: GovernedRef
+    measured_deviation: Decimal
+    measured_uncertainty: Decimal
+    uncertainty_unit_id: UnitId
+    diagnostic_state_hash: Sha256Hex
+    confirmed_candidate_ref: GovernedRef
+    evaluated_fraction_within_published_catalog: Decimal
+    confirm_evidence: list[Citation]
+    what_would_change_this: list[DisplayDirective]
+
+class KnownArtifactsExcludedDecision(MIEDecisionBase):
+    verdict: Literal["KNOWN_ARTIFACTS_EXCLUDED"]
+    artifacts_evaluated: list[EvaluatedArtifact]
+    known_unevaluated_gaps: list[KnownGap]
+    catalog_boundary: DisplayDirective
+    evaluated_fraction_within_published_catalog: Decimal
+
+class IndeterminateDecision(MIEDecisionBase):
+    verdict: Literal["INDETERMINATE"]
+    msa_study_ref: GovernedRef
+    measured_deviation: Decimal
+    measured_uncertainty: Decimal
+    uncertainty_unit_id: UnitId
+    diagnostic_state_hash: Sha256Hex | None
+    open_discriminator_refs: list[GovernedRef]
+
+class WithinMeasurementVariationDecision(MIEDecisionBase):
+    verdict: Literal["WITHIN_MEASUREMENT_VARIATION"]
+    msa_study_ref: GovernedRef
+    measured_deviation: Decimal
+    measured_uncertainty: Decimal
+    uncertainty_unit_id: UnitId
+
+class RefusalDecision(DecisionHeader):
+    verdict: Literal["REFUSED"]
+    refusal_type: RefusalType
+    context: RefusalContext
+    method_ref: GovernedRef | None
+    route_reason_id: TermId | None
+    calibration_evaluation: CalibrationEvaluation | None
+    msa_applicability_evaluations: list[ApplicabilityEvaluation] | None
+    assessments: list[CandidateAssessment]
+    configuration_issues: list[CandidateConfigurationIssue] | None
+    citations: list[Citation]
+    missing_field_ids: list[FieldId]
+    required_human_action: DisplayDirective
+    audit_event_ids: list[OpaqueId]
+
+MIEDecision = Annotated[Union[
+    MethodArtifactDecision, KnownArtifactsExcludedDecision, IndeterminateDecision,
+    WithinMeasurementVariationDecision, RefusalDecision,
+], Field(discriminator="verdict")]
+
+class AdvisoryDecision(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    decision_id: OpaqueId
+    case_id: OpaqueId
+    tier: Literal[2]
+    status: Literal["ADVISORY_NO_VERDICT"]
+    dispositional: Literal[False]
+    non_record_of_record: Literal[True]
+    operational_mode: Literal["RESEARCH_ONLY", "QUALIFIED"]
+    engine_id: OpaqueId
+    engine_version: OpaqueId
+    context: BoundDecisionContext
+    as_of_time: CanonicalTimestamp
+    method_resolution: Literal["RESOLVED", "AMBIGUOUS", "UNKNOWN"]
+    method_ref: GovernedRef | None
+    proposed_field_ids: list[FieldId]
+    candidate_failure_mode_refs: list[GovernedRef]
+    applicability_evaluations: list[ApplicabilityEvaluation]
+    open_discriminator_refs: list[GovernedRef]
+    required_measurement_ids: list[TermId]
+    required_record_type_ids: list[TermId]
+    tier1_eligibility_gap_ids: list[TermId]
+    next_steps: list[DisplayDirective]
+    citations: list[Citation]
+    audit_event_ids: list[OpaqueId]
+
+class Tier1Output(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    output_kind: Literal["TIER1_DECISION"]
+    decision: MIEDecision
+    decision_hash: Sha256Hex                    # hash of canonical `decision` only
+
+class Tier2Output(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    output_kind: Literal["TIER2_ADVISORY"]
+    advisory: AdvisoryDecision
+    advisory_hash: Sha256Hex                    # hash of canonical `advisory` only
+
+MIEOutput = Annotated[
+    Union[Tier1Output, Tier2Output], Field(discriminator="output_kind")
+]
+```
+
+`MIEOutput` is the complete persisted output envelope for one `DecisionRun`. Exactly one union member is stored under that run identity. A Tier 2 run's deterministic Tier 1 eligibility attempt (§5.1) is replay input to advisory construction, not a second output envelope and not an omitted member of a compound record.
+
+Canonical list sort keys are normative: governed references by `(logical_id, version_id)`; citations by `(record_type_id, logical_id, version_id, evidence_location)`; candidate assessments by candidate reference; display parameters by `key_id`; directives by `(template_id, canonical params)`; IDs and terms lexicographically under §2.13. A schema may declare a different semantic order only when order itself carries domain meaning, in which case the order field is explicit and governed.
+
+Sort keys are not identity substitutes. Any two governed references sharing `(logical_id, version_id)` but differing in `version_number` or `content_hash` are an integrity conflict, and evidence/citation intersections compare the complete `GovernedRef`. A governed record's `evidence_refs` are bound into the snapshot for replay and integrity. They become separate `Citation` rows only when each referenced item has its own governed record type and evidence location; inventing either field is prohibited.
+
+`decision_hash` is SHA-256 over the canonical `decision` object only; `advisory_hash` is over the canonical `advisory` object only. The enclosing transport object and its hash field are not inputs to their own hashes.
+
+`MSA_UNCHARACTERIZED` is emitted only as `RefusalDecision{verdict="REFUSED", refusal_type="MSA_UNCHARACTERIZED"}`. A refusal after snapshot binding uses `BoundDecisionContext`. A refusal that prevents snapshot binding, such as `PACK_VERSION_UNAVAILABLE`, uses `PreflightRefusalContext` and MUST NOT fabricate pack, policy, or snapshot references. Tier 2 emits `AdvisoryDecision`, never a Tier 1 verdict or refusal. Build 0 emits `RESEARCH_ONLY`; later qualified deployments may still emit non-dispositional Tier 2 advisory outputs. No generic `confidence`, `confidence_interval`, or `posterior` field exists anywhere.
+
+---
+
+## 10. MIE Trust Models (pack content, not engine branches)
+Qualitative optical: imaging→prep→induced change→geometry. Quantitative optical: imaging/prep→scale calibration→projection→segmentation/thresholding→measured geometry. Spectral: calibration→conversion assumptions→interference→geometry/sampling→reported property. Mechanical: fixturing/alignment→measurement chain→specimen→conditions→reported behavior. Thermal: baseline/calibration→rate/kinetics→coupling/mass→history→reported behavior. Order guides investigation; it does not establish material truth.
+
+---
+
+## 11. Capture, Attributed Observations, Pack Publication
+Capture: register source → hash/preserve → deterministic extraction where available → LLM-assisted typed proposal where useful → evidence-location verification → domain-expert validation → rule/record tests → pack candidate → independent release review → immutable published pack version. Attributed observations (§2.6) enter `UNVALIDATED`, Tier-2-only, always shown with attribution. Promotion requires corroborating governed evidence or a governed designed-validation protocol, expert validation, and a recorded promotion event.
+
+A designed-validation protocol is itself a governed versioned record declaring the hypothesis, data to collect, acceptance criteria, required authority, and result contract. Governance artifacts are governed too: authorized-role sets, pack approvals, qualification events, and operational-mode elevation records carry immutable versions, named approvers, effective times, evidence, and content hashes. Attestation separation of duties (§7.5) is a publication gate.
+
+Lifecycle is `DRAFT→VALIDATED→PUBLISHED→DEPRECATED→REVOKED`; only `PUBLISHED` records enter Tier 1. Release gates include schema and referential integrity; predicate-AST and unit validation; selection-group validation with no rank ties; rules linked to evidence and owner; golden/regression suites; no unresolved critical findings; deterministic hashes; named approver; fully resolved policy manifest proving no application defaults; and source scans proving no domain constants in generic engine code. Threshold status is `UNVALIDATED|BENCH_TUNED|QUALIFIED`; `UNVALIDATED` or `BENCH_TUNED` decision policy forces `RESEARCH_ONLY`. Elevation to `QUALIFIED` requires a governed qualification event.
+
+Build 0 pack lifecycle selection is exact-version and bitemporal. A `PackLifecycleEvent` names one immutable pack reference, `PUBLISHED|DEPRECATED|REVOKED` state, effective and recorded times, and the exact predecessor event it supersedes. New-run eligibility evaluates only the explicitly requested `version_id` as of both timestamps. A newer published version never silently replaces an older explicitly requested published version; deprecation or revocation blocks new use according to governed reason IDs but cannot alter replay of a run that already bound that version.
+
+---
+
+## 12. Storage and Retrieval
+**Build 0 and production storage:** PostgreSQL with migration-controlled schema versions, foreign keys, transactional snapshot binding, primary-key citations, immutable pack versions, and database-enforced append-only decision/audit/replay-capsule records. Replay capsule count is transactionally enforced, so a replay-qualified run and its exact recipe cannot commit separately. `Decimal` values are stored as canonical strings when part of canonical payloads and as constrained `numeric` only for explicitly non-payload query columns whose conversion is tested. Build 0 is single-writer but uses the same persistence semantics intended for production. **Allowed retrieval:** exact IDs/aliases; FK/relational; range/categorical; controlled-vocabulary joins; deterministic rule evaluation; custom versioned lexical scoring with stable tie-break; optional `tsvector`/trigram acceleration proven equivalent to the canonical scorer. **Prohibited:** SQLite/FTS5 in the runtime path; vector similarity/embedding indexes; model-memory assertions; uncited search in a decision path; nearest-match fallback; hidden reranking/unversioned weights; application-code defaults; mutation of a published governed version.
+
+---
+
+## 13. The Other Modules [HORIZON — architectural intent, not near-term build]
+Each is an Authority Pack on the shared substrate over the production context graph, on whichever reasoning engine matches its computation, governed by §2, surfacing its dark space (§2.9), failing closed.
+
+**13.1 Material/Lot Genealogy** [Retrieval Engine] — governs lot/serial nodes and genealogy edges; population answers by relational traversal; eliminate lots/serials that cannot be in the affected population; genealogy is governed record or unknown. Requires the §3 temporal/identity contracts first.
+
+**13.2 Process Integrity & Drift** [Retrieval Engine + governed-rule SPC] — SPC/drift over **governed** parameters with **governed** control limits; a drift flag is a deterministic rule over governed series, not a model judgment; cites the series; never asserts causation. [HORIZON: historian-scale time-series governance is a real subsystem.]
+
+**13.3 Nonconformance/FRACAS** [Diagnostic Engine] — failure-mode/corrective-action precedents as governed records; investigation memory; the dark-space rule is load-bearing ("these modes checked and excluded; these known modes not evaluated").
+
+**13.4 Specification Compliance** [Retrieval Engine] — specs/procedures/acceptance criteria as `ConstraintRule`s with evidence links; deterministic rule evaluation with row-level citation; refuses when the governing spec/evidence is absent.
+
+**13.5 Production Problem Solver (Orchestrator)** [HORIZON — the hardest; non-dispositional boundary tightened, closes finding 8] — composes packs over the graph to answer the eight questions: detect what changed, scope population, eliminate impossible causes, enumerate surviving hypotheses with cited evidence, propose next-best checks, **present evidence-supported containment/corrective options for human approval — it does NOT declare any action "justified."** A declaration that an action is justified requires a formal authority/approval contract outside this system; the orchestrator presents options and the evidence for each, and the human (with authority) decides. Conservative cross-pack aggregation = present what each pack supports, never average dissent into false consensus. **The antigravity step, pulled back:** the orchestrator is an evidence-assembly and hypothesis-scoping aid for a human investigator, never an autonomous root-cause decider.
+
+---
+
+## 14. Outcome Taxonomy
+The output kinds are disjoint. Consumers branch first on `output_kind`, then on the relevant enum.
+
+- Tier 1 `verdict`: `METHOD_ARTIFACT` · `KNOWN_ARTIFACTS_EXCLUDED` · `INDETERMINATE` · `WITHIN_MEASUREMENT_VARIATION` · `REFUSED`.
+- `RefusalType`, valid only when `verdict == REFUSED`: `MSA_UNCHARACTERIZED` · `UNKNOWN_METHOD_OR_FAILURE_MODE` · `MISSING_REQUIRED_EVIDENCE` · `STALE_OR_INVALID_CALIBRATION` · `PACK_VERSION_UNAVAILABLE` · `INTEGRITY_FAILURE` · `ENGINE_FAILURE` · `CONFIGURATION_INVALID`.
+- Tier 2 `status`: `ADVISORY_NO_VERDICT`.
+
+`INDETERMINATE` and `WITHIN_MEASUREMENT_VARIATION` are verdicts, not refusal types. `MSA_UNCHARACTERIZED` is a refusal type, never a verdict.
+
+Slice 4 computes `diagnostic_state_hash` over the explicit `as_of_time` and the canonically ordered active discriminator-result, role-authorization, and attestation references resolved from the snapshot-bound event set. Slice 3 `INDETERMINATE` records carry no diagnostic state and omit this optional field canonically. Slice 4 `METHOD_ARTIFACT` and diagnostic `INDETERMINATE` records retain the hash so replay proves the same decision-effective authority/evidence state without consulting current state.
+
+Replay verification is a separate typed result, not a new MIE verdict: `VERIFIED` carries the exact source run schema, output hash, optional snapshot hash, and bound references; `INTEGRITY_FAILURE` carries only a governed reason. It never converts replay failure into a reconstructed engineering decision.
+
+---
+
+## 15. Related Systems (not in the runtime decision path)
+**FORGE** compiles schemas/contracts/tools/packs from governed data. **ORACLE** performs adversarial design/review governance; not a runtime verdict stage. **SENTINEL** is a domain product/vertical, not the generic name for GPTL as a service.
+
+---
+
+## 16. Acceptance Statement
+Successful when an engineer can inspect a canonical authoritative result and answer, **without trusting a model:** exact input used; who/what supplied and ratified each value; which pack/engine/rules/thresholds/records were active; the published candidate set considered; why each candidate was retained/supported/ruled out; what evidence confirmed it; what remains unknown (the dark space); what would change it; whether it reproduces with every LLM disabled; whether every decision-affecting value traces to the bound snapshot rather than application code. If any answer is unavailable, the system has not earned the right to an authoritative verdict.
+
+---
+
+## 17. Test and Release Gates
+**Required test classes:** LLM-off equivalence; deterministic stable ordering; `Decimal` boundary tests at the exact threshold and nearest representable values; RFC 8785/NFC/timestamp/list-order/hash conformance; property-based commutativity plus representative discriminator permutations; zero-observed-features → `OPEN_UNASSESSED`; missing applicability field → `UNKNOWN`, never exclusion; `UNKNOWN` candidate blocks negative verdict; invalid/empty predicate → `CONFIGURATION_INVALID`; range-bound inclusion/exclusion; unit incompatibility; selection-group isolation, precedence, and tie rejection; distinct applicable failure modes never compete without a shared group; overlapping ungrouped MSA studies fail publication; MSA evidence-scope mismatch fails the gate; a `TEST_FIXTURE` MSA cannot satisfy any non-test run; insufficient rule-out evidence never yields `RULED_OUT`; overlapping discriminator outcome predicates fail; contradictory discriminator results; explicit supersession-chain dedup; immutable historical replay; tamper → `INTEGRITY_FAILURE`; preflight refusal carries no fabricated pack/snapshot references; citation/evidence-location validation; renderer claim-diff; pack upgrade/rollback/revocation; no-default deletion tests; source scans rejecting domain constants and vector/model dependencies; verdict/advisory schema validation; attestation authority, revocation, supersession, and separation of duties; attributed-observation containment; MSA gate; and negative-result boundary fields.
+
+**Build 0 gold fixtures:** synthetic/reference EDS peak overlap, SEM charging, and XRD missing-minor-phase cases for `QUANT_NONDESTRUCTIVE`; tensile and DSC Tier-2-only cases for unimplemented MSA classes; within-measurement-variation; `KNOWN_ARTIFACTS_EXCLUDED` with every candidate explicitly eliminated or ruled out; incomplete typed intake; conflicting confirmed candidates; unknown method; missing MSA; identical-input replay; and permuted-evidence identical verdict. Every non-production fixture MUST declare `fixture_class = SYNTHETIC` or `REFERENCE` and MUST NOT claim fidelity to a vendor instrument, company lab, or qualified production process.
+
+**Release-blocking:** any golden regression; any unratified value entering Tier 1; any model-dependent difference in canonical Tier 1 output; any uncited authoritative claim; any vector dependency; any non-reconstructable historical decision; any rule without evidence/version/owner; any probability/confidence interval; any silent failure-to-result conversion; any decision value from application code rather than the bound snapshot; any nondeterministic order/time/locale/numeric/retry behavior; any non-canonical authoritative serialization; any authoritative free text; any open string used where a governed semantic type is required; any `float` in a boundary decision or canonical payload; any order-dependent score; any implicit-latest dedup; any applicability `UNKNOWN` treated as `FALSE`; precedence across unrelated candidates; any missing-evidence candidate becoming `RULED_OUT`; any confirmation without a valid structured test or attestation; any Tier 1 verdict for an unimplemented MSA class; any unvalidated observation in Tier 1; any artifact verdict without qualified scope-matched MSA; any `TEST_FIXTURE` evidence satisfying a non-test run; any negative result asserting real behavior or a fraction over unknowns; mutation of a published record version; or any Build 0 Tier 1 output not labeled `RESEARCH_ONLY`.
+
+Build 0 freeze additionally requires a repository-derived evidence manifest bound to an exact source commit and governing-document hashes. It maps every slice gate and completion criterion to exact collected pytest node IDs, records the complete PostgreSQL-backed result and static-gate artifact digests, publishes representative canonical output/snapshot hashes, identifies migration/source/schema digests, and contains no manually asserted pass state. A narrative test count or undocumented local execution cannot close this gate.
+
+---
+
+## 18. Build Sequence
+
+### Build 0 — Deterministic Spine (near-term wedge; MIE Diagnostic Engine; IMPLEMENTATION CONTRACT)
+Build the shared identity/version, canonical serialization, snapshot, policy-manifest, citation, and append-only audit substrate; the MIE schemas and four-state applicability evaluator; scoped selection-group resolution; exact method resolution; signature match; evidence-state gating; order-independent aggregation; structured/attested confirm tests; `QUANT_NONDESTRUCTIVE` MSA hard gate; typed Tier 1/Tier 2 outputs; and the §17 local conformance suite. The implementation runs with every LLM adapter disabled and has no vector dependency.
+
+Build 0 uses synthetic/reference SEM, EDS, and XRD fixtures to prove engine behavior. Synthetic MSA data and diagnostic inputs are isolated in a governed `TEST_FIXTURE` evidence scope and cannot satisfy any non-test run. Tensile and DSC remain Tier-2-only until their method-class MSA contracts exist. Build 0 does **not** contain vendor-specific raw-file adapters and does not claim fidelity to any company's instruments or lab schema. Manually ratified typed inputs are sufficient for the engine vertical slice; vendor adapters are later integration work.
+
+Every Build 0 Tier 1 decision carries `operational_mode = RESEARCH_ONLY`. It is deterministic and replayable but MUST NOT be consumed as qualified input to quality, disposition, compliance, or flight decisions. Elevation to `QUALIFIED` requires Build 2 qualification evidence and a governed elevation event.
+
+Acceptance: synthetic EDS peak-overlap → `METHOD_ARTIFACT` in `RESEARCH_ONLY` for the recorded reason; no-MSA/unimplemented-class → `REFUSED{MSA_UNCHARACTERIZED}` plus optional Tier 2; catalog exhausted only through explicit elimination/rule-out → `KNOWN_ARTIFACTS_EXCLUDED` with correct boundary; missing applicability → no negative verdict; zero observations → `OPEN_UNASSESSED`; identical input → byte-identical replay; permuted discriminator order → identical verdict.
+
+> **Knowledge acquisition is separate from the engine scaffold.** Public/reference knowledge and synthetic fixtures can exercise Build 0 without pretending to describe a specific lab. Vendor-native schemas, validated method records, failure modes, discriminators, confirm tests, and qualified MSA studies require real source material and domain validation. A method is production-eligible only when its knowledge and measurement system are qualified.
+
+### Build 1 — Capture & Advisory
+Source registration and evidence-grounded proposals; human validation/ratification; governed designed-validation protocols; attributed-observation ingestion (`UNVALIDATED`, Tier-2-only); deterministic custom lexical Tier 2 retrieval; optional Bouncer and renderer adapters. Vendor-specific instrument adapters MAY begin here only from real, legally usable source files and MUST preserve the raw artifact and provenance.
+
+### Build 2 — Qualification
+Qualify `tau_*`, `delta_dom`, evidence sufficiency, rule-out requirements, minimum coverage, and the `COMBINE` form against named bench cases; implement method-class-specific MSA; promote eligible methods from research-only; add fatigue crack growth and TGA; complete security/replay/adversarial suites.
+
+### Build 3 — Governed Production Profile
+Durable workers and production concurrency; RBAC, retention, tamper evidence, backup/recovery; qualified pack-release workflow; controlled integration APIs; non-QMS segregation and export controls; production vendor adapters; cryptographic/multi-party governance where required.
+
+### [HORIZON] Beyond Build 3 — Platform Expansion
+Genealogy → Process/Drift → FRACAS → Spec Compliance → Problem Solver, each its own pack/engine with its own build and qualification (and, for the graph packs, the §3 temporal/identity contracts first). The Retrieval Engine is introduced when the first retrieval pack (Spec Compliance) is built. Multi-pack orchestration is the destination, not the sprint.
+
+---
+
+## 19. Open Questions
+
+**19.1 Owner-Decided (closed):** missing/unimplemented MSA → `REFUSED{MSA_UNCHARACTERIZED}`, Tier 2 may run · negative class → `KNOWN_ARTIFACTS_EXCLUDED`, cited bounded-catalog record, no fraction over unknowns · tribal knowledge → attributed observation, fact only after governed validation · missing applicability never excludes a candidate · missing evidence never rules out a candidate · **architecture → one shared safety substrate with a closed, bounded set of reasoning engines by computation type; MIE uses the Diagnostic Engine; adding an engine type requires owner-ratified revision (§1.3).**
+
+**19.2 Bench-Open (need data):** `tau_*`, `delta_dom`, evidence-sufficiency and rule-out requirements, minimum coverage, and the `COMBINE` form (order-independence and fail-closed evidence states are fixed) · per-method qualification evidence/acceptance per §2.11 without pseudo-statistics · enumeration/currency of `known_unevaluated_gaps` per method class.
+
+**19.3 Architecture-Open:** the §3 production-context-graph temporal/identity and correction-propagation contracts — required before any graph pack is deterministic, not before MIE Build 0 · whether the Problem Solver's conservative cross-pack aggregation needs its own formal contract before any module beyond MIE [HORIZON].
+
+---
+
+## 20. One-Sentence Product Definition
+The GPTL Manufacturing Intelligence Platform is a non-dispositional, deterministic, fail-closed system — a shared safety substrate with a bounded set of reasoning engines (retrieval and diagnostic) over governed data — that turns fragmented materials, process, production, test, continuous, and experiential data into cited, evidence-backed hypotheses and next-best actions for human decision, ruling out what the governed evidence makes impossible, proving what it can, surfacing the named boundary of what it cannot, and never letting a model make or disguise the engineering decision — with Method Integrity as its first diagnostic engine and the full manufacturing-intelligence platform as its destination.
+
+---
+
+## Appendix A — Merge Disposition
+| Source concept | Disposition |
+|---|---|
+| GPTL = General Purpose Translation Layer | Retained; only valid expansion |
+| Negative selection | Retained as core method |
+| BSMS runtime pattern | Retained; defined (§4) |
+| **Single engine + packs** | **Owner-ratified amendment → one shared safety substrate plus a closed, bounded engine set by computation type (§1.3)** |
+| SENTINEL as generic GPTL service | Superseded; a vertical |
+| FAISS/vector retrieval (incl. MIE Tier 2) | Prohibited; lexical/relational/FTS only |
+| Model confidence interval | Removed (§2.8) |
+| L5 autonomous Finding/Implication/Action/Timeline | Superseded by cited-result-or-refusal |
+| Generic `IntelligenceOutput` | Replaced by typed discriminated-union decisions (§9) |
+| Authority Pack as YAML/prompt | Governed versioned domain payload (data, not code) |
+| MIE `candidate confidence`/posterior | `candidate_support_score`, `Decimal`, order-independent |
+| MIE `MATERIAL_BEHAVIOR` | Removed (no material-physics model) |
+| MIE `NO_KNOWN_ARTIFACT` | `KNOWN_ARTIFACTS_EXCLUDED`; cited coverage record, not real-behavior |
+| MIE as outer boundary | First diagnostic engine; platform is the boundary |
+| Tribal knowledge/"vibes" | Attributed observation; governed fact only after validation |
+| Production context graph | Platform spine; temporal/identity contracts deferred (§3) |
+| float scoring | Replaced by `Decimal` (§2.12) |
+| Sequential support update | Replaced by order-independent set aggregation (§8.7) |
+| Boolean applicability | Replaced by `TRUE|FALSE|UNKNOWN|INVALID`; `UNKNOWN` never excludes (§7.2) |
+| Global precedence rank | Restricted to an explicit governed selection group (§7.2) |
+| Missing evidence as low support | Replaced by `OPEN_UNASSESSED`; cannot become `RULED_OUT` (§8.6–8.8) |
+| Open authoritative strings/maps | Replaced by semantic scalar types, governed references, directives, and sorted arrays (§7.1, §9) |
+| Vendor-native file assumptions in Build 0 | Excluded; synthetic/reference typed fixtures only (§17–18) |
+| Temporal derivatives | Deferred to Process/Drift; governed-rule form only |
+| Multi-pack switchboard | [HORIZON] beyond Build 3 |
+
+---
+
+## Appendix B — The Antigravity Line
+**Buildable now (Build 0):** the shared deterministic substrate, MIE Diagnostic Engine, four-state applicability, evidence-state gates, PostgreSQL persistence, canonical serialization, immutable replay, and synthetic/reference research fixtures. **Requires real lab/source access:** vendor adapters, production method packs, and qualification. **Buildable with program effort (Build 3 + packs):** the governed production profile and additional engines/packs, qualified individually. **The antigravity step, pulled back:** the Production Problem Solver assembles cited evidence, scopes populations, eliminates only what governed evidence makes impossible, presents surviving hypotheses and explicit dark space, and recommends checks for a human. It never autonomously concludes causation or disposition.
+<!-- END GPTL_SPEC_V0.4.15 -->
+---
+
+# Embedded Build Plan
+
+<!-- BEGIN GPTL_BUILD_PLAN_V0.16 -->
+# GPTL MIE Build 0 Plan
+## Vertical-Slice Implementation Contract — v0.16
+
+**Governing specification:** GPTL Manufacturing Intelligence Platform v0.4.15
+
+**Status:** Post-ORACLE Build 0 baseline; Slices 1–7 implemented
+
+**Operational boundary:** Every Build 0 output is `RESEARCH_ONLY`, non-dispositional, and not a QMS or engineering record of record.
+
+**Review basis:** ORACLE session `20260621-192749`; eight accepted build-plan defects incorporated. v0.4 closed the remaining preflight-persistence, routing-matrix, requirement-ownership, and lexical-determinism ambiguities. **v0.5 owner decision:** PostgreSQL replaces SQLite for Build 0; no SQLite/FTS5 runtime or test fallback is permitted. **v0.6 Slice 2 review closeout:** runtime-invalid applicability is retained as typed evidence, integrity precedes ratification-state resolution, and event eligibility is bitemporal.
+
+Snapshot-bound outputs introduced by this revision are stored as `gptl.slice2.v2`. Persistence readers retain verified read compatibility with immutable `gptl.slice2.v1` records; no migration rewrites historical payloads.
+
+**v0.7 Slice 3 closeout:** calibration eligibility, method measurement contracts, MSA class support, scope/qualification/applicability selection, and exact uncertainty comparison are implemented as deterministic snapshot-bound gates. Slice 3 writes `gptl.slice3.v1`; readers retain verified compatibility with Slice 2 v1/v2.
+
+**v0.8 Slice 4 closeout:** exact signature coverage, set-wise discriminator aggregation, explicit supersession, structured and human-attested confirmation, bitemporal role authority, separation of duties, exact confirmation/dominance gates, and cited `METHOD_ARTIFACT` output are implemented. All domain numerics resolve through provenance-complete snapshot-bound policies. Slice 4 writes `gptl.slice4.v1`; readers retain verified compatibility with Slice 2 v1/v2 and Slice 3 v1.
+
+**v0.9 Slice 4 review closeout:** candidate confirmation and verdict dominance are explicitly separate gates. One dominant confirmed winner may coexist with lower-support confirmed candidates, all assessments remain canonical evidence, and engine-generated schema failures return governed `ENGINE_FAILURE`. Adversarial coverage now pins the two-confirmed path, partial required evidence, duplicate active authorities, and renderer independence.
+
+**v0.10 Slice 5 closeout:** governed hard-elimination rules execute before scoring; exact rule-out contracts require low-enough support plus all named real-consistent discriminators; catalog coverage uses a known published denominator; positive artifact routing retains precedence; and cited `KNOWN_ARTIFACTS_EXCLUDED` outputs retain named dark-space gaps and governed boundary/action directives. Slice 5 writes `gptl.slice5.v1`; readers retain verified compatibility with every prior snapshot-bound schema.
+
+**v0.11 Slice 5 review closeout:** tests explicitly prohibit real-material claims, pin exact gap categories and continuation directives, exercise uncited terminal exclusions through governed `ENGINE_FAILURE`, and reject unregistered boundary, gap, and action directives. Citation intersections use complete governed-reference equality across Slices 3–5. Bare evidence references remain snapshot-bound and are not promoted into citations without independently governed citation metadata.
+
+**v0.13 Slice 6 review closeout:** Tier 2 retains the implemented model-free retrieval and eligibility behavior while making two hidden assumptions fail closed. Lexical policy now binds frozen UCD 3.2.0 normalization, independent of the running CPython minor. A resolved advisory accepts only a Tier 1 refusal; a positive Tier 1 verdict cannot be consumed or replaced by an advisory route. Regression tests recompute every ineligible fixture's canonical advisory hash and pin public Slice 6 contracts. Slice 6 remains `gptl.slice6.v1`; no historical payload is rewritten.
+
+**v0.14 Slice 7 closeout:** exact typed replay recipes for Slices 1–6 are stored atomically with replay-qualified runs in append-only PostgreSQL capsules. `BUILD0_EXACT_REPLAY_V1` re-executes without network or latest-version lookup and compares every persisted output, snapshot, audit, citation, and bound-version byte. Tampering, missing content, missing recipes, unavailable algorithms, and drift return governed integrity failures. Explicit pack lifecycle and correction fixtures prove new versions and later events affect new runs without rewriting history.
+
+**v0.15 Slice 7 review closeout:** regression coverage now pins recipe-schema mismatch, replay-policy mismatch, cross-run capsule substitution, non-canonical recipe encoding, and stale run-payload checksums to their governed integrity failures. The demo-table database argument was already correct and is now test-protected. Migration `0004_replay_capsules` required only mechanical `replay_capsule_count=0` additions in Slice 1/2 raw-SQL trigger tests; no prior acceptance fixture or canonical output changed. Pack lifecycle timestamp ordering remains lexical only because canonical timestamp validation enforces one fixed fractional width per run, making that order chronological.
+
+**v0.16 source-audited completion closeout:** resolves ORACLE session `20260622-215552` against the repository rather than importing its proposed deltas blindly. Timestamp width is mandatory governed `CanonicalizationPolicy` input on every path, including preflight, and every lexical comparison domain validates under one policy. Authoritative IDs are caller-bound recipe inputs, not engine-generated values. One run persists exactly one Tier 1 or Tier 2 output; Tier 2 reproduces its Tier 1 eligibility attempt deterministically but does not create an implicit paired refusal. The exact implemented calibration/replay schemas and replay byte surfaces are now normative. Build 0 freeze requires the generated source/evidence manifest in addition to passing tests.
+
+**Completion evidence:** `docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.0.md` is the generated source-of-record for the freeze audit. It binds the exact implementation commit, governing-document hashes, collected test-node inventory, gate mappings, PostgreSQL/static command results, representative canonical artifact hashes, schema/source/migration digests, and generator identity. Prior narrative pass counts are historical context only and do not close the freeze gate. This evidence does not qualify Build 0 for production reliance.
+
+**ORACLE source-audit dispositions:** timestamp-width ambiguity accepted and resolved through mandatory bound policy, not an ungoverned platform constant; generated-ID concern resolved by confirming identifiers are explicit recipe inputs; prose-only calibration/refusal/replay contracts accepted and aligned to the implemented closed schemas; completion-evidence finding accepted; Tier 1/Tier 2 ambiguity accepted but ORACLE's proposed implicit two-output transaction rejected because it contradicted the implemented one-output-per-run contract; production cryptography, performance, uncertainty bands, and weakened governance remain correctly deferred or prohibited.
+
+---
+
+## 1. Purpose
+
+This plan translates the MIE Build 0 contract into independently verifiable vertical slices. It does not amend v0.4.15, create domain policy, qualify a method, or define vendor instrument formats. When this plan and v0.4.15 conflict, v0.4.15 governs and implementation stops until the conflict is resolved explicitly.
+
+A vertical slice begins with a typed request or governed fixture and ends with:
+
+1. A closed-schema output or explicit refusal.
+2. Canonical serialization and a recorded hash.
+3. Append-only audit evidence sufficient to explain the path.
+4. Local deterministic acceptance tests.
+5. A runnable demonstration command.
+
+No slice is complete because its internal classes exist. It is complete only when its external behavior and failure paths satisfy the slice exit gate.
+
+---
+
+## 2. Build Rules
+
+These rules apply to every slice and are not deferred:
+
+- No FAISS, embeddings, vector database, similarity retrieval, or nearest-match fallback.
+- No model output in candidate generation, applicability, scoring, confirmation, verdicts, or canonical payloads.
+- No `float` in decision arithmetic or canonical decision data.
+- No application default for domain policy, thresholds, units, evidence requirements, or applicability.
+- No authoritative free text. Human prose exists only in a separate `RenderedArtifact`.
+- No implicit latest-version lookup. Every governed input is an explicit immutable version.
+- No missing value is converted to negative evidence.
+- Applicability `UNKNOWN` never becomes `FALSE`.
+- A candidate without required evidence remains `OPEN_UNASSESSED`.
+- No authoritative value enters Tier 1 unless it is instrument-emitted or has a snapshot-bound active `RatificationEvent`.
+- Every run binds a fixed `as_of_time`. Ratification, attestation, role authorization, calibration, revocation, and supersession are evaluated against the exact event/policy versions in that run's snapshot.
+- A later event never changes historical replay. It affects new runs and may mark an old run stale through a separate lifecycle record without mutating the old decision.
+- Every synthetic/reference fixture identifies its fixture class and cannot claim vendor or production fidelity.
+- Synthetic MSA and diagnostic data are bound to an isolated governed `TEST_FIXTURE` evidence scope and cannot satisfy any non-test run.
+- Tests run locally. This plan adds no CI service or deployment automation.
+
+Any implementation pressure to weaken one of these rules is a stop condition, not an engineering tradeoff to resolve inside code.
+
+---
+
+## 3. Target Repository Shape
+
+The structure is directional, not permission to create empty placeholder modules. A path is introduced only by the slice that first exercises it.
+
+```text
+src/gptl/
+  core/
+    semantic_types.py       constrained IDs, hashes, timestamps, Decimal policy
+    canonical.py            RFC 8785 normalization, serialization, hashing
+    records.py              identity/version and governed references
+    ratification.py         ratification events and Tier 1 input gating
+    directives.py           governed display-template registry
+    snapshot.py             immutable snapshot binding
+    persistence.py          atomic append-only PostgreSQL run store
+    audit.py                append-only events and decision envelopes
+  mie/
+    schema.py               MIE records and output unions
+    predicates.py           four-state applicability AST evaluator
+    selection.py            selection-group resolution and candidate loading
+    candidates.py           published candidate-set construction
+    calibration.py          calibration-state validation and routing
+    msa.py                  MSA applicability and hard gate
+    advisory.py             deterministic Tier 2 catalog and resolver contracts
+    diagnostics.py          signature, aggregation, authority, and confirmation contracts
+    negative.py             elimination and bounded-catalog rule-out contracts
+    service.py              safe-refusal orchestration
+    slice2_service.py       candidate preservation and snapshot-bound intake
+    slice3_service.py       calibration and MSA orchestration
+    slice4_service.py       diagnostic evaluation and positive routing
+    slice5_service.py       honest bounded-negative routing
+    slice6_service.py       model-free advisory retrieval and eligibility guidance
+    replay.py               exact-input re-execution and pack-lifecycle integrity
+packs/reference/mie/        governed synthetic/reference pack data
+tests/
+  conformance/              cross-cutting invariant tests
+  slices/                   slice acceptance tests
+  fixtures/                 typed inputs and expected canonical outputs
+scripts/                    local demonstration entry points only
+```
+
+Domain facts, thresholds, method records, failure modes, discriminators, MSA evidence, calibration policy, role policy, lexical policy, and display templates belong in packs/fixtures, never generic engine modules.
+
+---
+
+## 4. Slice Exit Protocol
+
+Each slice change must include:
+
+- **Scope:** the exact requirements owned by the slice.
+- **Input:** a committed typed fixture or generated request with fixed `as_of_time`.
+- **Expected output:** committed canonical JSON or an exact schema assertion.
+- **Decision trace:** governed references and audit events explaining the outcome.
+- **Tests:** happy path, required refusal path, boundary path, deterministic replay within the slice.
+- **Demonstration:** one local command documented in the slice README or test.
+- **Non-goals:** behavior deliberately deferred to a named later slice.
+- **Stop conditions:** ambiguity that requires a spec amendment or governed policy not yet available.
+
+Persistence is substrate, not Slice 7 polish. Slice 1 establishes decision/audit durability; Slice 2 adds transactional snapshot binding. The minimum storage contract is:
+
+1. Every run has immutable `run_id` and fixed `as_of_time`.
+2. Every run atomically persists its canonical output envelope, envelope hash, and audit events.
+3. A `PREFLIGHT` refusal persists **no** fabricated snapshot, citation, pack/policy reference, or bound-version set. Their absence is represented by the refusal context and database constraints.
+4. A `SNAPSHOT_BOUND` run atomically persists the output envelope, knowledge snapshot, citations, resolved bound-version set, and audit events.
+5. A partial transaction is never readable or replayable. PostgreSQL transaction abort/restart rolls it back.
+6. Committed run, output, snapshot, citation, and audit rows are insert-only. Database triggers reject update/delete, in addition to repository API restrictions.
+7. Build 0 is single-writer over PostgreSQL. Concurrent-writer qualification and distributed work are outside Build 0.
+8. Each persisted payload stores its schema version, canonical SHA-256 checksum, and record type.
+9. PostgreSQL migrations are forward-only and never rewrite committed historical rows.
+
+Tests receive a PostgreSQL connection URL explicitly. There is no application database URL default and no SQLite fallback. Local acceptance tests MAY create an ephemeral user-owned PostgreSQL cluster, but the resulting URL is still passed explicitly to the store.
+
+Decision-effective events (`RatificationEvent`, `DiscriminatorResult`, `AttestationEvent`, role authorization, revocation, supersession, calibration state) carry immutable identity, `effective_at`, `recorded_at`, state where applicable, and explicit supersession. Evaluation uses events present in the bound snapshot only when both `effective_at <= as_of_time` and `recorded_at <= as_of_time`. Ratification eligibility is replayed against the snapshot's ratification-state hash; Slice 4 resolves discriminator/authority heads into the canonical `diagnostic_state_hash` carried by its decision. Historical replay uses the original event set and both applicable state hashes; a later-recorded or backdated event creates a new run/lifecycle warning and never rewrites the original result.
+
+The implementation may refactor code across completed slices only when all prior slice acceptance fixtures remain byte-identical or the governing specification explicitly requires a payload revision.
+
+The local demonstration runner is introduced by Slice 1 and remains model-free. Each scenario prints the canonical structured output and decision trace, then exits nonzero on contract failure:
+
+| Slice | Demonstration command |
+|---:|---|
+| 1 | `python scripts/run_slice.py safe-refusal --database-url "$GPTL_DATABASE_URL"` |
+| 2 | `python scripts/run_slice.py candidate-preservation --database-url "$GPTL_DATABASE_URL"` |
+| 3 | `python scripts/run_slice.py msa-gate --database-url "$GPTL_DATABASE_URL"` |
+| 4 | `python scripts/run_slice.py artifact-confirmation --database-url "$GPTL_DATABASE_URL"` |
+| 5 | `python scripts/run_slice.py honest-negative --database-url "$GPTL_DATABASE_URL"` |
+| 6 | `python scripts/run_slice.py tier2-advisory --database-url "$GPTL_DATABASE_URL"` |
+| 7 | `python scripts/run_slice.py replay-integrity --database-url "$GPTL_DATABASE_URL"` |
+
+The acceptance-test command for slice `NN` is `python -m pytest tests/slices/test_slice_NN_*.py tests/conformance -q`. Shell wildcard expansion affects file selection only and cannot alter engine behavior.
+
+---
+
+## 5. Slice 1 — Safe Refusal
+
+### Objective
+
+Prove that GPTL can reject an unexecutable request deterministically without fabricating unavailable pack, policy, or snapshot references.
+
+### Governing References
+
+v0.4.15 §§2.1, 2.7, 2.10–2.13, 6.1, 9, 12, 14, 17.
+
+### Scope
+
+- Python package and local test harness.
+- Constrained semantic scalar types.
+- RFC 8785/NFC/UTC canonical serialization and SHA-256 envelope hashing.
+- `DecisionHeader`, `PreflightRefusalContext`, `RefusalDecision`, and `Tier1Output`.
+- Governed display-template registry sufficient for refusal directives: versioned template ID, allowed parameter keys, parameter types/order, and registry binding. No template meaning is hardcoded in engine code.
+- Slice 1 portion of the §4 PostgreSQL persistence contract: atomic preflight decision envelope and audit persistence, database-trigger insert-only enforcement, schema version, checksums, and transaction rollback.
+- Requested pack lookup by exact identifier only.
+
+### Fixture
+
+A fixed request names a pack identifier absent from an empty pack registry.
+
+### Expected Result
+
+`Tier1Output{decision.verdict="REFUSED", refusal_type="PACK_VERSION_UNAVAILABLE", context.context_kind="PREFLIGHT"}` with `operational_mode="RESEARCH_ONLY"`, no pack/snapshot/citation/version-set references, a governed `required_human_action` directive, a canonical decision hash, and one persisted audit event.
+
+### Acceptance Gate
+
+- Identical request produces identical decision bytes and hash.
+- Unicode normalization variants canonicalize identically.
+- Invalid timestamp, identifier, or hash is rejected by schema validation.
+- No fake `pack_ref`, `engine_policy_ref`, or snapshot hash appears.
+- `required_human_action` uses a registered template with validated parameters; an unknown template or parameter fails validation.
+- Restarting the process does not erase the audit event.
+- A simulated failure between envelope and audit writes leaves no readable partial run after PostgreSQL transaction rollback.
+- Direct update/delete of committed rows is rejected by the database.
+
+### Non-Goals
+
+Published packs, snapshots, MSA, candidates, scoring, advisory output, rendering, and rich decision/advisory templates implemented by later slices.
+
+### Stop Conditions
+
+Canonical serialization cannot be made RFC 8785-conformant with the selected library; a refusal directive requires authoritative free text; PostgreSQL cannot enforce the context-specific atomic write contract.
+
+---
+
+## 6. Slice 2 — Candidate Preservation
+
+### Objective
+
+Load a bounded published candidate set while proving that missing context cannot silently remove a candidate and unratified authoritative input cannot enter Tier 1.
+
+### Governing References
+
+v0.4.15 §§2.4–2.7, 2.9, 2.11–2.13, 5.1, 6.1, 7.1–7.4, 7.7, 8.0–8.4, 9, 17.
+
+### Scope
+
+- Immutable governed records and explicit version references.
+- Pack and engine-policy manifests with no runtime defaults.
+- `RatificationEvent` representation and Tier 1 ratified-input gate. Instrument-emitted values carry their governed source linkage; human values reference an active event naming the value, source, actor, effective/recorded times, and governing pack version.
+- Knowledge snapshot creation and the `SNAPSHOT_BOUND` atomic persistence contract from §4.
+- Closed applicability AST and four-state evaluator.
+- Snapshot-bound unit conversion.
+- Scoped `SelectionBinding` resolution.
+- Candidate assessments without signature/support scores.
+
+### Fixtures
+
+One reference method pack contains distinct failure modes producing `TRUE`, `FALSE`, and `UNKNOWN` applicability results. A separate invalid-pack fixture contains an incompatible unit or malformed AST. Two applicable candidates intentionally have no shared selection group. A grouped alternative pair exercises precedence and tie rejection. Paired intake fixtures differ only in ratification state. Another pair proves that a ratification revoked after the original run changes new runs but not replay of the original snapshot.
+
+### Expected Results
+
+- `TRUE` candidates remain in the bounded set.
+- `FALSE` exclusions carry predicate evidence.
+- `UNKNOWN` remains `APPLICABILITY_UNRESOLVED` and returns `REFUSED{MISSING_REQUIRED_EVIDENCE}` rather than a negative conclusion.
+- `INVALID` returns `REFUSED{CONFIGURATION_INVALID}` and identifies every runtime-invalid candidate through a typed configuration issue containing its evaluation, error code, and evidence.
+- Distinct ungrouped candidates both survive.
+- Fully ratified input proceeds. Unratified/incomplete input deterministically returns Tier 2 `ADVISORY_NO_VERDICT`; it never enters Tier 1.
+- Ratification active at the original `as_of_time` remains active for historical replay even when a later event revokes it.
+
+### Acceptance Gate
+
+- Kleene `all`, `any`, and `not` truth tables are exhaustive.
+- Missing field never evaluates `FALSE`.
+- Range bounds, membership uniqueness, empty expressions, and unit failures are tested.
+- Selection precedence applies only inside one explicit group.
+- Rank ties and overlapping ungrouped MSA records fail pack publication.
+- Snapshot contains every exact record and policy version used.
+- Every admitted human value traces to an active snapshot-bound ratification event and actor.
+- Value hashes are verified before ratification eligibility or active-state hashing.
+- A backdated event is ineligible until its immutable `recorded_at` is at or before the run's `as_of_time`.
+- A later revocation cannot alter persisted/replayed output; it affects only new runs or lifecycle warnings.
+- Snapshot, citations, output, and audit events commit atomically.
+
+### Non-Goals
+
+MSA execution, calibration gating, signature matching, discriminator aggregation, artifact verdicts, and full Tier 2 retrieval/advisory behavior. Slice 2 implements only the deterministic advisory envelope needed for the unratified-input route.
+
+### Stop Conditions
+
+A context field or unit lacks a governed registry definition; applicability requires an operator outside the closed AST; selection requires choosing between unrelated failure mechanisms; ratification state cannot be resolved from immutable typed events.
+
+---
+
+## 7. Slice 3 — MSA and Calibration Gate
+
+### Objective
+
+Prove that Tier 1 eligibility requires ratified intake, valid calibration, and a qualified applicable measurement-system study, with deterministic routing precedence.
+
+### Governing References
+
+v0.4.15 §§2.7, 2.11, 5.1, 7.2, 7.4, 7.6–7.7, 8.0–8.3, 9, 14, 17–18.
+
+### Scope
+
+- `MSAStudy` schema, qualification metadata, and qualification-scope binding.
+- Governed `MethodMeasurementContract` binding method, MSA class, and deviation field.
+- `QUANT_NONDESTRUCTIVE` MSA applicability and selection.
+- Implemented-MSA-class registry bound to engine version.
+- Governed calibration state and validity/freshness policy; no engine constants.
+- Fixed gate precedence: ratification → calibration → MSA → scoring.
+- Snapshot-bound precedence for competing MSA failure reasons; application branch order is not policy.
+- Hard-gate routing before scoring.
+- `WithinMeasurementVariationDecision`.
+- `IndeterminateDecision` records the exact outside-variation comparison before Slice 4.
+
+### Fixtures
+
+- No MSA study.
+- Applicable but unqualified study.
+- Synthetic study qualified only for the governed `TEST_FIXTURE` scope whose uncertainty contains the deviation.
+- Synthetic study qualified only for the governed `TEST_FIXTURE` scope whose uncertainty does not contain the deviation.
+- Method with an unimplemented MSA class.
+- Test-qualified study presented to a non-test evidence scope.
+- Ratified intake crossed with `VALID`, `STALE`, `INVALID`, and `UNAVAILABLE` calibration.
+- Unratified/incomplete intake crossed with the same four calibration states.
+
+### Expected Results
+
+Routing is fixed by this matrix; every route records a governed `route_reason_id`:
+
+| Intake | Calibration | Result |
+|---|---|---|
+| unratified/incomplete | any state | Tier 2 `ADVISORY_NO_VERDICT` through the Slice 2 intake gate |
+| ratified | `VALID` | proceed to MSA |
+| ratified | `STALE` or `INVALID` | `REFUSED{STALE_OR_INVALID_CALIBRATION}` |
+| ratified | `UNAVAILABLE` | `REFUSED{MISSING_REQUIRED_EVIDENCE}` with calibration-unavailable reason |
+
+After valid calibration, missing, unqualified, unknown-applicability, out-of-range, scope-mismatched, or unimplemented-class MSA cannot proceed to scoring. A within-variation case returns `WITHIN_MEASUREMENT_VARIATION`. The outside-variation fixture deliberately omits Slice 4 signature observations and returns `INDETERMINATE` with `OPEN_UNASSESSED` candidates.
+
+### Acceptance Gate
+
+- No artifact or negative verdict is reachable without ratified intake, valid calibration, and qualified applicable MSA.
+- A qualification-scope mismatch behaves as no applicable qualified MSA; `TEST_FIXTURE` qualification never satisfies another scope.
+- Every intake/calibration matrix cell has exactly one result; no "refusal or Tier 2" alternative remains.
+- Stale/invalid calibration returns `STALE_OR_INVALID_CALIBRATION`; unavailable calibration never silently passes.
+- Overlapping studies resolve only through a valid selection group.
+- MSA version and capability evidence are in the snapshot.
+- Calibration/MSA routes retain typed evaluations, governed route reasons, and exact compared values.
+- Boundary comparisons use exact `Decimal` behavior.
+
+### Non-Goals
+
+Other MSA classes, support aggregation, confirmation, known-artifacts-excluded, and partial continuation across independently calibrated multi-source evidence.
+
+### Stop Conditions
+
+The fixture lacks defensible reference capability evidence; method class is ambiguous; an MSA/calibration rule is absent from governed policy; routing requires an outcome not represented in the fixed matrix.
+
+---
+
+## 8. Slice 4 — Artifact Confirmation
+
+### Objective
+
+Run complete structured and human-attested positive diagnostic paths from synthetic typed EDS cases to cited `METHOD_ARTIFACT` research verdicts.
+
+### Governing References
+
+v0.4.15 §§2, 7.3, 7.5–7.7, 8.3–8.9, 9–10, 16–18.
+
+### Scope
+
+- Signature features and coverage.
+- `CandidateDiagnosticContract` as the exact, mandatory Slice 4 extension of each immutable published failure-mode identity.
+- Provenance-complete `GovernedNumericPolicy` records for every weight, power, threshold, coverage gate, and dominance margin; the resolved set is exact and pack-scoped.
+- Evidence states, including `OPEN_UNASSESSED`.
+- Discriminator result evaluation and explicit supersession.
+- Order-independent artifact/real masses.
+- Versioned Build 0 `COMBINE` implementation.
+- Typed Slice 3 outside-variation continuation; Slice 4 never reconstructs a prior gate result.
+- Structured confirm test.
+- `HumanAttestedConfirmTest`, `AttestationEvent`, snapshot-bound role-policy evaluation, revocation/supersession, and separation of duties.
+- Candidate status and dominance gates.
+- `MethodArtifactDecision` and complete citations.
+
+### Fixture
+
+A fixture explicitly labeled `SYNTHETIC` represents an EDS peak-overlap investigation using typed observables. Its diagnostic records and synthetic MSA study share one isolated governed `TEST_FIXTURE` evidence scope. Every domain value, weight, threshold, discriminator, required evidence item, role policy, and attestation is in the reference pack with provenance and `RESEARCH_ONLY` status. Companion cases cover allowed role, disallowed role, attester equal to pack author/approver, revoked/superseded attestation, and revocation recorded after the original run.
+
+### Expected Result
+
+`METHOD_ARTIFACT` for the peak-overlap candidate only when its structured or attested confirmation contract is satisfied. Attested confirmation requires active as-of-time authorization and separation of duties. Post-run revocation changes new runs but not historical replay.
+
+The canonical decision retains the selected MSA study and exact deviation/uncertainty comparison, exactly one named winner with a matching `CONFIRMED` assessment, every other candidate assessment without status rewriting, the exact bounded published-catalog evaluation fraction, confirmation citations, governed route reason, required human action, and governed `what_would_change_this` directive. Slice 4 persistence uses `gptl.slice4.v1` without rewriting earlier schema records.
+
+### Acceptance Gate
+
+- Missing all signature observations produces `OPEN_UNASSESSED`, never support zero.
+- Missing required signature evidence prevents aggregation.
+- Every permutation of representative discriminator ordering yields identical support and verdict; property tests establish commutativity over generated result sets.
+- Exact `Decimal` tests pin confirmation and dominance at the boundary and at the nearest representable values on both sides.
+- Two candidates may be `CONFIRMED`; exactly one verdict-dominant candidate still yields `METHOD_ARTIFACT`, and both assessments remain in the result.
+- Contradictory unsuperseded results produce an integrity error.
+- Missing, forked, identity-changing, or unavailable supersession links produce an integrity error; one explicit active successor is selected deterministically.
+- Multiple active authorizations or satisfying attestations for one confirmation contract produce an integrity error.
+- A failed structured confirm test makes `CONFIRMED` unreachable.
+- Disallowed role, separation-of-duties violation, or inactive attestation makes `CONFIRMED` unreachable.
+- Role policy and attestation state are resolved at `as_of_time`, persisted in the active-state hash, and replay without consulting current state.
+- Every score and boundary value cites the governed numeric policy and provenance bound into the snapshot; source scans permit no domain numeric constant in generic Slice 4 modules.
+- Failure to construct a valid authoritative output returns governed `ENGINE_FAILURE`, never an uncaught schema exception or configuration refusal.
+- Renderer-disabled execution produces the same canonical result.
+
+### Non-Goals
+
+Vendor-native ingestion, production EDS fidelity, qualified thresholds, negative catalog verdict, production RBAC, and live identity-provider authorization.
+
+### Stop Conditions
+
+A fixture value lacks explicit reference provenance; code requires a hidden default; scoring consumes missing data as evidence; the expected verdict depends on tuning not declared `RESEARCH_ONLY`; role/attestation linkage cannot be represented as immutable governed records.
+
+---
+
+## 9. Slice 5 — Honest Negative
+
+### Objective
+
+Prove that the engine issues `KNOWN_ARTIFACTS_EXCLUDED` only after every applicable published candidate has explicit elimination or sufficient governed rule-out evidence.
+
+### Governing References
+
+v0.4.15 §§2.7–2.11, 7.5, 8.3–8.9, 9, 14, 16–18.
+
+### Scope
+
+- Hard-impossibility elimination records.
+- `RuleOutEvidenceRequirement` with `ALL_CONSISTENT_WITH_REAL`.
+- Rule-out status gates.
+- Bounded-catalog evaluated fraction.
+- Evaluated-artifact record, named known gaps, and catalog-boundary directive.
+- Governed rich decision templates for catalog boundary, known gaps, `what_would_change_this`, and human action; extends the Slice 1 registry without hardcoded template semantics.
+- `KnownArtifactsExcludedDecision`.
+
+### Fixtures
+
+- Every candidate explicitly eliminated or ruled out.
+- One candidate `OPEN_UNASSESSED`.
+- One candidate `APPLICABILITY_UNRESOLVED`.
+- Low support without required rule-out evidence.
+- Catalog with a named unevaluated category.
+
+### Expected Results
+
+Only the fully terminal fixture meeting the governed published-catalog fraction returns `KNOWN_ARTIFACTS_EXCLUDED`. The output reports the exact known denominator fraction, preserves named unevaluated categories outside the published set, and asserts no real material behavior. Every incomplete fixture returns `INDETERMINATE` or a refusal and names what would enable continuation. Slice 5 persistence uses `gptl.slice5.v1` without rewriting earlier records.
+
+### Acceptance Gate
+
+- Low support alone never produces `RULED_OUT`.
+- Exact `Decimal` tests pin `tau_ruleout` at the boundary and nearest representable values on both sides.
+- `UNKNOWN`, `OPEN_UNASSESSED`, or `INCONCLUSIVE` blocks the negative verdict.
+- A valid dominant positive candidate retains `METHOD_ARTIFACT` precedence over negative routing.
+- Every elimination/rule-out has governed citations.
+- Output states only what was excluded within the published catalog and never asserts real material behavior.
+- No fraction uses an unknown denominator; an empty governed high-power set returns `CONFIGURATION_INVALID`.
+- Every boundary/gap/action directive references a snapshot-bound registered template with validated parameters.
+
+### Non-Goals
+
+Proof that no unknown artifact exists, material-truth verdict, causal root-cause determination.
+
+### Stop Conditions
+
+The catalog boundary cannot be represented without free authoritative prose; a rule-out requirement lacks evidence; catalog denominator cannot be enumerated exactly.
+
+---
+
+## 10. Slice 6 — Tier 2 Advisory
+
+### Objective
+
+Provide useful deterministic continuation guidance without issuing a verdict or support score when Tier 1 eligibility is absent.
+
+### Governing References
+
+v0.4.15 §§2.3–2.7, 4, 5.1–5.2, 9, 12, 14, 17–18.
+
+### Scope
+
+- `AdvisoryDecision` and `Tier2Output`.
+- Exact alias, controlled-term, and relational retrieval in declared order.
+- Custom deterministic lexical scorer over normalized tokens with published weights and stable governed-ID tie-break. The normalization algorithm and frozen Unicode data version, scorer version, weights, and vocabulary are snapshot-bound.
+- PostgreSQL `tsvector`/trigram MAY accelerate candidate lookup only when an equivalence check proves it returns the same bounded rows; database-native rank never affects canonical membership or ordering.
+- Proposed field IDs, eligibility gaps, required records/measurements, open discriminators, and display directives.
+- Governed advisory templates for next steps and ratification/calibration/MSA eligibility gaps.
+- One-output-per-run persistence: the advisory path reproduces Tier 1 eligibility over the same bound inputs, then persists only the resulting `Tier2Output`, snapshot, citations, versions, audit, and optional replay capsule under that run identity.
+- Optional renderer boundary test with all model adapters disabled.
+
+### Fixtures
+
+Incomplete/unratified intake, ambiguous method alias, unknown method, missing MSA, unimplemented MSA class, stale/unavailable calibration, applicability `UNKNOWN`, and a resolved method whose Tier 1 attempt returns a positive verdict.
+
+### Expected Result
+
+Typed `ADVISORY_NO_VERDICT` output with no support score, no hidden candidate narrowing, and exact steps required for Tier 1 eligibility as derived from the actual Tier 1 attempt. Unknown and ambiguous methods select no method; all bounded matches remain represented. One run stores one advisory output; the internal Tier 1 attempt is reproducible from the exact recipe but is not a second persisted result. Slice 6 persists as `gptl.slice6.v1` without rewriting earlier records.
+
+### Acceptance Gate
+
+- No advisory path emits a Tier 1 verdict; a resolved Tier 1 non-refusal fails before advisory route selection.
+- Lexical membership/order and tie-break replay identically across processes and supported platforms from the bound scorer policy; a Unicode table mismatch fails closed.
+- Exact ID/alias, controlled-term, relational, and lexical lanes execute only in declared order; a tied top score remains ambiguous.
+- Enabling/disabling the optional PostgreSQL text-search accelerator cannot change canonical rows or ordering.
+- Removing every model adapter changes no advisory structured data.
+- Optional prose is separate from and cannot modify the advisory hash.
+- Advisory schemas contain no verdict, refusal, support score, confidence, or probability field.
+- A Tier 2 persistence read returns exactly one `TIER2_OUTPUT` record and the same bound snapshot used by its eligibility attempt; no implicit paired Tier 1 row exists.
+- Advisory directives reference snapshot-bound registered templates.
+
+### Non-Goals
+
+LLM translation, automated ratification, operator-facing ratification/attestation tooling, vendor parsers, qualified daily-use claims.
+
+### Stop Conditions
+
+Lexical ranking requires an unpublished weight; deterministic normalization/scoring cannot be reproduced; a model is required to produce a structured field; advisory output invents a method or failure mode.
+
+---
+
+## 11. Slice 7 — Replay and Integrity
+
+### Objective
+
+Close Build 0 by proving historical decisions are reconstructable, immutable, and detect tampering across process restarts and pack evolution over the persistence substrate established in Slices 1–2.
+
+### Governing References
+
+v0.4.15 §§2.1, 2.4–2.5, 2.12–2.13, 3, 6.1, 7.7, 8.1, 8.7, 8.9, 9, 11–12, 16–18.
+
+### Scope
+
+- Replay/integrity regression over the already durable append-only decision, snapshot, citation, and audit substrate; Slice 7 does not introduce first-time persistence.
+- Atomic append-only replay capsules containing the exact typed request, runtime, policy, and query under a bound governed replay-policy reference, versioned algorithm, and recipe schema.
+- Closed recipe union and typed `ReplayVerified|ReplayIntegrityFailure` result matching v0.4.15 §7.7; verification result is never an MIE verdict.
+- Historical replay by exact bound versions.
+- Replay ratification, attestation, role authorization, calibration, revocation, and supersession from the original snapshot and active-state hash, never current state.
+- Pack upgrade, deprecation, revocation, and rollback fixtures.
+- Corrected input as a new version/new run.
+- Tamper and missing-content detection.
+- Local Build 0 demonstration script covering all prior slices.
+
+### Fixtures
+
+Persisted outputs and exact replay capsules from Slices 1–6, a new pack version, explicitly superseded discriminator/ratification/attestation events, a corrected governed observation, modified stored content, a missing capsule, and missing referenced content.
+
+### Expected Results
+
+Historical runs reconstruct and replay byte-identically from their stored exact recipes and original snapshots. New versions create new runs without changing old output. Modified, unavailable, non-canonical, or algorithm-incompatible replay material returns `INTEGRITY_FAILURE`. Deprecation/revocation affects new eligibility according to exact-version as-of policy but does not rewrite history.
+
+### Acceptance Gate
+
+- Restart and cross-process replay is byte-identical.
+- A replay-qualified run and its capsule commit atomically; capsule update, delete, and truncate are database-rejected.
+- Every canonical decision field traces to the snapshot or fixed algorithm version.
+- No replay performs network retrieval or resolves "latest."
+- Post-run revocation/supersession cannot change historical replay; backdated events create new runs/lifecycle warnings rather than rewriting history.
+- Tampering and missing bound content fail closed.
+- Slices 1–6 all reconstruct from persisted typed recipes; replay compares output, snapshot, audit, citation, and bound-version bytes.
+- Success is emitted only after every declared byte surface matches; failure records a governed reason without returning a reconstructed decision.
+- All prior slice fixtures still pass unchanged.
+
+### Non-Goals
+
+Platform-wide correction propagation, production RBAC, durable distributed workers, backup/recovery qualification, QMS integration.
+
+### Stop Conditions
+
+A historical decision cannot be reconstructed from stored versions; an algorithm version is unavailable; replay requires mutable external state.
+
+---
+
+## 12. Requirement Ownership Matrix
+
+Each requirement has one primary implementation slice. Later slices may add regression coverage but do not redefine ownership.
+
+| Requirement | Primary Slice | Governing Spec |
+|---|---:|---|
+| Semantic scalar validation | 1 | §7.1 |
+| Canonical serialization and envelope hashing | 1 | §§2.12–2.13, 9 |
+| Preflight refusal without fabricated references | 1 | §§9, 14 |
+| Governed refusal display-template registry | 1 | §9 |
+| Atomic append-only preflight decision/audit store | 1 | §§9, 12 |
+| Governed identity/version records | 2 | §6.1 |
+| Atomic snapshot/citation/version-set binding | 2 | §7.7, §8.1 |
+| Four-state applicability | 2 | §7.2 |
+| Scoped selection groups | 2 | §7.2 |
+| Published candidate-set construction | 2 | §8.3 |
+| Ratification events and Tier 1 ratified-input gate | 2 | §§2.4, 5.1, 8.0 |
+| As-of ratification resolution | 2 | §§2.4, 7.7 |
+| `QUANT_NONDESTRUCTIVE` MSA hard gate | 3 | §7.6, §8.2 |
+| MSA qualification/evidence-scope isolation | 3 | §§7.6, 9, 17 |
+| Calibration validation and exact routing matrix | 3 | §§5.1, 7.4, 8.0, 14 |
+| Measurement-variation verdict | 3 | §§8.2, 9 |
+| Signature and evidence-state calculation | 4 | §§8.5–8.6 |
+| Order-independent aggregation | 4 | §8.7 |
+| Structured confirm test and artifact verdict | 4 | §§7.5, 8.8, 9 |
+| Attested confirmation, role policy, and separation of duties | 4 | §§7.5, 8.8, 17 |
+| As-of attestation and role-authorization resolution | 4 | §§2.5, 7.5, 7.7 |
+| Explicit elimination and rule-out evidence | 5 | §§7.5, 8.4, 8.8 |
+| Honest bounded-catalog negative verdict | 5 | §§2.9, 8.8, 9 |
+| Governed decision/gap display templates | 5 | §9 |
+| Typed Tier 2 advisory | 6 | §§5.1–5.2, 9 |
+| Deterministic lexical scorer and advisory templates | 6 | §§5.2, 9, 12 |
+| Immutable replay/tamper regression | 7 | §§6.1, 7.7, 8.9, 12 |
+| Pack evolution and correction-as-new-run | 7 | §§3, 6.1, 8.7, 11 |
+
+Cross-cutting invariants in §2 and release blockers in §17 apply to every slice even though their first executable coverage is owned by the earliest relevant slice.
+
+---
+
+## 13. Build 0 Completion Gate
+
+Build 0 is complete only when:
+
+1. Every slice acceptance gate passes locally.
+2. Every requirement in §12 has an implementation and test owner.
+3. All committed expected canonical outputs reproduce byte-identically.
+4. All model adapters can be absent without affecting structured output.
+5. Static dependency/source scans find no vector implementation or domain constants in generic modules.
+6. Every Tier 1 output is `RESEARCH_ONLY`, non-dispositional, and non-record-of-record.
+7. Synthetic/reference fixtures are labeled honestly.
+8. Test-fixture MSA/data cannot satisfy a differently scoped run.
+9. Both structured and attested confirmation paths, ratification gating, calibration routing, and display-template validation pass their acceptance fixtures.
+10. The persistence contract passes atomicity, append-only, crash-recovery, checksum, schema-version, and context-specific record-set tests.
+11. Historical replay resolves decision-effective events from the original snapshot and active-state hash, never live state.
+12. The final local demonstration exercises safe refusal, candidate preservation, MSA/calibration gating, positive artifact, honest negative, advisory, and replay paths.
+13. The generated completion-evidence manifest binds an exact source commit and governing-document hashes; maps every slice gate and completion criterion to exact collected test node IDs; records successful PostgreSQL/static command artifacts; includes representative canonical output/snapshot hashes and source/schema/migration digests; and reproduces from its versioned generator without a manually asserted result.
+
+Passing Build 0 does not qualify a method or authorize production reliance. It proves that the deterministic engine scaffold honors the governing contracts. Build 0 is not frozen while criterion 13 is absent, stale, or bound to a different implementation commit.
+
+---
+
+## 14. Change Control
+
+Implementation discoveries are classified before action:
+
+- **Implementation detail:** does not alter a schema, invariant, decision boundary, or observable output; resolve in code and tests.
+- **Build-plan correction:** changes sequencing or ownership without changing v0.4.15 semantics; revise this plan.
+- **Specification amendment:** changes a schema contract, decision state, policy source, evidence requirement, or invariant; stop the affected slice and revise the governing specification before implementation.
+- **Bench-open result:** supplies qualification evidence for an explicitly bench-open item; record the evidence and qualification event without rewriting historical Build 0 outputs.
+
+Code is executable evidence that the contract can be implemented. It is not permission to silently replace the governing specification.
+<!-- END GPTL_BUILD_PLAN_V0.16 -->
+---
+
+# Embedded Human-Readable Completion Evidence
+
+<!-- BEGIN GPTL_BUILD0_EVIDENCE_MD_V1.0 -->
+# GPTL MIE Build 0 Completion Evidence
+## Source-Audited Freeze Record - v1.0
+
+**Implementation commit:** `a1f83b265fbad3630e86c5196433e6ee1b0902d8`
+
+**Git tree:** `55cbd0cec684b5568917d6c43589f88c3b76830a`
+
+**Governing spec SHA-256:** `7a17b347b6f474ff108df79d091a2839f4ac4b0c055f13367555cee7425c83b4`
+
+**Build plan SHA-256:** `599f86a2411edceaef3cbc367294e25b92c24c1ea9bdfa4fcc8b378bffc5ec4f`
+
+**Collected tests:** `288`
+
+**Test inventory SHA-256:** `cfb4f4543d7830bc796ce7aca5a3a67ff63516eaf6c32fac1956535e5470ce11`
+
+**Disposition:** `BUILD_0_COMPLETE_READY_TO_FREEZE`
+
+This disposition is derived only because every recorded command exited zero and every governed gate mapped to at least one exact collected test. It does not qualify a method, lab, instrument, or production process.
+
+## Executed Gates
+
+### `GATE-01`
+
+- Command: `python -m ruff check src tests scripts`
+- Exit code: `0`
+- Output SHA-256: `82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18`
+- Normalized output:
+
+```text
+All checks passed!
+```
+
+### `GATE-02`
+
+- Command: `python -m ruff format --check src tests scripts`
+- Exit code: `0`
+- Output SHA-256: `c3c36fcff1e28b14cae0ee73be45b9f119bbadb20f7d5eb8ab829feeabf5769d`
+- Normalized output:
+
+```text
+58 files already formatted
+```
+
+### `GATE-03`
+
+- Command: `python -m mypy src`
+- Exit code: `0`
+- Output SHA-256: `34df9cf38736563d4bb02e64b66effac851acb546ad0a3c3761547e25bbe3570`
+- Normalized output:
+
+```text
+Success: no issues found in 37 source files
+```
+
+### `GATE-04`
+
+- Command: `uv build`
+- Exit code: `0`
+- Output SHA-256: `e97f40655bf9340378e6c8cadc1d143a94bb790cc4e0b212b5d9cf1beea1817f`
+- Normalized output:
+
+```text
+Building source distribution...
+Building wheel from source distribution...
+Successfully built dist/boundstate_gptl-0.1.0.tar.gz
+Successfully built dist/boundstate_gptl-0.1.0-py3-none-any.whl
+```
+
+### `GATE-05`
+
+- Command: `python -m pytest -q`
+- Exit code: `0`
+- Output SHA-256: `315445b4afd6aaee2cd0ef35d0c70a185262b4b5a93218954b8545d9e329962b`
+- Normalized output:
+
+```text
+........................................................................ [ 25%]
+........................................................................ [ 50%]
+........................................................................ [ 75%]
+........................................................................ [100%]
+288 passed in <elapsed>
+```
+
+### `GATE-06`
+
+- Command: `uv run --isolated --python 3.10 --group dev pytest tests/conformance/test_canonical.py tests/conformance/test_build0_closeout.py tests/slices/test_slice_07_replay_integrity.py -q`
+- Exit code: `0`
+- Output SHA-256: `a91aac810f0d3f504b40c3bc0529503e008b05fad1dd7eec3e2cc5e8a160850f`
+- Normalized output:
+
+```text
+....................................                                     [100%]
+36 passed in <elapsed>
+Installed 21 packages in <elapsed>
+```
+
+## Requirement-to-Test Traceability
+
+### `SLICE_1_SAFE_REFUSAL`
+
+Deterministic preflight refusal and atomic append-only PostgreSQL persistence
+
+Matched tests: `31`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#4-slice-1--safe-refusal`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal`
+- `tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres`
+- `tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent`
+- `tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process`
+- `tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]`
+
+### `SLICE_2_CANDIDATE_PRESERVATION`
+
+Candidate preservation, four-state applicability, ratification, and snapshot persistence
+
+Matched tests: `20`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#5-slice-2--candidate-preservation`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory`
+
+### `SLICE_3_MSA_CALIBRATION`
+
+Calibration precedence and qualified scope-matched MSA hard gate
+
+Matched tests: `31`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#6-slice-3--msa--calibration-gate`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope`
+
+### `SLICE_4_ARTIFACT_CONFIRMATION`
+
+Governed scoring, evidence gating, and structured or attested artifact confirmation
+
+Matched tests: `36`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#8-slice-4--artifact-confirmation`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed`
+
+### `SLICE_5_HONEST_NEGATIVE`
+
+Evidence-complete elimination and bounded-catalog negative verdict
+
+Matched tests: `21`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#9-slice-5--honest-negative`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate`
+- `tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative`
+- `tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres`
+- `tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring`
+- `tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically`
+- `tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed`
+- `tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict`
+- `tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity`
+- `tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract`
+- `tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration`
+- `tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid`
+- `tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]`
+- `tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]`
+- `tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict`
+- `tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out`
+
+### `SLICE_6_TIER2_ADVISORY`
+
+Deterministic model-free Tier 2 advisory with one output per run
+
+Matched tests: `38`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#10-slice-6--tier-2-advisory`
+
+Exact passed node IDs:
+- `tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected`
+
+### `SLICE_7_REPLAY_INTEGRITY`
+
+Exact-input replay, tamper refusal, and immutable pack evolution
+
+Matched tests: `24`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#11-slice-7--replay-and-integrity`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation`
+- `tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen`
+- `tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest`
+- `tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical`
+- `tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly`
+- `tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid`
+- `tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution`
+
+### `ORACLE_TIMESTAMP_IDENTITY_SCHEMA_CLOSEOUT`
+
+Source-audited timestamp, identity, calibration, output, refusal, and replay-schema boundaries
+
+Matched tests: `6`
+
+Source references:
+- `docs/GPTL_Manufacturing_Platform_v0.4.15.md#212-determinism-contract-with-numeric-representation-closes-finding-1`
+- `docs/GPTL_Manufacturing_Platform_v0.4.15.md#213-canonical-serialization-and-hashing-contract`
+- `docs/GPTL_Manufacturing_Platform_v0.4.15.md#77-cases-and-snapshots`
+
+Exact passed node IDs:
+- `tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs`
+- `tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity`
+- `tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound`
+- `tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed`
+- `tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope`
+- `tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record`
+
+### `PERSISTENCE_ATOMICITY`
+
+Dependent records and replay capsules commit or roll back as one PostgreSQL transaction
+
+Matched tests: `4`
+
+Source references:
+- `src/gptl/core/persistence.py`
+- `src/gptl/core/migrations/0004_replay_capsules.sql`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically`
+
+### `PERSISTENCE_APPEND_ONLY`
+
+Database triggers reject mutation, deletion, and truncation of immutable records
+
+Matched tests: `4`
+
+Source references:
+- `src/gptl/core/migrations`
+
+Exact passed node IDs:
+- `tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows`
+- `tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation`
+
+### `RESTART_CROSS_PROCESS_REPLAY`
+
+Persisted decisions and exact recipes reconstruct after store reopen and in a fresh process
+
+Matched tests: `3`
+
+Source references:
+- `src/gptl/mie/replay.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen`
+
+### `TAMPER_MISSING_CONTENT_REFUSAL`
+
+Altered, stale, absent, substituted, or non-canonical replay material fails closed
+
+Matched tests: `6`
+
+Source references:
+- `src/gptl/core/persistence.py`
+- `src/gptl/mie/replay.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid`
+- `tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution`
+
+### `PACK_LIFECYCLE_EVOLUTION`
+
+Upgrade, correction, revocation, and supersession affect new runs without rewriting history
+
+Matched tests: `4`
+
+Source references:
+- `src/gptl/mie/replay.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history`
+- `tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest`
+- `tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly`
+
+### `COMPLETION_1_ALL_ACCEPTANCE_GATES`
+
+Every collected Build 0 acceptance and conformance test passes
+
+Matched tests: `288`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#13-build-0-completion-gate`
+
+Exact passed node IDs:
+- `tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs`
+- `tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity`
+- `tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound`
+- `tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed`
+- `tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope`
+- `tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record`
+- `tests/conformance/test_canonical.py::test_decimal_overflow_is_rejected_by_explicit_policy`
+- `tests/conformance/test_canonical.py::test_decimal_uses_explicit_fixed_scale_policy`
+- `tests/conformance/test_canonical.py::test_duplicate_keys_after_nfc_normalization_are_rejected`
+- `tests/conformance/test_canonical.py::test_float_is_rejected_at_any_depth`
+- `tests/conformance/test_canonical.py::test_signed_decimal_zero_has_one_canonical_representation`
+- `tests/conformance/test_canonical.py::test_unicode_nfc_variants_have_identical_bytes_and_hashes`
+- `tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids0]`
+- `tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids1]`
+- `tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids2]`
+- `tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable`
+- `tests/conformance/test_predicates.py::test_incompatible_declared_unit_fails_pack_validation`
+- `tests/conformance/test_predicates.py::test_incompatible_runtime_unit_is_invalid`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-FALSE-FALSE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-TRUE-FALSE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-UNKNOWN-FALSE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-FALSE-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-TRUE-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-UNKNOWN-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-FALSE-FALSE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-TRUE-TRUE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-UNKNOWN-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-FALSE-FALSE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-TRUE-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-UNKNOWN-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-FALSE-FALSE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-TRUE-TRUE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-UNKNOWN-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-FALSE-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-TRUE-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-UNKNOWN-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-FALSE-TRUE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-TRUE-TRUE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-UNKNOWN-TRUE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-FALSE-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-TRUE-TRUE]`
+- `tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-UNKNOWN-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload0-logical predicate has an invalid shape]`
+- `tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload1-membership terms cannot be empty]`
+- `tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload2-membership terms must be unique]`
+- `tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload3-range low cannot exceed high]`
+- `tests/conformance/test_predicates.py::test_missing_registered_field_is_unknown_with_no_evidence`
+- `tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[FALSE-TRUE]`
+- `tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[INVALID-INVALID]`
+- `tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[TRUE-FALSE]`
+- `tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[UNKNOWN-UNKNOWN]`
+- `tests/conformance/test_predicates.py::test_numeric_policy_overflow_is_invalid_instead_of_escaping_evaluation`
+- `tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-EXCLUSIVE-INCLUSIVE-FALSE]`
+- `tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-INCLUSIVE-INCLUSIVE-TRUE]`
+- `tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-EXCLUSIVE-FALSE]`
+- `tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-INCLUSIVE-TRUE]`
+- `tests/conformance/test_predicates.py::test_snapshot_bound_unit_conversion_is_used_for_comparison`
+- `tests/conformance/test_schema.py::test_conflicting_metadata_for_one_governed_identity_is_rejected`
+- `tests/conformance/test_schema.py::test_display_parameter_kind_must_match_registered_kind`
+- `tests/conformance/test_schema.py::test_float_cannot_enter_a_decimal_field_by_coercion`
+- `tests/conformance/test_schema.py::test_malformed_hash_is_rejected`
+- `tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[audit_event_id-?bad]`
+- `tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[requested_pack_id-]`
+- `tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[run_id-bad id]`
+- `tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-02-30T12:00:00.000Z]`
+- `tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.000+00:00]`
+- `tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.00Z]`
+- `tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00Z]`
+- `tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T25:00:00.000Z]`
+- `tests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[9007199254740992]`
+- `tests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[True]`
+- `tests/conformance/test_schema.py::test_required_display_parameter_cannot_be_omitted`
+- `tests/conformance/test_schema.py::test_timestamp_policy_context_is_mandatory`
+- `tests/conformance/test_schema.py::test_unknown_display_parameter_is_rejected`
+- `tests/conformance/test_schema.py::test_unknown_display_template_is_rejected`
+- `tests/conformance/test_selection.py::test_overlapping_ungrouped_msa_records_are_invalid_configuration`
+- `tests/conformance/test_selection.py::test_selection_group_rank_tie_is_invalid_configuration`
+- `tests/conformance/test_selection.py::test_selection_preserves_distinct_ungrouped_records_and_group_winner`
+- `tests/conformance/test_source_boundaries.py::test_authoritative_source_has_no_prohibited_runtime_dependencies`
+- `tests/conformance/test_source_boundaries.py::test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7`
+- `tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal`
+- `tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres`
+- `tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent`
+- `tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process`
+- `tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed`
+- `tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate`
+- `tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative`
+- `tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres`
+- `tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring`
+- `tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically`
+- `tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed`
+- `tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict`
+- `tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity`
+- `tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract`
+- `tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration`
+- `tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid`
+- `tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]`
+- `tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]`
+- `tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict`
+- `tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected`
+- `tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation`
+- `tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen`
+- `tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest`
+- `tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical`
+- `tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly`
+- `tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid`
+- `tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution`
+
+### `COMPLETION_2_REQUIREMENT_OWNERSHIP`
+
+Every Build 0 requirement has one implementation slice and executable coverage
+
+Matched tests: `200`
+
+Source references:
+- `docs/GPTL_BUILD_PLAN_v0.16.md#12-requirement-ownership-matrix`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal`
+- `tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres`
+- `tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent`
+- `tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process`
+- `tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed`
+- `tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate`
+- `tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative`
+- `tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres`
+- `tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring`
+- `tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically`
+- `tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed`
+- `tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict`
+- `tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]`
+- `tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity`
+- `tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract`
+- `tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration`
+- `tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid`
+- `tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]`
+- `tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]`
+- `tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict`
+- `tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected`
+- `tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule`
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation`
+- `tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url`
+- `tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen`
+- `tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest`
+- `tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical`
+- `tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly`
+- `tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid`
+- `tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure`
+- `tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed`
+- `tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution`
+
+### `COMPLETION_3_CANONICAL_REPRODUCTION`
+
+Committed canonical results reproduce byte-identically
+
+Matched tests: `9`
+
+Source references:
+- `src/gptl/core/canonical.py`
+
+Exact passed node IDs:
+- `tests/conformance/test_canonical.py::test_decimal_overflow_is_rejected_by_explicit_policy`
+- `tests/conformance/test_canonical.py::test_decimal_uses_explicit_fixed_scale_policy`
+- `tests/conformance/test_canonical.py::test_duplicate_keys_after_nfc_normalization_are_rejected`
+- `tests/conformance/test_canonical.py::test_float_is_rejected_at_any_depth`
+- `tests/conformance/test_canonical.py::test_signed_decimal_zero_has_one_canonical_representation`
+- `tests/conformance/test_canonical.py::test_unicode_nfc_variants_have_identical_bytes_and_hashes`
+- `tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically`
+- `tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical`
+
+### `COMPLETION_4_MODEL_INDEPENDENCE`
+
+Removing model and renderer adapters cannot alter authoritative structured output
+
+Matched tests: `3`
+
+Source references:
+- `tests/conformance/test_source_boundaries.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash`
+
+### `COMPLETION_5_SOURCE_BOUNDARIES`
+
+Static scans find no vector/model authority or domain numeric constants in generic modules
+
+Matched tests: `2`
+
+Source references:
+- `src/gptl`
+
+Exact passed node IDs:
+- `tests/conformance/test_source_boundaries.py::test_authoritative_source_has_no_prohibited_runtime_dependencies`
+- `tests/conformance/test_source_boundaries.py::test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7`
+
+### `COMPLETION_6_RESEARCH_ONLY_OUTPUT`
+
+Build 0 outputs remain non-dispositional, non-record-of-record, and RESEARCH_ONLY
+
+Matched tests: `11`
+
+Source references:
+- `src/gptl/mie/schema.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact`
+- `tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]`
+
+### `COMPLETION_7_FIXTURE_LABELING`
+
+Synthetic/reference evidence remains honestly scoped and cannot imply production fidelity
+
+Matched tests: `2`
+
+Source references:
+- `src/gptl/slice3_fixture.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope`
+
+### `COMPLETION_8_SCOPE_ISOLATION`
+
+TEST_FIXTURE MSA and evidence cannot satisfy another scope
+
+Matched tests: `3`
+
+Source references:
+- `src/gptl/mie/msa.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope`
+
+### `COMPLETION_9_GOVERNED_CONFIRMATION_ROUTING`
+
+Confirmation, ratification, calibration, MSA, and display-template gates are fail-closed
+
+Matched tests: `18`
+
+Source references:
+- `src/gptl/mie/diagnostics.py`
+- `src/gptl/mie/calibration.py`
+
+Exact passed node IDs:
+- `tests/conformance/test_schema.py::test_unknown_display_template_is_rejected`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]`
+
+### `COMPLETION_10_PERSISTENCE_CONTRACT`
+
+Atomicity, append-only, checksum, schema, recovery, and record-set constraints pass
+
+Matched tests: `34`
+
+Source references:
+- `src/gptl/core/persistence.py`
+- `src/gptl/core/migrations`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal`
+- `tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows`
+- `tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count`
+- `tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres`
+- `tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history`
+- `tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent`
+- `tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process`
+- `tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]`
+- `tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically`
+
+### `COMPLETION_11_HISTORICAL_REPLAY`
+
+Replay uses original bound state and never live/latest state
+
+Matched tests: `4`
+
+Source references:
+- `src/gptl/mie/replay.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule`
+- `tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest`
+- `tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay`
+- `tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface`
+
+### `COMPLETION_12_DOCUMENTED_DEMOS`
+
+Every documented slice demonstration executes against explicit PostgreSQL
+
+Matched tests: `7`
+
+Source references:
+- `scripts/run_slice.py`
+
+Exact passed node IDs:
+- `tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres`
+- `tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres`
+- `tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres`
+- `tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres`
+- `tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres`
+- `tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres`
+- `tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices`
+
+### `COMPLETION_13_EVIDENCE_MANIFEST`
+
+The closeout generator validates mappings and derives all result state from executed artifacts
+
+Matched tests: `6`
+
+Source references:
+- `scripts/generate_build0_completion_evidence_v1_0.py`
+- `docs/evidence/BUILD0_GATE_MAP_v1.0.json`
+
+Exact passed node IDs:
+- `tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs`
+- `tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity`
+- `tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound`
+- `tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed`
+- `tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope`
+- `tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record`
+
+## Canonical Artifact Samples
+
+### `SAFE_REFUSAL`
+
+- Run ID: `run.slice1.safe-refusal`
+- Output kind: `TIER1_DECISION`
+- Output payload SHA-256: `315af6e8c4bd5b03fa8747e1e7ebffdeecbd01303371f049933b988132ae341b`
+- Decision/advisory hash: `41a41a3d3e171f65dd509de228dee114b2e2375282388392fe51330f3666c995`
+- Snapshot SHA-256: `None`
+- Audit payload hashes: `["0ce690cd24f99080742e942fc0ded2fdc004021b3e119c47fb283fadc063d1fa"]`
+- Citation payload hashes: `[]`
+- Bound-version payload hashes: `[]`
+
+### `CANDIDATE_PRESERVATION`
+
+- Run ID: `run.slice2.slice7-replay`
+- Output kind: `TIER1_DECISION`
+- Output payload SHA-256: `a5fa9f6721f1e495e0ad72c0db253447f0a8f81be9c47f762078ba81b646f9d5`
+- Decision/advisory hash: `545dc05e0ff8933e40dc635e21f246d1e9a1c98504dcd773a39611958ecb7745`
+- Snapshot SHA-256: `220ff5099cec6b15817ded35ac9b1409fa54465ed7eb1e6b5fa95147364a302f`
+- Audit payload hashes: `["3f5d4982e655528fabcc0d436fd02a8ad4cfcdd0bb9bd33e91a366440122e297"]`
+- Citation payload hashes: `["86667e3bf1fe7ad5349e88b96b79af697ef6072d0d1d1d7b3dbe6cee1a3339e4"]`
+- Bound-version payload hashes: `["01dab0eda904dfc94a5bf8d38c15002e0e39db037ed5b961798a872850f77def", "02f25da3bc2a53d60290ac40c70f21b58e0590803ebbe127af215f9a7d958d87", "041e2dc72ab73f0e401aabb20d4b6ce813192b66dae6e92d1f65b28f56a20d2f", "04835ccbe3a44cd26cca809a86017e70c5a805d45a0411949d7b44850683ec01", "073b3f6d4f12d724df91ac8d5d5793ebee3531a9ce257cd1f50595d475459e9d", "09dc8d7409042946bb41a0f364ee109452242b22e2d9b8483eaa2ac4da8a5001", "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb", "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a", "17dc3817f3c6c1c608bf5009aa400793ad7141403b6a78bd8019183b41cd21fd", "1ffa707603a82229faaff305b379a2d50b1d3f944131dc3c73f20e8bfeacb904", "46dc58609bec8c0a57c6a70fd4471bc3cf506b4490042ccf5bb7a0d0bcccbcd3", "4af58db843ba4e0cfb7c98b923663658767415406c90d1064ea104a8b3fd0843", "584cba229d76a91788fa95bb2f5815862e9f37d8b1f95e4bb4fab23e4f1008c9", "5f5d50f914a0cd5e84a59129fddd6091c161cd22aec3efad6dfbc9b9e2e82d4d", "63587c04430e3183b8af4d08c342afd377f48507a37f439667b776b247172b71", "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88", "7d6796e5f74c47d561337d5419e15aaf14a69e392855b51c2d3b6c3b007c84e0", "807a8625111f90f06e1645750caadb3bffc94da53762d1475f79b83354ba146a", "81b3e22253a123d1fec2de4663d6409071c8d106f11b03693d3ca626828d6d46", "8409ac5b3a86ab663351ebf3ccaad0e9ecb6e4eab8fe988c61344331bcdfc575", "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe", "9a186db7e92af40e8e4bc41e717aff60f3aca63f5bd45234c9f04c21b8a3a117", "9dff0c5dec65088799f62a0d148fb157835d5e2051467a654e90d95cce2f1e5d", "9e3120b076bd73240105b4de4bc5b6cdf1791d165694383cbdedd764668b6ee4", "a06405d9dca9e78d49fac15522fc4ceca3519ef13ef6befb4b10967636a0976e", "a212fe60d1e433eebb22ed9edabaa014c46d99cdc108d5a690699c1161122428", "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480", "bb4939d5ab9cd22d83ed16e9e717d79760c0c42e6952e0b0c89589579663c109", "bf67d4f2595a7feaa0161c9fa066187a18055718c7ac025cc31e1bf68a3ed5aa", "c1334f0b7d5fe10ad3937fd282e69bf00348020d3ec28d4dee3ebd8035fe0eca", "c434e61e466aa593aa0582b75e794b67f6197235566eebd5f99da07e35068356", "c4f19cf06cdbabd7dc0cd16ee42aeb9da3460cc1616e97b41ca4f8f340c98a5b", "c5169e5b6f42afbd441131de67c0b64c5f658be5b2e2d411eea39c612e22affd", "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4", "e1c6ca6f9548e2d4fc135fbda7e8e0935e78c68a0461054844a92720fa549a2f", "e276f6bb8c597065bd15bcaa26d4229b7981bd1b2f7e72b7221f12d6232fc98f", "e4c9686133bbd55c06f941b1b90e908166941172c32c1edacff856b6d1b92186", "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9", "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c", "f68e3e60bd9ec2aeeaeba442c8f1f41e9d609a57b1fec0046e977f6244891459", "fe718adeb78f5f177a0cc2521eba9368ad618ff190ff1922e7bea4b745cd533d"]`
+
+### `MSA_GATE`
+
+- Run ID: `run.slice2.slice3-slice7-replay`
+- Output kind: `TIER1_DECISION`
+- Output payload SHA-256: `0f7ee0d8a1378e34661f5f011861ebdfaabf05b1d7c2f588fabcebaea6f7b497`
+- Decision/advisory hash: `cb711fc565552f2a9dfec9fddb0abb5b3d3ff20c9dae25ec9855a43fe6a57abd`
+- Snapshot SHA-256: `60c797a39f1691b61f8c70fb4b1ca4a489eb83ebc83b38e35b8e0e14975e45e3`
+- Audit payload hashes: `["3e308b396df6e54b40f7cc2e87a2c55aa78076a66a3e4f97b4bd3246e604f1e6"]`
+- Citation payload hashes: `["524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a", "d07d6aca178a4f5d97f2c8f1463f77427ad8801caee496c59ecaa0240181d9cc"]`
+- Bound-version payload hashes: `["004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9", "01dab0eda904dfc94a5bf8d38c15002e0e39db037ed5b961798a872850f77def", "02f25da3bc2a53d60290ac40c70f21b58e0590803ebbe127af215f9a7d958d87", "041e2dc72ab73f0e401aabb20d4b6ce813192b66dae6e92d1f65b28f56a20d2f", "04835ccbe3a44cd26cca809a86017e70c5a805d45a0411949d7b44850683ec01", "073b3f6d4f12d724df91ac8d5d5793ebee3531a9ce257cd1f50595d475459e9d", "09dc8d7409042946bb41a0f364ee109452242b22e2d9b8483eaa2ac4da8a5001", "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3", "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb", "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a", "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6", "17dc3817f3c6c1c608bf5009aa400793ad7141403b6a78bd8019183b41cd21fd", "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9", "1ffa707603a82229faaff305b379a2d50b1d3f944131dc3c73f20e8bfeacb904", "26d018f09c37edda9dec1693afc07c83e777064760ba81f435453552b4907f0e", "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6", "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273", "31a33ac586ca1a1446e15b9218175c0e9298daeac0b224853bb1125284cf827a", "350cbd83085385b9c9be5bb8de677050902d3d059566636afc23163c83e9088f", "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb", "46dc58609bec8c0a57c6a70fd4471bc3cf506b4490042ccf5bb7a0d0bcccbcd3", "584cba229d76a91788fa95bb2f5815862e9f37d8b1f95e4bb4fab23e4f1008c9", "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5", "5f5d50f914a0cd5e84a59129fddd6091c161cd22aec3efad6dfbc9b9e2e82d4d", "63587c04430e3183b8af4d08c342afd377f48507a37f439667b776b247172b71", "671b4376cd7b2126e7375a3e8de7a67d4b9d42f063726c8aa3cf162617ebeecc", "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88", "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25", "8409ac5b3a86ab663351ebf3ccaad0e9ecb6e4eab8fe988c61344331bcdfc575", "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a", "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe", "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966", "9a186db7e92af40e8e4bc41e717aff60f3aca63f5bd45234c9f04c21b8a3a117", "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24", "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16", "9dff0c5dec65088799f62a0d148fb157835d5e2051467a654e90d95cce2f1e5d", "9e3120b076bd73240105b4de4bc5b6cdf1791d165694383cbdedd764668b6ee4", "a212fe60d1e433eebb22ed9edabaa014c46d99cdc108d5a690699c1161122428", "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52", "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a", "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480", "bb4939d5ab9cd22d83ed16e9e717d79760c0c42e6952e0b0c89589579663c109", "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a", "c1334f0b7d5fe10ad3937fd282e69bf00348020d3ec28d4dee3ebd8035fe0eca", "c4f19cf06cdbabd7dc0cd16ee42aeb9da3460cc1616e97b41ca4f8f340c98a5b", "c5169e5b6f42afbd441131de67c0b64c5f658be5b2e2d411eea39c612e22affd", "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28", "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2", "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c", "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4", "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58", "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396", "e1c6ca6f9548e2d4fc135fbda7e8e0935e78c68a0461054844a92720fa549a2f", "e276f6bb8c597065bd15bcaa26d4229b7981bd1b2f7e72b7221f12d6232fc98f", "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9", "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c", "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb", "f03f1c185520a1c0a0e0527e9698166880d1774c7940bafe17bc9718395a822d", "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b", "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088", "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79", "f68e3e60bd9ec2aeeaeba442c8f1f41e9d609a57b1fec0046e977f6244891459", "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8", "fd14d07364a83521fdc0f203a8186ece7449946b0b76cd5859dfef7454e0539a", "fe718adeb78f5f177a0cc2521eba9368ad618ff190ff1922e7bea4b745cd533d"]`
+
+### `ARTIFACT_CONFIRMATION`
+
+- Run ID: `run.slice4.slice7-replay`
+- Output kind: `TIER1_DECISION`
+- Output payload SHA-256: `4ba6cf223efdffb04a50f19c40efec11b78b7e8b8612f42b2244e67f996a04a1`
+- Decision/advisory hash: `fb609a3145d6633f231b987a9edcf690d82b45805a9fa09fa413232051ac3dab`
+- Snapshot SHA-256: `90b9e23bc55ea5ab90b11ec400d5bbb8c7cc8a12019ffab92011245b382f2219`
+- Audit payload hashes: `["c7b1c1a4129df67c532fa2d5cdebb8ac1e31b9646798a7fb07db027fc2c380ff"]`
+- Citation payload hashes: `["0005f610d2707d5cd853eb3affe91f6bd13fda9cd9f546275b786477d4421428", "0b54754f86c28887b98aa9b968ef1284d87783376551cf128f7acbd240479f5d", "0f999310d118c7f5f05ec9ededfecf72fe4f7d4cda742770d5972bd00d0696b2", "2ec4e23b1ca3271ada39a5158f7fbf947f52d49ccb943749674ffa1a167a256e", "355b889a3eff1b3cf2919fbf5d079203ee4872c6c620b4124b4faa0155a2871b", "3845f2565b5f22b605f5fbc46a3579f8fdf9ea1e255505ee0ddefea2eee3366c", "393e77ff6c48dd12c420846d1a862d6e5e4dd06151f0538f5541c7f653203dcd", "39792ee56ba83d8e549fb3b84e37e5b6711b5a9235179413c35ceaf07eefdda6", "5058f9f624b21b712232d2d079c2c522ab2933c629fc369dd13e6110bf1bcfec", "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a", "582b1e4a7a0076034224d585e8d0aaf48026560714886fae363f69fa68a07531", "6d3f6d979863932d4eb02d3c2827f41c0a610f3181583eed8a4dcb1443ceb536", "715fa449bd56f686d88a369ba7574f0769733eb07143ed7a60ad25b9508190c2", "84635e18fab1400caa8417b7d534f30c93010ff7a558498b1add18a96ceb542b", "89e9db8dd2134acd41e66861bceb812fa8805ffc0667d9162d8c8c0fcaea7bad", "9723add51c785e470ea4e171098fd972045bb8f4fa7d87d7fd5414b11a026958", "975e2a64c85b83a2240ae4dcf238d7a730fc17186625911b93d5f7fa45073498", "9c998f499b412dfc4fd751aed467fb1219c52797d04195af8c61ea7e1d200210", "a3c7ff85c1caf746889e56f8cff89f80954de3957745eb592235030dfa01c35c", "b23d91d98f706456e33c637b4d5f9219c1dd35783a4b45cf345493ca94a255e4", "bfd21b15e0a4649e2c76634946f582939859843966e076015b97719ed90a231f", "c38e6bd63757ee4c55d1c33deb8dea5e57f6b237991491a9bd7ddbb2adee57b9", "d07d6aca178a4f5d97f2c8f1463f77427ad8801caee496c59ecaa0240181d9cc", "dedc95da41f60f1c9dbbd5b5f1d336ffd789873ec59e5f1d09c898f6a81c97d2"]`
+- Bound-version payload hashes: `["004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9", "005de12463d8d62111fb707d13e3261406127fd0c8362915f3dd46e7a24a17b6", "0ad336a922fa439f676c1c844ae8bc82e4ceff4852bb7f3f3af160915aab4280", "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3", "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb", "0e542c2cc14404e07084d4ae97127925d5a7b092eb5ce1bf0fab6436a6d921a6", "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a", "139da5cb233e126676d9976d977458a3871cb8429ba18421481dc05e9ed7a704", "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6", "1a8dfb275f6153a5ce6b957c81c490536a0232fb9c56cff0c114c29c1ed7e5fd", "1aa433f04906604f33244dfff1f2eb6e7ad3b590fb04037bf44d9a4a492ef7a5", "1c2d49bf0b1a68b5a5ac8bb5fba95f128c45420e31d4620a9a49ad7efc7d8eac", "1c6cb895e9324474e1dcf488c0e06cfa7b808e678b7c0a703afd9b703af901d6", "1f07f48dd61d015cab226cc473b1f0668c14f9e7a4d4d33a14d5bb77e7589314", "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9", "20b8b661de3ff24ec24360a14fc2d31f3bd159ad6786066062b62706fc86fc1e", "215fd2df0d7139fda263d07fc67ac4e7828b16f523164dd5320588da914b37fe", "2206389cb876531faec08f368b0c19c13f4e114f49b747a4c6ad09ba205b0211", "222beee27f6f5d84c91c1d6072b2667f4f8feac41eb74617a5ae6a21994ccee4", "22e5f7715e3c7d25a5d47a77f339e130763d4ff916652d508d140274ca0bd0ac", "259524d810bdd9dac2dad92b5cd7da9ed0cb52550a39c9dc95dc134c2f8fba8f", "26e6889774291bcee903ecfeefe96f5f50465cd1a183d9677e080f927d47afe3", "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6", "2a755c1bc39b3a8b84b4751cdaeff3a84939617ceec71ce4e20c267137a40665", "2b3ff6221d8b4770a9a3677804eb523ffdf069bd2cdcabb41274d80558591768", "304f87eb851d24f2f903dbf30a6f2d9addd6a35a5c6d816fd27badabd0207dd0", "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273", "309733723683e740a07dba36979fe667fac04961a7dab06d6f21c381c4b04bd4", "31a1562c6cda57a95b3d4abc28e8e08487d48e4d21309adc245b8cc3cf964a02", "31e00025251f7b3513dbfa05577e72cd3c208c9f0682020bfc0f61f77ab698a2", "38bb602999ab7c822d64309556581951357427d5b106ba384672f2578c51f17e", "3a4ed3739528d1c449d5cb0d8d228690b57054afb7a96e2f6125a4ff9e2c0ada", "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb", "3d7d3574befd27553fd3301c03a5e94acd67f874222723c04950157504ff7c0d", "3e71ed490e332706deae4f1ae83da31d7bed431414cc0897a82d60fae3f7a025", "4367bad683058617ffc5cdb007d6d385137b9b52d6c6836ae70323a89a30ab2e", "463025b02e8538e3dabbbe65da4ebe7db12b9eac9bb1c650b2c11cf50144b60e", "467ecf05e7b9ae61fc72ed6c2461f4954d8c4e3099b383eda5ed67252d3f0303", "46cfb73d720e7fd0c7957bd85b346d72450e3fe586f76448b59a134413f74dfd", "4dc528597c61b548776998d965ba05b6acc72fddf7a9b809228029060e730954", "4ff442ab861d3a7e41d7b03044c0fa5277fad53984af1daa9e9d8b1a7baead59", "51845eef6abd85da11acd77b758b08cf1185788eaad762c50eab6a35c8cc1154", "528dcc2a8059b2283b79da2a49bdf493c6ffc6ce6fb9c4e81401d4ac8ef29fbd", "57ef7dccdebfacbcabf51ebb92966f9b3c58273d8adf382ec012e5a4ca353e3a", "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5", "5b5e40508f7e130260e42f070c0ade3527dd246a74afdad4bdb39b3621cf82cb", "5c5213b6ce9e0117e6bad7dc2a9059be5aa2a717f8b573a6e8d3c7af0f0ae922", "5e79e72cab4fdfd63d852c7a6734c6d6b254b9e974815a510bab16630c451426", "6bf35e65468030e0bee2c5791514d67df76763161e6db50fdcbff3a36effc779", "6d712eb7024f55458b4143700af18ba167d9ec7fd9555a84bdd58425485bc344", "6ecb64055c7bcd870c594a9db94eec5e6a3edbec94358117f4a05ec94c2ed146", "6f7b1e9a78e7fa080b888633639dbd036be0c3351e85169e878971d0627731f0", "70e3d28b80fd3e0244e2b27d95ebe860e7610fb5125df60fc5c07e31ccdbef06", "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88", "727d147c587f7d9b4169262f093ae92fdd867749d3bab009271d6a4aa265747e", "72d1556008687fbbaf28b5714be1ff8c0d588a082ca9ccb364011dc9c4779a25", "733c532e40759f7496aea3e194b588b6f88341f1473dfd95b4122c5d64bb1e41", "73c6d6c094cf4c9c244e7a67d53f67abf9e28513d662f7e4ef39b639f18200f9", "73cb634cb0171a005a8ebc7104c22c86d56380753e389ec13f7f4c3dcdcf4485", "7509adce957554c60ffcec56d0f15e40248f61c17a427b37c8e132383563c360", "78c395c9d1917cb4dd7ff0b3329752fcdcee36243c5a42ffea8680c39d01e09c", "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25", "7c6368dcd4bbc20cbfae22559bf8c92d1927629e753fc6a6c3a3f159e9ad66fe", "7db394bf5b7eb8ecff618dbcee82b5cc71fd5fb8b4cd812e7893541d03ebae75", "81ebd380be04b3c0143f2ea2723a2b2ccafa8a301f9642c893991e781fb8f8f7", "838fefacc0a6b718e72258ce2d4d8f2eb60b9e6ac0609d5a041ae43ed11667c8", "8592649d88abd61c9f2b5ac82fc907f98b07075fd487b3c2cd8d7cb764397106", "86715ac724cfbf6ec5273fe2b4f42cf22ff346c5906cd4126e5097cb06022eec", "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a", "8ac64413391d38363537a6c36782bbab5235badebbd0fbaf96fa0009c0409c19", "8c409f36bedfd7fd541127f9f594b4d2c6803f10755bc5f2c5703993d979e80c", "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe", "972626e80cdc1aa5c65f4af390b728586b5826a2478e5aa7365ad5e298f1db9b", "97752c6272be9604586b4919bec885b658f58d98dd6ce04406f17ec009786360", "97ec4bdf20886e5d225a7a752d17ec7b16b24f8f56119ea69280439db51ec415", "98e1809325cbd80a2bac752b379b837b9ac541bc874244daa64115ff9f110ea1", "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966", "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24", "9b8fece14fa9955f4f86ef30dbaf8b1daa8f3f3c91dc6d13997b3736cb39fcc5", "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16", "9e89065429de9281d57aa1d1ceecf2aa03cb8bfb5e013f50bfbfe57f13cb5d81", "a03f556f3b411f22959f55ceb6d99773368b955327d80ad41f98260ff9ed11ed", "a09d8d577e3a5ab12cff95d9f6e4fc19f466dae7650313f84fb502e77dbf779b", "a183dcdf002467f66e29e52d0265a6e4c55e8d84df8636387ea9afe94b66256e", "aa4b8b3d59e00a8e032f48976c9b509860a2f6ab14bd1b1c30f1f52b47726f4d", "aaa6a9f697dccfe13ac679b73d07ebbc434ce44aae1b43e02852d50f85d9fcf8", "b01996a84a528936c8d313f182acf551215ba112ea9c4b847ed4037920b1a6e6", "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52", "b21bf245c211f7ae2195dc61ff061bfa4e128e4408f929e78f08bcd9c36ac49b", "b2b86171b5860ee7cb5c7b3c026f4aac25a7751dee3742a957e5c5ec39d0a280", "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a", "b2ef5cfc09cdc18bca4992c177e2ac969c0fe496fb8650dccea95b86be8de717", "b47f07fa9f9c02030dc733e6e6458f415eaf6c74d393b3a78fbd0b80e7501301", "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480", "bbad2a22790314bb026f6d766a1a09e28d640f11eb720852dfaf0a40cc4ddd03", "bdba234c23bdbd8bb4af9a5eeb01a3c7f504745260be92dbc0cbf29481024d53", "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a", "bf24a2e8492a8b75997e44288ba152e734ca859d5916040bf028fb76debe2fe1", "c06a77d7fe9cb0c21eabf39b5bb6a007c973b2acfa42793ab0757c860d99500d", "c0c7cc4a9f81b94c6c69497d462de00a257101390c3c1c37357cb4a6fe513c70", "c9ff8b541276cc48f72a7f6f41d3164cebc530f99c7c4d3e2e081d7149d02e18", "d4681afed3ca7046450779b3580ddf32be704d9723be999817255d0bf6b9d4f3", "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28", "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2", "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c", "d8bbd3747acb69372aa8e6da185569a5ebfffda630d712e1c5798f27fa12772f", "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4", "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58", "df609126bfabac15c7e6f49aefb77e16c8b08ca3acce85f69ea0d2193f24b1cc", "e00fd036eb1daf4d3703c7f28ab53dc114b77c231c7a628f840b1e1e169fd334", "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396", "e3677994ece6ea40060aea98bce07b18be33c65dece364fb2da58a2ee1073ab9", "e39640a9f619fe50c5174bd6a9721d4cc0393b84a5818d68e20a69c5ba0ab83a", "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9", "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c", "e86db6a388b930f8bfa9e39815905184df8581db3cd2702dec0c204f9d44b4ee", "e949e09ee0d2a5bedd46d414e1dbd2a5ead85948bc7e37ef256280b710659226", "eb770f954bd07f1a4cf50ef79d49b18e483a41ccccb44dc3ef15fb8015d89f52", "edb352e0b2bce245c33695085cac531c0a7d82e143148eb09109ad40218a3043", "ef1738f409eaa3d500fa44be440b8ebe17b15d71c67be158727834716cc7db4f", "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb", "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b", "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088", "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79", "f565e969ec1197d3b732fc2eea504d733013ae36e2382f3753c916eb46368771", "f780ae7b1c8b61c49484a352a5489f4ebe56da6e4196d62861a094753cd8707b", "f98142df97b9a6372f10f31d847e155cd4f9b04fd319c31ae3086afa6c5fb67c", "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8", "fca6fc0277ad8b20c476766dce5149ce310324d968f000792d9c5655d4451214", "ff1b3ce2d9e61ab7e6fa45cb11a4632fea3fa46deaa044f47fbb80291d26267a"]`
+
+### `HONEST_NEGATIVE`
+
+- Run ID: `run.slice5.slice7-replay`
+- Output kind: `TIER1_DECISION`
+- Output payload SHA-256: `099d2caa80825b198b6119b6a8de89635c8bbcb3979f050c456b8ef53689d1ee`
+- Decision/advisory hash: `37234b970fb06bd76dbf6dcdf3ee0d8d8fecc455b9e0b7dbdc2152b85a440ffe`
+- Snapshot SHA-256: `113a1ab8b3c9179a3bc4d4dc4df4b0e30d2dedf2076b34005658555a246c4b4a`
+- Audit payload hashes: `["d64cbbc8fd7fe43b0d641e09eefda38b093c6da93d1b4f1fdd2d9de07612dc2e"]`
+- Citation payload hashes: `["0005f610d2707d5cd853eb3affe91f6bd13fda9cd9f546275b786477d4421428", "09160356d5c526f74bc7424813dc03780e4ca1544e2b11d5102ee03a1efe32d3", "0b54754f86c28887b98aa9b968ef1284d87783376551cf128f7acbd240479f5d", "0f93d4399987f50aba35871b222aa1cd1b5a62c0af3686f3aa3795080cb90a56", "0f999310d118c7f5f05ec9ededfecf72fe4f7d4cda742770d5972bd00d0696b2", "2ec4e23b1ca3271ada39a5158f7fbf947f52d49ccb943749674ffa1a167a256e", "355b889a3eff1b3cf2919fbf5d079203ee4872c6c620b4124b4faa0155a2871b", "3845f2565b5f22b605f5fbc46a3579f8fdf9ea1e255505ee0ddefea2eee3366c", "393e77ff6c48dd12c420846d1a862d6e5e4dd06151f0538f5541c7f653203dcd", "39792ee56ba83d8e549fb3b84e37e5b6711b5a9235179413c35ceaf07eefdda6", "5058f9f624b21b712232d2d079c2c522ab2933c629fc369dd13e6110bf1bcfec", "513a15d00bce67eefdaaaec47b16fc22a7f256f626b897f608abb593d069c0df", "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a", "546972e610a00f9e0eef3ff73339987a4b904a618b527428b3887bb2c497db36", "582b1e4a7a0076034224d585e8d0aaf48026560714886fae363f69fa68a07531", "6d3f6d979863932d4eb02d3c2827f41c0a610f3181583eed8a4dcb1443ceb536", "715fa449bd56f686d88a369ba7574f0769733eb07143ed7a60ad25b9508190c2", "7dbcbc55e2dade36e0a624bc12accb29bd90e690ee4dfebe83dd08cac20fa2d1", "84635e18fab1400caa8417b7d534f30c93010ff7a558498b1add18a96ceb542b", "89e9db8dd2134acd41e66861bceb812fa8805ffc0667d9162d8c8c0fcaea7bad", "9723add51c785e470ea4e171098fd972045bb8f4fa7d87d7fd5414b11a026958", "975e2a64c85b83a2240ae4dcf238d7a730fc17186625911b93d5f7fa45073498", "9c998f499b412dfc4fd751aed467fb1219c52797d04195af8c61ea7e1d200210", "a3c7ff85c1caf746889e56f8cff89f80954de3957745eb592235030dfa01c35c", "b23d91d98f706456e33c637b4d5f9219c1dd35783a4b45cf345493ca94a255e4", "b2a04563947ceabc8e7592ca92fe8065e836d38c352081c3219e9bcf40a1ca4c", "bfd21b15e0a4649e2c76634946f582939859843966e076015b97719ed90a231f", "c38e6bd63757ee4c55d1c33deb8dea5e57f6b237991491a9bd7ddbb2adee57b9", "d07d6aca178a4f5d97f2c8f1463f77427ad8801caee496c59ecaa0240181d9cc", "dedc95da41f60f1c9dbbd5b5f1d336ffd789873ec59e5f1d09c898f6a81c97d2", "fd06547dfc6bd5f41c27c797ecda74f9324bbe52086779b07e544a1cebb6b96a"]`
+- Bound-version payload hashes: `["004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9", "005de12463d8d62111fb707d13e3261406127fd0c8362915f3dd46e7a24a17b6", "045517675e046a4da4cc26b3f22fa38cc5b265516250b8d4517f2e964ca19855", "0ad336a922fa439f676c1c844ae8bc82e4ceff4852bb7f3f3af160915aab4280", "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3", "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb", "0e542c2cc14404e07084d4ae97127925d5a7b092eb5ce1bf0fab6436a6d921a6", "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a", "139da5cb233e126676d9976d977458a3871cb8429ba18421481dc05e9ed7a704", "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6", "1a8dfb275f6153a5ce6b957c81c490536a0232fb9c56cff0c114c29c1ed7e5fd", "1aa433f04906604f33244dfff1f2eb6e7ad3b590fb04037bf44d9a4a492ef7a5", "1c2d49bf0b1a68b5a5ac8bb5fba95f128c45420e31d4620a9a49ad7efc7d8eac", "1c6cb895e9324474e1dcf488c0e06cfa7b808e678b7c0a703afd9b703af901d6", "1f07f48dd61d015cab226cc473b1f0668c14f9e7a4d4d33a14d5bb77e7589314", "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9", "20b8b661de3ff24ec24360a14fc2d31f3bd159ad6786066062b62706fc86fc1e", "215fd2df0d7139fda263d07fc67ac4e7828b16f523164dd5320588da914b37fe", "2206389cb876531faec08f368b0c19c13f4e114f49b747a4c6ad09ba205b0211", "222beee27f6f5d84c91c1d6072b2667f4f8feac41eb74617a5ae6a21994ccee4", "259524d810bdd9dac2dad92b5cd7da9ed0cb52550a39c9dc95dc134c2f8fba8f", "26e6889774291bcee903ecfeefe96f5f50465cd1a183d9677e080f927d47afe3", "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6", "2a755c1bc39b3a8b84b4751cdaeff3a84939617ceec71ce4e20c267137a40665", "2b3ff6221d8b4770a9a3677804eb523ffdf069bd2cdcabb41274d80558591768", "304f87eb851d24f2f903dbf30a6f2d9addd6a35a5c6d816fd27badabd0207dd0", "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273", "309733723683e740a07dba36979fe667fac04961a7dab06d6f21c381c4b04bd4", "31a1562c6cda57a95b3d4abc28e8e08487d48e4d21309adc245b8cc3cf964a02", "31e00025251f7b3513dbfa05577e72cd3c208c9f0682020bfc0f61f77ab698a2", "38bb602999ab7c822d64309556581951357427d5b106ba384672f2578c51f17e", "3a4ed3739528d1c449d5cb0d8d228690b57054afb7a96e2f6125a4ff9e2c0ada", "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb", "3d7d3574befd27553fd3301c03a5e94acd67f874222723c04950157504ff7c0d", "3e71ed490e332706deae4f1ae83da31d7bed431414cc0897a82d60fae3f7a025", "4367bad683058617ffc5cdb007d6d385137b9b52d6c6836ae70323a89a30ab2e", "463025b02e8538e3dabbbe65da4ebe7db12b9eac9bb1c650b2c11cf50144b60e", "467ecf05e7b9ae61fc72ed6c2461f4954d8c4e3099b383eda5ed67252d3f0303", "46cfb73d720e7fd0c7957bd85b346d72450e3fe586f76448b59a134413f74dfd", "4dc528597c61b548776998d965ba05b6acc72fddf7a9b809228029060e730954", "4fe4b39cc19fc8fa9501665c145d347f89473969e3668c37dc26a8719a43b0d2", "4ff442ab861d3a7e41d7b03044c0fa5277fad53984af1daa9e9d8b1a7baead59", "51845eef6abd85da11acd77b758b08cf1185788eaad762c50eab6a35c8cc1154", "528dcc2a8059b2283b79da2a49bdf493c6ffc6ce6fb9c4e81401d4ac8ef29fbd", "57ef7dccdebfacbcabf51ebb92966f9b3c58273d8adf382ec012e5a4ca353e3a", "583ad915743fc94989d78ece097c2b4ca4382e9f56fa591d43e7503976c4eace", "5938ceb1b0377f2c6a9ed1e88fb9a5eaf85eaaab9810ed5e8da1e5fef3bec6c7", "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5", "5b5e40508f7e130260e42f070c0ade3527dd246a74afdad4bdb39b3621cf82cb", "5c5213b6ce9e0117e6bad7dc2a9059be5aa2a717f8b573a6e8d3c7af0f0ae922", "5e79e72cab4fdfd63d852c7a6734c6d6b254b9e974815a510bab16630c451426", "67195dd214be452edcc27201beac8eb986fe51b0c22f84aa4babfbbf3c9342bd", "6b76f91ece563514162bd800a4b8f76c6451e14133f84ee1e6633c7b01108571", "6bf35e65468030e0bee2c5791514d67df76763161e6db50fdcbff3a36effc779", "6d712eb7024f55458b4143700af18ba167d9ec7fd9555a84bdd58425485bc344", "6f7b1e9a78e7fa080b888633639dbd036be0c3351e85169e878971d0627731f0", "70e3d28b80fd3e0244e2b27d95ebe860e7610fb5125df60fc5c07e31ccdbef06", "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88", "727d147c587f7d9b4169262f093ae92fdd867749d3bab009271d6a4aa265747e", "72d1556008687fbbaf28b5714be1ff8c0d588a082ca9ccb364011dc9c4779a25", "73153e193876241c88c52ad83a113c14c9b6f9b785b934d5f94de1dbc02ea67a", "733c532e40759f7496aea3e194b588b6f88341f1473dfd95b4122c5d64bb1e41", "73c6d6c094cf4c9c244e7a67d53f67abf9e28513d662f7e4ef39b639f18200f9", "73cb634cb0171a005a8ebc7104c22c86d56380753e389ec13f7f4c3dcdcf4485", "74c7314a0bfb4762a9ee0c1cc08d69a4788603e4b94dd9676b7991bff9975ea9", "7509adce957554c60ffcec56d0f15e40248f61c17a427b37c8e132383563c360", "7804558dcfe428cfea0e0f962f4566ea980dd9e3a24d68dd96fc79d07a576206", "78c395c9d1917cb4dd7ff0b3329752fcdcee36243c5a42ffea8680c39d01e09c", "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25", "7c0e8a35710fbf59b3612a5815b0e37fdb18e75052f449d1cd9b41e35e12df90", "7c6368dcd4bbc20cbfae22559bf8c92d1927629e753fc6a6c3a3f159e9ad66fe", "7db394bf5b7eb8ecff618dbcee82b5cc71fd5fb8b4cd812e7893541d03ebae75", "805057deb3171c1fa72c0394480d8a1e0538ecb58f5eb74f3bdc1c28ed2d49fc", "81ebd380be04b3c0143f2ea2723a2b2ccafa8a301f9642c893991e781fb8f8f7", "838fefacc0a6b718e72258ce2d4d8f2eb60b9e6ac0609d5a041ae43ed11667c8", "8592649d88abd61c9f2b5ac82fc907f98b07075fd487b3c2cd8d7cb764397106", "86715ac724cfbf6ec5273fe2b4f42cf22ff346c5906cd4126e5097cb06022eec", "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a", "8ac64413391d38363537a6c36782bbab5235badebbd0fbaf96fa0009c0409c19", "8c409f36bedfd7fd541127f9f594b4d2c6803f10755bc5f2c5703993d979e80c", "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe", "8ea0bae1ab64e54b5467b4e412acb8d9babe973adb7c7a4deefe84cb083dbe8a", "8eb65dbe9b82459c4e6129d2f7ae5046db38917bbd792380cfe1c6f4a564fd3e", "907d71dde79dafa79cc7353a91edf33e2093002eab9e216c7317071988af9b3e", "972626e80cdc1aa5c65f4af390b728586b5826a2478e5aa7365ad5e298f1db9b", "97752c6272be9604586b4919bec885b658f58d98dd6ce04406f17ec009786360", "97ec4bdf20886e5d225a7a752d17ec7b16b24f8f56119ea69280439db51ec415", "98e1809325cbd80a2bac752b379b837b9ac541bc874244daa64115ff9f110ea1", "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966", "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24", "9b8fece14fa9955f4f86ef30dbaf8b1daa8f3f3c91dc6d13997b3736cb39fcc5", "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16", "9e89065429de9281d57aa1d1ceecf2aa03cb8bfb5e013f50bfbfe57f13cb5d81", "9edbe98d3e3aa5d4403ac65fe506ca674f587c1487c4707b92606a993d764930", "a03f556f3b411f22959f55ceb6d99773368b955327d80ad41f98260ff9ed11ed", "a09d8d577e3a5ab12cff95d9f6e4fc19f466dae7650313f84fb502e77dbf779b", "a183dcdf002467f66e29e52d0265a6e4c55e8d84df8636387ea9afe94b66256e", "a38aac0b1296d50d567a54cc6e06854826406b560d32b35133bc6a0ff043f990", "a85ace57a1c62fc38b076bad4ce4c6e9f0bae944dff23ce05738441448e7c103", "a9d046e108129ad3c5a2a6fa307df62790b2b491bb77975fbb69c48c345c5425", "aa4b8b3d59e00a8e032f48976c9b509860a2f6ab14bd1b1c30f1f52b47726f4d", "aedbc19b446062d715ddbde454b93a91b95e97686b19c50ff2803b41a3c21f93", "b01996a84a528936c8d313f182acf551215ba112ea9c4b847ed4037920b1a6e6", "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52", "b21bf245c211f7ae2195dc61ff061bfa4e128e4408f929e78f08bcd9c36ac49b", "b2b86171b5860ee7cb5c7b3c026f4aac25a7751dee3742a957e5c5ec39d0a280", "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a", "b2ef5cfc09cdc18bca4992c177e2ac969c0fe496fb8650dccea95b86be8de717", "b47f07fa9f9c02030dc733e6e6458f415eaf6c74d393b3a78fbd0b80e7501301", "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480", "bb7af282f85d5fa83b7672a0310c98ac30a75494d1057b550e5e6c853080d82e", "bbad2a22790314bb026f6d766a1a09e28d640f11eb720852dfaf0a40cc4ddd03", "bdba234c23bdbd8bb4af9a5eeb01a3c7f504745260be92dbc0cbf29481024d53", "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a", "bf24a2e8492a8b75997e44288ba152e734ca859d5916040bf028fb76debe2fe1", "c06a77d7fe9cb0c21eabf39b5bb6a007c973b2acfa42793ab0757c860d99500d", "c0c7cc4a9f81b94c6c69497d462de00a257101390c3c1c37357cb4a6fe513c70", "c2da8d165135808da43071ba4b406aee390d6618ae890d324f00bb2b4baf12ba", "c9ff8b541276cc48f72a7f6f41d3164cebc530f99c7c4d3e2e081d7149d02e18", "ce4dd2be122f0c6af3aa77f204b8ed9f2e4698c3e2d5b700249da211f77998aa", "cf8846e4bf74e86c755f050a2ea23d67d7718999bcc8b248d94412e6c02e779a", "d0218311998c8ffe6d002a6687fe2cce16e303e023cece81b130794f135b1427", "d382ac2c6c4935778f832d97b2ecbb3731c8e52c91a17f9733aecd25c27cb76b", "d4681afed3ca7046450779b3580ddf32be704d9723be999817255d0bf6b9d4f3", "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28", "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2", "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c", "d8bbd3747acb69372aa8e6da185569a5ebfffda630d712e1c5798f27fa12772f", "da96483016929537d9f343982b8865a4d2407fdc9265dad9f097fafddf6f49b1", "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4", "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58", "df609126bfabac15c7e6f49aefb77e16c8b08ca3acce85f69ea0d2193f24b1cc", "e00fd036eb1daf4d3703c7f28ab53dc114b77c231c7a628f840b1e1e169fd334", "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396", "e3677994ece6ea40060aea98bce07b18be33c65dece364fb2da58a2ee1073ab9", "e39640a9f619fe50c5174bd6a9721d4cc0393b84a5818d68e20a69c5ba0ab83a", "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9", "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c", "e834125af3d4d0b6417067a7a4eeadaf1a1fca54ee402a94a98c91c14cfce48f", "e86db6a388b930f8bfa9e39815905184df8581db3cd2702dec0c204f9d44b4ee", "e949e09ee0d2a5bedd46d414e1dbd2a5ead85948bc7e37ef256280b710659226", "eb770f954bd07f1a4cf50ef79d49b18e483a41ccccb44dc3ef15fb8015d89f52", "edb352e0b2bce245c33695085cac531c0a7d82e143148eb09109ad40218a3043", "ef1738f409eaa3d500fa44be440b8ebe17b15d71c67be158727834716cc7db4f", "ef81f162c1b717f62b8c2e7142dfa5d656b9c9c28fb85cfefc049bc0ef7183ab", "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb", "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b", "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088", "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79", "f565e969ec1197d3b732fc2eea504d733013ae36e2382f3753c916eb46368771", "f780ae7b1c8b61c49484a352a5489f4ebe56da6e4196d62861a094753cd8707b", "f97eadfbb83c6dab13db6536fb13a2d77249df749bf46efa1e3498f7198469fe", "f98142df97b9a6372f10f31d847e155cd4f9b04fd319c31ae3086afa6c5fb67c", "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8", "fca6fc0277ad8b20c476766dce5149ce310324d968f000792d9c5655d4451214", "ff1b3ce2d9e61ab7e6fa45cb11a4632fea3fa46deaa044f47fbb80291d26267a"]`
+
+### `TIER2_ADVISORY`
+
+- Run ID: `run.slice6.slice7-replay`
+- Output kind: `TIER2_ADVISORY`
+- Output payload SHA-256: `953d79590b8da308e814c99a59b30776a1e5908dbb3780749e13e5a7d24df483`
+- Decision/advisory hash: `d633232523b115efedf0eff13ac81797b03cf537a0635eafa4e335cd09569678`
+- Snapshot SHA-256: `aa47d9654a5486c7916557fee261240e64a229a9d777748e3d289726946eebcd`
+- Audit payload hashes: `["34ba7114774a89df32ecc5fc6788d9de07f8788033e903f46230219ac939583b"]`
+- Citation payload hashes: `["2034189ddc141c806e13d32fa962fb4171feba52bdc5a158c2769916ec8c7c5e", "4b496e620a3d07aa3a4adf14eafe2e36c1bd2c01673ec673f87c6d235f28ebd6", "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a", "580ee7d2ba5e1804555481514c926d63c0bf0cf553baccb7aab28cf626411e91", "84055178a83e641208586873cd8e890bcf357c7f7fe6cfc1520abed6c1caeb0a", "bf964590d3426d8eb2ac68743dff155efdc880749f540438435baff6319212ce"]`
+- Bound-version payload hashes: `["004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9", "005de12463d8d62111fb707d13e3261406127fd0c8362915f3dd46e7a24a17b6", "045517675e046a4da4cc26b3f22fa38cc5b265516250b8d4517f2e964ca19855", "0ad336a922fa439f676c1c844ae8bc82e4ceff4852bb7f3f3af160915aab4280", "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3", "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb", "0e542c2cc14404e07084d4ae97127925d5a7b092eb5ce1bf0fab6436a6d921a6", "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a", "133e416534a514edc9d437f9d809a9b9577f6e217d81ce52bd896269ceb58e34", "139da5cb233e126676d9976d977458a3871cb8429ba18421481dc05e9ed7a704", "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6", "1a8dfb275f6153a5ce6b957c81c490536a0232fb9c56cff0c114c29c1ed7e5fd", "1aa433f04906604f33244dfff1f2eb6e7ad3b590fb04037bf44d9a4a492ef7a5", "1c2d49bf0b1a68b5a5ac8bb5fba95f128c45420e31d4620a9a49ad7efc7d8eac", "1c6cb895e9324474e1dcf488c0e06cfa7b808e678b7c0a703afd9b703af901d6", "1f07f48dd61d015cab226cc473b1f0668c14f9e7a4d4d33a14d5bb77e7589314", "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9", "20b8b661de3ff24ec24360a14fc2d31f3bd159ad6786066062b62706fc86fc1e", "215fd2df0d7139fda263d07fc67ac4e7828b16f523164dd5320588da914b37fe", "2206389cb876531faec08f368b0c19c13f4e114f49b747a4c6ad09ba205b0211", "222beee27f6f5d84c91c1d6072b2667f4f8feac41eb74617a5ae6a21994ccee4", "259524d810bdd9dac2dad92b5cd7da9ed0cb52550a39c9dc95dc134c2f8fba8f", "26e6889774291bcee903ecfeefe96f5f50465cd1a183d9677e080f927d47afe3", "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6", "29eb93a1598262500a2d34ecec0e123dd8c1c56aeec43eca1958ad871de65fe8", "2a755c1bc39b3a8b84b4751cdaeff3a84939617ceec71ce4e20c267137a40665", "2b3ff6221d8b4770a9a3677804eb523ffdf069bd2cdcabb41274d80558591768", "304f87eb851d24f2f903dbf30a6f2d9addd6a35a5c6d816fd27badabd0207dd0", "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273", "309733723683e740a07dba36979fe667fac04961a7dab06d6f21c381c4b04bd4", "31a1562c6cda57a95b3d4abc28e8e08487d48e4d21309adc245b8cc3cf964a02", "31e00025251f7b3513dbfa05577e72cd3c208c9f0682020bfc0f61f77ab698a2", "387d18505713a94a5c47eca46277da83ed9a9d85671c60206962f3f7ec6fa1e1", "38bb602999ab7c822d64309556581951357427d5b106ba384672f2578c51f17e", "3a4ed3739528d1c449d5cb0d8d228690b57054afb7a96e2f6125a4ff9e2c0ada", "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb", "3d7d3574befd27553fd3301c03a5e94acd67f874222723c04950157504ff7c0d", "3e71ed490e332706deae4f1ae83da31d7bed431414cc0897a82d60fae3f7a025", "434aaa8b180edb666c448852b7add44fd50e180004575a0e2e2e3257a54ca771", "4367bad683058617ffc5cdb007d6d385137b9b52d6c6836ae70323a89a30ab2e", "457fd4725d8ee1f6fe0165d6f20f691206750a675d4f0e0cb3ae23acc17b9f27", "463025b02e8538e3dabbbe65da4ebe7db12b9eac9bb1c650b2c11cf50144b60e", "467ecf05e7b9ae61fc72ed6c2461f4954d8c4e3099b383eda5ed67252d3f0303", "46cfb73d720e7fd0c7957bd85b346d72450e3fe586f76448b59a134413f74dfd", "4d59ac5295cd2d152e8cc993408dc650868f9ee6dbb2d276eeb46997c9d2d9de", "4dc528597c61b548776998d965ba05b6acc72fddf7a9b809228029060e730954", "4fe4b39cc19fc8fa9501665c145d347f89473969e3668c37dc26a8719a43b0d2", "4ff442ab861d3a7e41d7b03044c0fa5277fad53984af1daa9e9d8b1a7baead59", "51845eef6abd85da11acd77b758b08cf1185788eaad762c50eab6a35c8cc1154", "528dcc2a8059b2283b79da2a49bdf493c6ffc6ce6fb9c4e81401d4ac8ef29fbd", "5355c11b44aa49750d9f4d487ce6f5b7af565b37c860eeb6137fae13814090d4", "55ced36a8a82d70bb90e369119ac470a88c9d7c11a9761e2c818d50124cf3707", "57ef7dccdebfacbcabf51ebb92966f9b3c58273d8adf382ec012e5a4ca353e3a", "583ad915743fc94989d78ece097c2b4ca4382e9f56fa591d43e7503976c4eace", "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5", "5a3c1fd44eed9279abb8be3f5d69261bd7256e8727aade9b9a3b56c6b390c999", "5b5e40508f7e130260e42f070c0ade3527dd246a74afdad4bdb39b3621cf82cb", "5b65196c93eea9618262bd4e166a5edad07a33238c81209ff7b8d9e1cf782717", "5c5213b6ce9e0117e6bad7dc2a9059be5aa2a717f8b573a6e8d3c7af0f0ae922", "5e79e72cab4fdfd63d852c7a6734c6d6b254b9e974815a510bab16630c451426", "64f3e2aa5bd83ffd7ff7c164a6bb5219d841b8bb69d8341a1ebda9b01a313cdd", "67195dd214be452edcc27201beac8eb986fe51b0c22f84aa4babfbbf3c9342bd", "6b76f91ece563514162bd800a4b8f76c6451e14133f84ee1e6633c7b01108571", "6bf35e65468030e0bee2c5791514d67df76763161e6db50fdcbff3a36effc779", "6d712eb7024f55458b4143700af18ba167d9ec7fd9555a84bdd58425485bc344", "6e5530fcc8b0d13ebf829990cbcf67bcd04ffce0720b2c66111ef1319bd89fa6", "6f7b1e9a78e7fa080b888633639dbd036be0c3351e85169e878971d0627731f0", "70e3d28b80fd3e0244e2b27d95ebe860e7610fb5125df60fc5c07e31ccdbef06", "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88", "727d147c587f7d9b4169262f093ae92fdd867749d3bab009271d6a4aa265747e", "72d1556008687fbbaf28b5714be1ff8c0d588a082ca9ccb364011dc9c4779a25", "73153e193876241c88c52ad83a113c14c9b6f9b785b934d5f94de1dbc02ea67a", "733c532e40759f7496aea3e194b588b6f88341f1473dfd95b4122c5d64bb1e41", "73a49c3982da331f88b240b2d3ef19f932ebfbb5f291bd69fe7463931cbb413d", "73b8f9d13c906c187405945f425f581bb8bf9e326c946a9e0eae8ebe7c85379e", "73c6d6c094cf4c9c244e7a67d53f67abf9e28513d662f7e4ef39b639f18200f9", "73cb634cb0171a005a8ebc7104c22c86d56380753e389ec13f7f4c3dcdcf4485", "74c7314a0bfb4762a9ee0c1cc08d69a4788603e4b94dd9676b7991bff9975ea9", "7509adce957554c60ffcec56d0f15e40248f61c17a427b37c8e132383563c360", "7804558dcfe428cfea0e0f962f4566ea980dd9e3a24d68dd96fc79d07a576206", "78c395c9d1917cb4dd7ff0b3329752fcdcee36243c5a42ffea8680c39d01e09c", "795f2b413ce1de65325a868b615a1fa3a6bc7336818d19c27a3bb65a6d990ab5", "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25", "7c0e8a35710fbf59b3612a5815b0e37fdb18e75052f449d1cd9b41e35e12df90", "7c6368dcd4bbc20cbfae22559bf8c92d1927629e753fc6a6c3a3f159e9ad66fe", "7db394bf5b7eb8ecff618dbcee82b5cc71fd5fb8b4cd812e7893541d03ebae75", "805057deb3171c1fa72c0394480d8a1e0538ecb58f5eb74f3bdc1c28ed2d49fc", "81ebd380be04b3c0143f2ea2723a2b2ccafa8a301f9642c893991e781fb8f8f7", "838fefacc0a6b718e72258ce2d4d8f2eb60b9e6ac0609d5a041ae43ed11667c8", "8592649d88abd61c9f2b5ac82fc907f98b07075fd487b3c2cd8d7cb764397106", "861d3fd5bab7fcd212409059de944f1487b3ef75ae3fdc9447124934cf520e4f", "86715ac724cfbf6ec5273fe2b4f42cf22ff346c5906cd4126e5097cb06022eec", "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a", "8ac64413391d38363537a6c36782bbab5235badebbd0fbaf96fa0009c0409c19", "8c409f36bedfd7fd541127f9f594b4d2c6803f10755bc5f2c5703993d979e80c", "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe", "8ea0bae1ab64e54b5467b4e412acb8d9babe973adb7c7a4deefe84cb083dbe8a", "8eb65dbe9b82459c4e6129d2f7ae5046db38917bbd792380cfe1c6f4a564fd3e", "907d71dde79dafa79cc7353a91edf33e2093002eab9e216c7317071988af9b3e", "93a38e0d727f2f7a0d77a135d82ecc809c3bb5bd82036469b561e26e62f312b7", "972626e80cdc1aa5c65f4af390b728586b5826a2478e5aa7365ad5e298f1db9b", "97752c6272be9604586b4919bec885b658f58d98dd6ce04406f17ec009786360", "97ec4bdf20886e5d225a7a752d17ec7b16b24f8f56119ea69280439db51ec415", "98e1809325cbd80a2bac752b379b837b9ac541bc874244daa64115ff9f110ea1", "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966", "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24", "9b8fece14fa9955f4f86ef30dbaf8b1daa8f3f3c91dc6d13997b3736cb39fcc5", "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16", "9e89065429de9281d57aa1d1ceecf2aa03cb8bfb5e013f50bfbfe57f13cb5d81", "9edbe98d3e3aa5d4403ac65fe506ca674f587c1487c4707b92606a993d764930", "a03f556f3b411f22959f55ceb6d99773368b955327d80ad41f98260ff9ed11ed", "a09d8d577e3a5ab12cff95d9f6e4fc19f466dae7650313f84fb502e77dbf779b", "a183dcdf002467f66e29e52d0265a6e4c55e8d84df8636387ea9afe94b66256e", "a22895e066a1c777f358b7daa2d8f053a4776a92ced468a4ff2122435de60613", "a373f32b221736d04f6cc43e2db58b455f0974c5ed4a17f1b20c5d038e4a6ca1", "a38aac0b1296d50d567a54cc6e06854826406b560d32b35133bc6a0ff043f990", "a85ace57a1c62fc38b076bad4ce4c6e9f0bae944dff23ce05738441448e7c103", "a9d046e108129ad3c5a2a6fa307df62790b2b491bb77975fbb69c48c345c5425", "aa4b8b3d59e00a8e032f48976c9b509860a2f6ab14bd1b1c30f1f52b47726f4d", "aedbc19b446062d715ddbde454b93a91b95e97686b19c50ff2803b41a3c21f93", "b01996a84a528936c8d313f182acf551215ba112ea9c4b847ed4037920b1a6e6", "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52", "b21bf245c211f7ae2195dc61ff061bfa4e128e4408f929e78f08bcd9c36ac49b", "b2b86171b5860ee7cb5c7b3c026f4aac25a7751dee3742a957e5c5ec39d0a280", "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a", "b2ef5cfc09cdc18bca4992c177e2ac969c0fe496fb8650dccea95b86be8de717", "b47f07fa9f9c02030dc733e6e6458f415eaf6c74d393b3a78fbd0b80e7501301", "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480", "bb7af282f85d5fa83b7672a0310c98ac30a75494d1057b550e5e6c853080d82e", "bbad2a22790314bb026f6d766a1a09e28d640f11eb720852dfaf0a40cc4ddd03", "bc7baeb2db763ad6f5af6de9f2bb52e0e9c5d0c11c035a135089e7a3631a7af2", "bda6b4bff3c4f2862dea40afbad0d8e73acf8faf6e0dbdba888ff546ddf358f3", "bdba234c23bdbd8bb4af9a5eeb01a3c7f504745260be92dbc0cbf29481024d53", "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a", "bf24a2e8492a8b75997e44288ba152e734ca859d5916040bf028fb76debe2fe1", "c06a77d7fe9cb0c21eabf39b5bb6a007c973b2acfa42793ab0757c860d99500d", "c0c7cc4a9f81b94c6c69497d462de00a257101390c3c1c37357cb4a6fe513c70", "c13f224dadbb20b6b92e81bcb58c16c524ab797572edab4f037cb3dc09ad727c", "c19fccb025f5153cf6ddd66f7f72118c10dc6fee38b3288784cfcc30b2144386", "c2b263809cb20ec00c3d88ff11fdbe5538edef02294f54d30b4da74846ea4989", "c2da8d165135808da43071ba4b406aee390d6618ae890d324f00bb2b4baf12ba", "c326c47f2a5b1273d875dabfc89160d4981479f6d61271095bd5bd9fe14df053", "c64aa950d30126c6779d02c3fc7f56f0f780c2be1b52b42d8da4fa31eef07587", "c9ff8b541276cc48f72a7f6f41d3164cebc530f99c7c4d3e2e081d7149d02e18", "cd39a7780f6102fe3375d48b040390780bd4ded415e2a4c48f04f47ab31d4c0e", "ce4dd2be122f0c6af3aa77f204b8ed9f2e4698c3e2d5b700249da211f77998aa", "cf8846e4bf74e86c755f050a2ea23d67d7718999bcc8b248d94412e6c02e779a", "d0218311998c8ffe6d002a6687fe2cce16e303e023cece81b130794f135b1427", "d382ac2c6c4935778f832d97b2ecbb3731c8e52c91a17f9733aecd25c27cb76b", "d4681afed3ca7046450779b3580ddf32be704d9723be999817255d0bf6b9d4f3", "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28", "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2", "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c", "d8bbd3747acb69372aa8e6da185569a5ebfffda630d712e1c5798f27fa12772f", "da96483016929537d9f343982b8865a4d2407fdc9265dad9f097fafddf6f49b1", "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4", "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58", "df609126bfabac15c7e6f49aefb77e16c8b08ca3acce85f69ea0d2193f24b1cc", "e00fd036eb1daf4d3703c7f28ab53dc114b77c231c7a628f840b1e1e169fd334", "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396", "e204c58abb10b0946e18ba0201873bbff0b07ba198d828828eb2fab5009ec5e0", "e2c3d8d3e3141c3f4211f6e99c0a780012af62836c12ca4726d19b7036fe16e9", "e3677994ece6ea40060aea98bce07b18be33c65dece364fb2da58a2ee1073ab9", "e39640a9f619fe50c5174bd6a9721d4cc0393b84a5818d68e20a69c5ba0ab83a", "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9", "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c", "e834125af3d4d0b6417067a7a4eeadaf1a1fca54ee402a94a98c91c14cfce48f", "e86db6a388b930f8bfa9e39815905184df8581db3cd2702dec0c204f9d44b4ee", "e949e09ee0d2a5bedd46d414e1dbd2a5ead85948bc7e37ef256280b710659226", "e9ba374f8b31f85cf2a88cb1a1459ab7d2f4764ead5669cb4b926d06db16cc59", "eb770f954bd07f1a4cf50ef79d49b18e483a41ccccb44dc3ef15fb8015d89f52", "edb352e0b2bce245c33695085cac531c0a7d82e143148eb09109ad40218a3043", "ef1738f409eaa3d500fa44be440b8ebe17b15d71c67be158727834716cc7db4f", "ef81f162c1b717f62b8c2e7142dfa5d656b9c9c28fb85cfefc049bc0ef7183ab", "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb", "f0e2d60c5605af15f282145264af0b79bbcb7646c8adc43532a6dca5d5cfc6bd", "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b", "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088", "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79", "f565e969ec1197d3b732fc2eea504d733013ae36e2382f3753c916eb46368771", "f6508f0da69ea834b97ef33ef031ee6e9534e26fb58a4e1b635e4b171fdcf238", "f780ae7b1c8b61c49484a352a5489f4ebe56da6e4196d62861a094753cd8707b", "f97eadfbb83c6dab13db6536fb13a2d77249df749bf46efa1e3498f7198469fe", "f98142df97b9a6372f10f31d847e155cd4f9b04fd319c31ae3086afa6c5fb67c", "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8", "fca6fc0277ad8b20c476766dce5149ce310324d968f000792d9c5655d4451214", "ff1b3ce2d9e61ab7e6fa45cb11a4632fea3fa46deaa044f47fbb80291d26267a"]`
+
+## Closed Schema Digests
+
+- `gptl.core.semantic_types.CanonicalizationPolicy`: `40752ab6703738149b83268f55b6f53e334c1a992e117d5d88481240de097dd7`
+- `gptl.core.records.GovernedRef`: `7f73d84201c71f6df8a461a247702fe0a4d3f725555161a1d85a558e7afea484`
+- `gptl.mie.calibration.CalibrationEvaluation`: `4f023ba60d030ec89aa9b8d8ad0f1df014e18de9accfcc334b77bfa7e65d8da8`
+- `gptl.mie.schema.RefusalDecision`: `9fd724002ce002be59ba8a71d02415be64247c9bcc6a5590dc03726f62eeb26a`
+- `gptl.mie.schema.Tier1Output`: `1b5bcebe4b16a9bfbb04ff1cf8f4897b39d74e76652d8dda1400d0f67c9a0b3e`
+- `gptl.mie.schema.Tier2Output`: `ec37b887f68a115f9c55091a63dd021022618ad6a2884f9ff6323f0d8899d086`
+- `gptl.core.snapshot.KnowledgeSnapshot`: `7e3e05e64d26467c8322333598eb2539e35f7c226b1b1f000993857f9be664c3`
+- `gptl.core.audit.PreflightRefusalAuditEvent`: `a8900da5f37706cdcf3dada0c4f0e03fdb8dcd1892a63396c0d3081dd11bb5c9`
+- `gptl.core.audit.SnapshotDecisionAuditEvent`: `f94aaad2702d44f372f9ac29e0ffe090b724bae12ec81d2b58107ca3d22fb7b5`
+- `gptl.mie.replay.ReplayPolicy`: `e70fdd622886ceefa5dc932985e2d1a724135b1c7e4e96969fa97b2d93c2c582`
+- `gptl.mie.replay.SafeRefusalReplayRecipe`: `04c59deffec2da08137b6c47c755cba2de1df60dbaed8d9ea5a1a06bd27d27c5`
+- `gptl.mie.replay.CandidatePreservationReplayRecipe`: `b0adeea746353e69392d39b8fb6392150557e711c6faa05d60b1239f146ec0cf`
+- `gptl.mie.replay.MSAGateReplayRecipe`: `7304e5ac215916ba7aaf3fa47b75f20b5654046a1d499edfad19cb113b690128`
+- `gptl.mie.replay.ArtifactConfirmationReplayRecipe`: `033da62abd8f395aec3078e6b5f94a3d6483829acbba95ccacafd699005ce1cd`
+- `gptl.mie.replay.HonestNegativeReplayRecipe`: `369cb8644a38f3ce5469460cfbf047109ae61613aaec2c4b310f202cb114c85c`
+- `gptl.mie.replay.Tier2AdvisoryReplayRecipe`: `81ee87499152fef04e6d66c29557a1ac3636b5d0bb1d7d27ac9caace847f5d8e`
+- `gptl.mie.replay.ReplayVerified`: `72b667628e06c4a2f7a0398f158a77a03664843e697a5c805ecb050864a95096`
+- `gptl.mie.replay.ReplayIntegrityFailure`: `4bee87e70b737ec29a165d4f5fd084e3aae9ae0274a2b08564e44b564d63578b`
+
+## Source and Migration Digests
+
+- Source tree: `b0383db80262a5f28d8038fd28fcb7a895a3c68dddddb6b479867ba8e821039d`
+- Migration tree: `e69780ce9630bd220477c5099255bce264bb045b8e9e23d56d1aab756223257d`
+- Gate map: `9041b44808baa82834ccb1890cc1ef93add729babd304c7eb00716b08547ca54`
+- Generator: `77f9d9a12d5095098e70de6f73adc35dce59220ab63912f379edd3272cdcd8b9`
+
+The companion JSON contains the complete per-file source and migration digest inventories.
+<!-- END GPTL_BUILD0_EVIDENCE_MD_V1.0 -->
+---
+
+# Embedded Machine-Readable Completion Evidence
+
+<!-- BEGIN GPTL_BUILD0_EVIDENCE_JSON_V1.0 -->
+
+```json
+{
+  "canonical_samples": [
+    {
+      "audit_payload_sha256": [
+        "0ce690cd24f99080742e942fc0ded2fdc004021b3e119c47fb283fadc063d1fa"
+      ],
+      "bound_version_payload_sha256": [],
+      "citation_payload_sha256": [],
+      "decision_or_advisory_hash": "41a41a3d3e171f65dd509de228dee114b2e2375282388392fe51330f3666c995",
+      "output_kind": "TIER1_DECISION",
+      "output_payload_sha256": "315af6e8c4bd5b03fa8747e1e7ebffdeecbd01303371f049933b988132ae341b",
+      "recipe_kind": "SAFE_REFUSAL",
+      "run_id": "run.slice1.safe-refusal",
+      "snapshot_sha256": null
+    },
+    {
+      "audit_payload_sha256": [
+        "3f5d4982e655528fabcc0d436fd02a8ad4cfcdd0bb9bd33e91a366440122e297"
+      ],
+      "bound_version_payload_sha256": [
+        "01dab0eda904dfc94a5bf8d38c15002e0e39db037ed5b961798a872850f77def",
+        "02f25da3bc2a53d60290ac40c70f21b58e0590803ebbe127af215f9a7d958d87",
+        "041e2dc72ab73f0e401aabb20d4b6ce813192b66dae6e92d1f65b28f56a20d2f",
+        "04835ccbe3a44cd26cca809a86017e70c5a805d45a0411949d7b44850683ec01",
+        "073b3f6d4f12d724df91ac8d5d5793ebee3531a9ce257cd1f50595d475459e9d",
+        "09dc8d7409042946bb41a0f364ee109452242b22e2d9b8483eaa2ac4da8a5001",
+        "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb",
+        "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a",
+        "17dc3817f3c6c1c608bf5009aa400793ad7141403b6a78bd8019183b41cd21fd",
+        "1ffa707603a82229faaff305b379a2d50b1d3f944131dc3c73f20e8bfeacb904",
+        "46dc58609bec8c0a57c6a70fd4471bc3cf506b4490042ccf5bb7a0d0bcccbcd3",
+        "4af58db843ba4e0cfb7c98b923663658767415406c90d1064ea104a8b3fd0843",
+        "584cba229d76a91788fa95bb2f5815862e9f37d8b1f95e4bb4fab23e4f1008c9",
+        "5f5d50f914a0cd5e84a59129fddd6091c161cd22aec3efad6dfbc9b9e2e82d4d",
+        "63587c04430e3183b8af4d08c342afd377f48507a37f439667b776b247172b71",
+        "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88",
+        "7d6796e5f74c47d561337d5419e15aaf14a69e392855b51c2d3b6c3b007c84e0",
+        "807a8625111f90f06e1645750caadb3bffc94da53762d1475f79b83354ba146a",
+        "81b3e22253a123d1fec2de4663d6409071c8d106f11b03693d3ca626828d6d46",
+        "8409ac5b3a86ab663351ebf3ccaad0e9ecb6e4eab8fe988c61344331bcdfc575",
+        "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe",
+        "9a186db7e92af40e8e4bc41e717aff60f3aca63f5bd45234c9f04c21b8a3a117",
+        "9dff0c5dec65088799f62a0d148fb157835d5e2051467a654e90d95cce2f1e5d",
+        "9e3120b076bd73240105b4de4bc5b6cdf1791d165694383cbdedd764668b6ee4",
+        "a06405d9dca9e78d49fac15522fc4ceca3519ef13ef6befb4b10967636a0976e",
+        "a212fe60d1e433eebb22ed9edabaa014c46d99cdc108d5a690699c1161122428",
+        "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480",
+        "bb4939d5ab9cd22d83ed16e9e717d79760c0c42e6952e0b0c89589579663c109",
+        "bf67d4f2595a7feaa0161c9fa066187a18055718c7ac025cc31e1bf68a3ed5aa",
+        "c1334f0b7d5fe10ad3937fd282e69bf00348020d3ec28d4dee3ebd8035fe0eca",
+        "c434e61e466aa593aa0582b75e794b67f6197235566eebd5f99da07e35068356",
+        "c4f19cf06cdbabd7dc0cd16ee42aeb9da3460cc1616e97b41ca4f8f340c98a5b",
+        "c5169e5b6f42afbd441131de67c0b64c5f658be5b2e2d411eea39c612e22affd",
+        "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4",
+        "e1c6ca6f9548e2d4fc135fbda7e8e0935e78c68a0461054844a92720fa549a2f",
+        "e276f6bb8c597065bd15bcaa26d4229b7981bd1b2f7e72b7221f12d6232fc98f",
+        "e4c9686133bbd55c06f941b1b90e908166941172c32c1edacff856b6d1b92186",
+        "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9",
+        "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c",
+        "f68e3e60bd9ec2aeeaeba442c8f1f41e9d609a57b1fec0046e977f6244891459",
+        "fe718adeb78f5f177a0cc2521eba9368ad618ff190ff1922e7bea4b745cd533d"
+      ],
+      "citation_payload_sha256": [
+        "86667e3bf1fe7ad5349e88b96b79af697ef6072d0d1d1d7b3dbe6cee1a3339e4"
+      ],
+      "decision_or_advisory_hash": "545dc05e0ff8933e40dc635e21f246d1e9a1c98504dcd773a39611958ecb7745",
+      "output_kind": "TIER1_DECISION",
+      "output_payload_sha256": "a5fa9f6721f1e495e0ad72c0db253447f0a8f81be9c47f762078ba81b646f9d5",
+      "recipe_kind": "CANDIDATE_PRESERVATION",
+      "run_id": "run.slice2.slice7-replay",
+      "snapshot_sha256": "220ff5099cec6b15817ded35ac9b1409fa54465ed7eb1e6b5fa95147364a302f"
+    },
+    {
+      "audit_payload_sha256": [
+        "3e308b396df6e54b40f7cc2e87a2c55aa78076a66a3e4f97b4bd3246e604f1e6"
+      ],
+      "bound_version_payload_sha256": [
+        "004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9",
+        "01dab0eda904dfc94a5bf8d38c15002e0e39db037ed5b961798a872850f77def",
+        "02f25da3bc2a53d60290ac40c70f21b58e0590803ebbe127af215f9a7d958d87",
+        "041e2dc72ab73f0e401aabb20d4b6ce813192b66dae6e92d1f65b28f56a20d2f",
+        "04835ccbe3a44cd26cca809a86017e70c5a805d45a0411949d7b44850683ec01",
+        "073b3f6d4f12d724df91ac8d5d5793ebee3531a9ce257cd1f50595d475459e9d",
+        "09dc8d7409042946bb41a0f364ee109452242b22e2d9b8483eaa2ac4da8a5001",
+        "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3",
+        "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb",
+        "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a",
+        "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6",
+        "17dc3817f3c6c1c608bf5009aa400793ad7141403b6a78bd8019183b41cd21fd",
+        "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9",
+        "1ffa707603a82229faaff305b379a2d50b1d3f944131dc3c73f20e8bfeacb904",
+        "26d018f09c37edda9dec1693afc07c83e777064760ba81f435453552b4907f0e",
+        "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6",
+        "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273",
+        "31a33ac586ca1a1446e15b9218175c0e9298daeac0b224853bb1125284cf827a",
+        "350cbd83085385b9c9be5bb8de677050902d3d059566636afc23163c83e9088f",
+        "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb",
+        "46dc58609bec8c0a57c6a70fd4471bc3cf506b4490042ccf5bb7a0d0bcccbcd3",
+        "584cba229d76a91788fa95bb2f5815862e9f37d8b1f95e4bb4fab23e4f1008c9",
+        "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5",
+        "5f5d50f914a0cd5e84a59129fddd6091c161cd22aec3efad6dfbc9b9e2e82d4d",
+        "63587c04430e3183b8af4d08c342afd377f48507a37f439667b776b247172b71",
+        "671b4376cd7b2126e7375a3e8de7a67d4b9d42f063726c8aa3cf162617ebeecc",
+        "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88",
+        "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25",
+        "8409ac5b3a86ab663351ebf3ccaad0e9ecb6e4eab8fe988c61344331bcdfc575",
+        "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a",
+        "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe",
+        "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966",
+        "9a186db7e92af40e8e4bc41e717aff60f3aca63f5bd45234c9f04c21b8a3a117",
+        "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24",
+        "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16",
+        "9dff0c5dec65088799f62a0d148fb157835d5e2051467a654e90d95cce2f1e5d",
+        "9e3120b076bd73240105b4de4bc5b6cdf1791d165694383cbdedd764668b6ee4",
+        "a212fe60d1e433eebb22ed9edabaa014c46d99cdc108d5a690699c1161122428",
+        "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52",
+        "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a",
+        "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480",
+        "bb4939d5ab9cd22d83ed16e9e717d79760c0c42e6952e0b0c89589579663c109",
+        "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a",
+        "c1334f0b7d5fe10ad3937fd282e69bf00348020d3ec28d4dee3ebd8035fe0eca",
+        "c4f19cf06cdbabd7dc0cd16ee42aeb9da3460cc1616e97b41ca4f8f340c98a5b",
+        "c5169e5b6f42afbd441131de67c0b64c5f658be5b2e2d411eea39c612e22affd",
+        "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28",
+        "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2",
+        "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c",
+        "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4",
+        "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58",
+        "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396",
+        "e1c6ca6f9548e2d4fc135fbda7e8e0935e78c68a0461054844a92720fa549a2f",
+        "e276f6bb8c597065bd15bcaa26d4229b7981bd1b2f7e72b7221f12d6232fc98f",
+        "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9",
+        "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c",
+        "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb",
+        "f03f1c185520a1c0a0e0527e9698166880d1774c7940bafe17bc9718395a822d",
+        "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b",
+        "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088",
+        "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79",
+        "f68e3e60bd9ec2aeeaeba442c8f1f41e9d609a57b1fec0046e977f6244891459",
+        "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8",
+        "fd14d07364a83521fdc0f203a8186ece7449946b0b76cd5859dfef7454e0539a",
+        "fe718adeb78f5f177a0cc2521eba9368ad618ff190ff1922e7bea4b745cd533d"
+      ],
+      "citation_payload_sha256": [
+        "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a",
+        "d07d6aca178a4f5d97f2c8f1463f77427ad8801caee496c59ecaa0240181d9cc"
+      ],
+      "decision_or_advisory_hash": "cb711fc565552f2a9dfec9fddb0abb5b3d3ff20c9dae25ec9855a43fe6a57abd",
+      "output_kind": "TIER1_DECISION",
+      "output_payload_sha256": "0f7ee0d8a1378e34661f5f011861ebdfaabf05b1d7c2f588fabcebaea6f7b497",
+      "recipe_kind": "MSA_GATE",
+      "run_id": "run.slice2.slice3-slice7-replay",
+      "snapshot_sha256": "60c797a39f1691b61f8c70fb4b1ca4a489eb83ebc83b38e35b8e0e14975e45e3"
+    },
+    {
+      "audit_payload_sha256": [
+        "c7b1c1a4129df67c532fa2d5cdebb8ac1e31b9646798a7fb07db027fc2c380ff"
+      ],
+      "bound_version_payload_sha256": [
+        "004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9",
+        "005de12463d8d62111fb707d13e3261406127fd0c8362915f3dd46e7a24a17b6",
+        "0ad336a922fa439f676c1c844ae8bc82e4ceff4852bb7f3f3af160915aab4280",
+        "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3",
+        "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb",
+        "0e542c2cc14404e07084d4ae97127925d5a7b092eb5ce1bf0fab6436a6d921a6",
+        "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a",
+        "139da5cb233e126676d9976d977458a3871cb8429ba18421481dc05e9ed7a704",
+        "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6",
+        "1a8dfb275f6153a5ce6b957c81c490536a0232fb9c56cff0c114c29c1ed7e5fd",
+        "1aa433f04906604f33244dfff1f2eb6e7ad3b590fb04037bf44d9a4a492ef7a5",
+        "1c2d49bf0b1a68b5a5ac8bb5fba95f128c45420e31d4620a9a49ad7efc7d8eac",
+        "1c6cb895e9324474e1dcf488c0e06cfa7b808e678b7c0a703afd9b703af901d6",
+        "1f07f48dd61d015cab226cc473b1f0668c14f9e7a4d4d33a14d5bb77e7589314",
+        "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9",
+        "20b8b661de3ff24ec24360a14fc2d31f3bd159ad6786066062b62706fc86fc1e",
+        "215fd2df0d7139fda263d07fc67ac4e7828b16f523164dd5320588da914b37fe",
+        "2206389cb876531faec08f368b0c19c13f4e114f49b747a4c6ad09ba205b0211",
+        "222beee27f6f5d84c91c1d6072b2667f4f8feac41eb74617a5ae6a21994ccee4",
+        "22e5f7715e3c7d25a5d47a77f339e130763d4ff916652d508d140274ca0bd0ac",
+        "259524d810bdd9dac2dad92b5cd7da9ed0cb52550a39c9dc95dc134c2f8fba8f",
+        "26e6889774291bcee903ecfeefe96f5f50465cd1a183d9677e080f927d47afe3",
+        "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6",
+        "2a755c1bc39b3a8b84b4751cdaeff3a84939617ceec71ce4e20c267137a40665",
+        "2b3ff6221d8b4770a9a3677804eb523ffdf069bd2cdcabb41274d80558591768",
+        "304f87eb851d24f2f903dbf30a6f2d9addd6a35a5c6d816fd27badabd0207dd0",
+        "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273",
+        "309733723683e740a07dba36979fe667fac04961a7dab06d6f21c381c4b04bd4",
+        "31a1562c6cda57a95b3d4abc28e8e08487d48e4d21309adc245b8cc3cf964a02",
+        "31e00025251f7b3513dbfa05577e72cd3c208c9f0682020bfc0f61f77ab698a2",
+        "38bb602999ab7c822d64309556581951357427d5b106ba384672f2578c51f17e",
+        "3a4ed3739528d1c449d5cb0d8d228690b57054afb7a96e2f6125a4ff9e2c0ada",
+        "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb",
+        "3d7d3574befd27553fd3301c03a5e94acd67f874222723c04950157504ff7c0d",
+        "3e71ed490e332706deae4f1ae83da31d7bed431414cc0897a82d60fae3f7a025",
+        "4367bad683058617ffc5cdb007d6d385137b9b52d6c6836ae70323a89a30ab2e",
+        "463025b02e8538e3dabbbe65da4ebe7db12b9eac9bb1c650b2c11cf50144b60e",
+        "467ecf05e7b9ae61fc72ed6c2461f4954d8c4e3099b383eda5ed67252d3f0303",
+        "46cfb73d720e7fd0c7957bd85b346d72450e3fe586f76448b59a134413f74dfd",
+        "4dc528597c61b548776998d965ba05b6acc72fddf7a9b809228029060e730954",
+        "4ff442ab861d3a7e41d7b03044c0fa5277fad53984af1daa9e9d8b1a7baead59",
+        "51845eef6abd85da11acd77b758b08cf1185788eaad762c50eab6a35c8cc1154",
+        "528dcc2a8059b2283b79da2a49bdf493c6ffc6ce6fb9c4e81401d4ac8ef29fbd",
+        "57ef7dccdebfacbcabf51ebb92966f9b3c58273d8adf382ec012e5a4ca353e3a",
+        "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5",
+        "5b5e40508f7e130260e42f070c0ade3527dd246a74afdad4bdb39b3621cf82cb",
+        "5c5213b6ce9e0117e6bad7dc2a9059be5aa2a717f8b573a6e8d3c7af0f0ae922",
+        "5e79e72cab4fdfd63d852c7a6734c6d6b254b9e974815a510bab16630c451426",
+        "6bf35e65468030e0bee2c5791514d67df76763161e6db50fdcbff3a36effc779",
+        "6d712eb7024f55458b4143700af18ba167d9ec7fd9555a84bdd58425485bc344",
+        "6ecb64055c7bcd870c594a9db94eec5e6a3edbec94358117f4a05ec94c2ed146",
+        "6f7b1e9a78e7fa080b888633639dbd036be0c3351e85169e878971d0627731f0",
+        "70e3d28b80fd3e0244e2b27d95ebe860e7610fb5125df60fc5c07e31ccdbef06",
+        "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88",
+        "727d147c587f7d9b4169262f093ae92fdd867749d3bab009271d6a4aa265747e",
+        "72d1556008687fbbaf28b5714be1ff8c0d588a082ca9ccb364011dc9c4779a25",
+        "733c532e40759f7496aea3e194b588b6f88341f1473dfd95b4122c5d64bb1e41",
+        "73c6d6c094cf4c9c244e7a67d53f67abf9e28513d662f7e4ef39b639f18200f9",
+        "73cb634cb0171a005a8ebc7104c22c86d56380753e389ec13f7f4c3dcdcf4485",
+        "7509adce957554c60ffcec56d0f15e40248f61c17a427b37c8e132383563c360",
+        "78c395c9d1917cb4dd7ff0b3329752fcdcee36243c5a42ffea8680c39d01e09c",
+        "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25",
+        "7c6368dcd4bbc20cbfae22559bf8c92d1927629e753fc6a6c3a3f159e9ad66fe",
+        "7db394bf5b7eb8ecff618dbcee82b5cc71fd5fb8b4cd812e7893541d03ebae75",
+        "81ebd380be04b3c0143f2ea2723a2b2ccafa8a301f9642c893991e781fb8f8f7",
+        "838fefacc0a6b718e72258ce2d4d8f2eb60b9e6ac0609d5a041ae43ed11667c8",
+        "8592649d88abd61c9f2b5ac82fc907f98b07075fd487b3c2cd8d7cb764397106",
+        "86715ac724cfbf6ec5273fe2b4f42cf22ff346c5906cd4126e5097cb06022eec",
+        "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a",
+        "8ac64413391d38363537a6c36782bbab5235badebbd0fbaf96fa0009c0409c19",
+        "8c409f36bedfd7fd541127f9f594b4d2c6803f10755bc5f2c5703993d979e80c",
+        "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe",
+        "972626e80cdc1aa5c65f4af390b728586b5826a2478e5aa7365ad5e298f1db9b",
+        "97752c6272be9604586b4919bec885b658f58d98dd6ce04406f17ec009786360",
+        "97ec4bdf20886e5d225a7a752d17ec7b16b24f8f56119ea69280439db51ec415",
+        "98e1809325cbd80a2bac752b379b837b9ac541bc874244daa64115ff9f110ea1",
+        "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966",
+        "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24",
+        "9b8fece14fa9955f4f86ef30dbaf8b1daa8f3f3c91dc6d13997b3736cb39fcc5",
+        "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16",
+        "9e89065429de9281d57aa1d1ceecf2aa03cb8bfb5e013f50bfbfe57f13cb5d81",
+        "a03f556f3b411f22959f55ceb6d99773368b955327d80ad41f98260ff9ed11ed",
+        "a09d8d577e3a5ab12cff95d9f6e4fc19f466dae7650313f84fb502e77dbf779b",
+        "a183dcdf002467f66e29e52d0265a6e4c55e8d84df8636387ea9afe94b66256e",
+        "aa4b8b3d59e00a8e032f48976c9b509860a2f6ab14bd1b1c30f1f52b47726f4d",
+        "aaa6a9f697dccfe13ac679b73d07ebbc434ce44aae1b43e02852d50f85d9fcf8",
+        "b01996a84a528936c8d313f182acf551215ba112ea9c4b847ed4037920b1a6e6",
+        "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52",
+        "b21bf245c211f7ae2195dc61ff061bfa4e128e4408f929e78f08bcd9c36ac49b",
+        "b2b86171b5860ee7cb5c7b3c026f4aac25a7751dee3742a957e5c5ec39d0a280",
+        "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a",
+        "b2ef5cfc09cdc18bca4992c177e2ac969c0fe496fb8650dccea95b86be8de717",
+        "b47f07fa9f9c02030dc733e6e6458f415eaf6c74d393b3a78fbd0b80e7501301",
+        "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480",
+        "bbad2a22790314bb026f6d766a1a09e28d640f11eb720852dfaf0a40cc4ddd03",
+        "bdba234c23bdbd8bb4af9a5eeb01a3c7f504745260be92dbc0cbf29481024d53",
+        "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a",
+        "bf24a2e8492a8b75997e44288ba152e734ca859d5916040bf028fb76debe2fe1",
+        "c06a77d7fe9cb0c21eabf39b5bb6a007c973b2acfa42793ab0757c860d99500d",
+        "c0c7cc4a9f81b94c6c69497d462de00a257101390c3c1c37357cb4a6fe513c70",
+        "c9ff8b541276cc48f72a7f6f41d3164cebc530f99c7c4d3e2e081d7149d02e18",
+        "d4681afed3ca7046450779b3580ddf32be704d9723be999817255d0bf6b9d4f3",
+        "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28",
+        "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2",
+        "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c",
+        "d8bbd3747acb69372aa8e6da185569a5ebfffda630d712e1c5798f27fa12772f",
+        "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4",
+        "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58",
+        "df609126bfabac15c7e6f49aefb77e16c8b08ca3acce85f69ea0d2193f24b1cc",
+        "e00fd036eb1daf4d3703c7f28ab53dc114b77c231c7a628f840b1e1e169fd334",
+        "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396",
+        "e3677994ece6ea40060aea98bce07b18be33c65dece364fb2da58a2ee1073ab9",
+        "e39640a9f619fe50c5174bd6a9721d4cc0393b84a5818d68e20a69c5ba0ab83a",
+        "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9",
+        "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c",
+        "e86db6a388b930f8bfa9e39815905184df8581db3cd2702dec0c204f9d44b4ee",
+        "e949e09ee0d2a5bedd46d414e1dbd2a5ead85948bc7e37ef256280b710659226",
+        "eb770f954bd07f1a4cf50ef79d49b18e483a41ccccb44dc3ef15fb8015d89f52",
+        "edb352e0b2bce245c33695085cac531c0a7d82e143148eb09109ad40218a3043",
+        "ef1738f409eaa3d500fa44be440b8ebe17b15d71c67be158727834716cc7db4f",
+        "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb",
+        "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b",
+        "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088",
+        "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79",
+        "f565e969ec1197d3b732fc2eea504d733013ae36e2382f3753c916eb46368771",
+        "f780ae7b1c8b61c49484a352a5489f4ebe56da6e4196d62861a094753cd8707b",
+        "f98142df97b9a6372f10f31d847e155cd4f9b04fd319c31ae3086afa6c5fb67c",
+        "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8",
+        "fca6fc0277ad8b20c476766dce5149ce310324d968f000792d9c5655d4451214",
+        "ff1b3ce2d9e61ab7e6fa45cb11a4632fea3fa46deaa044f47fbb80291d26267a"
+      ],
+      "citation_payload_sha256": [
+        "0005f610d2707d5cd853eb3affe91f6bd13fda9cd9f546275b786477d4421428",
+        "0b54754f86c28887b98aa9b968ef1284d87783376551cf128f7acbd240479f5d",
+        "0f999310d118c7f5f05ec9ededfecf72fe4f7d4cda742770d5972bd00d0696b2",
+        "2ec4e23b1ca3271ada39a5158f7fbf947f52d49ccb943749674ffa1a167a256e",
+        "355b889a3eff1b3cf2919fbf5d079203ee4872c6c620b4124b4faa0155a2871b",
+        "3845f2565b5f22b605f5fbc46a3579f8fdf9ea1e255505ee0ddefea2eee3366c",
+        "393e77ff6c48dd12c420846d1a862d6e5e4dd06151f0538f5541c7f653203dcd",
+        "39792ee56ba83d8e549fb3b84e37e5b6711b5a9235179413c35ceaf07eefdda6",
+        "5058f9f624b21b712232d2d079c2c522ab2933c629fc369dd13e6110bf1bcfec",
+        "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a",
+        "582b1e4a7a0076034224d585e8d0aaf48026560714886fae363f69fa68a07531",
+        "6d3f6d979863932d4eb02d3c2827f41c0a610f3181583eed8a4dcb1443ceb536",
+        "715fa449bd56f686d88a369ba7574f0769733eb07143ed7a60ad25b9508190c2",
+        "84635e18fab1400caa8417b7d534f30c93010ff7a558498b1add18a96ceb542b",
+        "89e9db8dd2134acd41e66861bceb812fa8805ffc0667d9162d8c8c0fcaea7bad",
+        "9723add51c785e470ea4e171098fd972045bb8f4fa7d87d7fd5414b11a026958",
+        "975e2a64c85b83a2240ae4dcf238d7a730fc17186625911b93d5f7fa45073498",
+        "9c998f499b412dfc4fd751aed467fb1219c52797d04195af8c61ea7e1d200210",
+        "a3c7ff85c1caf746889e56f8cff89f80954de3957745eb592235030dfa01c35c",
+        "b23d91d98f706456e33c637b4d5f9219c1dd35783a4b45cf345493ca94a255e4",
+        "bfd21b15e0a4649e2c76634946f582939859843966e076015b97719ed90a231f",
+        "c38e6bd63757ee4c55d1c33deb8dea5e57f6b237991491a9bd7ddbb2adee57b9",
+        "d07d6aca178a4f5d97f2c8f1463f77427ad8801caee496c59ecaa0240181d9cc",
+        "dedc95da41f60f1c9dbbd5b5f1d336ffd789873ec59e5f1d09c898f6a81c97d2"
+      ],
+      "decision_or_advisory_hash": "fb609a3145d6633f231b987a9edcf690d82b45805a9fa09fa413232051ac3dab",
+      "output_kind": "TIER1_DECISION",
+      "output_payload_sha256": "4ba6cf223efdffb04a50f19c40efec11b78b7e8b8612f42b2244e67f996a04a1",
+      "recipe_kind": "ARTIFACT_CONFIRMATION",
+      "run_id": "run.slice4.slice7-replay",
+      "snapshot_sha256": "90b9e23bc55ea5ab90b11ec400d5bbb8c7cc8a12019ffab92011245b382f2219"
+    },
+    {
+      "audit_payload_sha256": [
+        "d64cbbc8fd7fe43b0d641e09eefda38b093c6da93d1b4f1fdd2d9de07612dc2e"
+      ],
+      "bound_version_payload_sha256": [
+        "004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9",
+        "005de12463d8d62111fb707d13e3261406127fd0c8362915f3dd46e7a24a17b6",
+        "045517675e046a4da4cc26b3f22fa38cc5b265516250b8d4517f2e964ca19855",
+        "0ad336a922fa439f676c1c844ae8bc82e4ceff4852bb7f3f3af160915aab4280",
+        "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3",
+        "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb",
+        "0e542c2cc14404e07084d4ae97127925d5a7b092eb5ce1bf0fab6436a6d921a6",
+        "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a",
+        "139da5cb233e126676d9976d977458a3871cb8429ba18421481dc05e9ed7a704",
+        "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6",
+        "1a8dfb275f6153a5ce6b957c81c490536a0232fb9c56cff0c114c29c1ed7e5fd",
+        "1aa433f04906604f33244dfff1f2eb6e7ad3b590fb04037bf44d9a4a492ef7a5",
+        "1c2d49bf0b1a68b5a5ac8bb5fba95f128c45420e31d4620a9a49ad7efc7d8eac",
+        "1c6cb895e9324474e1dcf488c0e06cfa7b808e678b7c0a703afd9b703af901d6",
+        "1f07f48dd61d015cab226cc473b1f0668c14f9e7a4d4d33a14d5bb77e7589314",
+        "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9",
+        "20b8b661de3ff24ec24360a14fc2d31f3bd159ad6786066062b62706fc86fc1e",
+        "215fd2df0d7139fda263d07fc67ac4e7828b16f523164dd5320588da914b37fe",
+        "2206389cb876531faec08f368b0c19c13f4e114f49b747a4c6ad09ba205b0211",
+        "222beee27f6f5d84c91c1d6072b2667f4f8feac41eb74617a5ae6a21994ccee4",
+        "259524d810bdd9dac2dad92b5cd7da9ed0cb52550a39c9dc95dc134c2f8fba8f",
+        "26e6889774291bcee903ecfeefe96f5f50465cd1a183d9677e080f927d47afe3",
+        "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6",
+        "2a755c1bc39b3a8b84b4751cdaeff3a84939617ceec71ce4e20c267137a40665",
+        "2b3ff6221d8b4770a9a3677804eb523ffdf069bd2cdcabb41274d80558591768",
+        "304f87eb851d24f2f903dbf30a6f2d9addd6a35a5c6d816fd27badabd0207dd0",
+        "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273",
+        "309733723683e740a07dba36979fe667fac04961a7dab06d6f21c381c4b04bd4",
+        "31a1562c6cda57a95b3d4abc28e8e08487d48e4d21309adc245b8cc3cf964a02",
+        "31e00025251f7b3513dbfa05577e72cd3c208c9f0682020bfc0f61f77ab698a2",
+        "38bb602999ab7c822d64309556581951357427d5b106ba384672f2578c51f17e",
+        "3a4ed3739528d1c449d5cb0d8d228690b57054afb7a96e2f6125a4ff9e2c0ada",
+        "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb",
+        "3d7d3574befd27553fd3301c03a5e94acd67f874222723c04950157504ff7c0d",
+        "3e71ed490e332706deae4f1ae83da31d7bed431414cc0897a82d60fae3f7a025",
+        "4367bad683058617ffc5cdb007d6d385137b9b52d6c6836ae70323a89a30ab2e",
+        "463025b02e8538e3dabbbe65da4ebe7db12b9eac9bb1c650b2c11cf50144b60e",
+        "467ecf05e7b9ae61fc72ed6c2461f4954d8c4e3099b383eda5ed67252d3f0303",
+        "46cfb73d720e7fd0c7957bd85b346d72450e3fe586f76448b59a134413f74dfd",
+        "4dc528597c61b548776998d965ba05b6acc72fddf7a9b809228029060e730954",
+        "4fe4b39cc19fc8fa9501665c145d347f89473969e3668c37dc26a8719a43b0d2",
+        "4ff442ab861d3a7e41d7b03044c0fa5277fad53984af1daa9e9d8b1a7baead59",
+        "51845eef6abd85da11acd77b758b08cf1185788eaad762c50eab6a35c8cc1154",
+        "528dcc2a8059b2283b79da2a49bdf493c6ffc6ce6fb9c4e81401d4ac8ef29fbd",
+        "57ef7dccdebfacbcabf51ebb92966f9b3c58273d8adf382ec012e5a4ca353e3a",
+        "583ad915743fc94989d78ece097c2b4ca4382e9f56fa591d43e7503976c4eace",
+        "5938ceb1b0377f2c6a9ed1e88fb9a5eaf85eaaab9810ed5e8da1e5fef3bec6c7",
+        "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5",
+        "5b5e40508f7e130260e42f070c0ade3527dd246a74afdad4bdb39b3621cf82cb",
+        "5c5213b6ce9e0117e6bad7dc2a9059be5aa2a717f8b573a6e8d3c7af0f0ae922",
+        "5e79e72cab4fdfd63d852c7a6734c6d6b254b9e974815a510bab16630c451426",
+        "67195dd214be452edcc27201beac8eb986fe51b0c22f84aa4babfbbf3c9342bd",
+        "6b76f91ece563514162bd800a4b8f76c6451e14133f84ee1e6633c7b01108571",
+        "6bf35e65468030e0bee2c5791514d67df76763161e6db50fdcbff3a36effc779",
+        "6d712eb7024f55458b4143700af18ba167d9ec7fd9555a84bdd58425485bc344",
+        "6f7b1e9a78e7fa080b888633639dbd036be0c3351e85169e878971d0627731f0",
+        "70e3d28b80fd3e0244e2b27d95ebe860e7610fb5125df60fc5c07e31ccdbef06",
+        "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88",
+        "727d147c587f7d9b4169262f093ae92fdd867749d3bab009271d6a4aa265747e",
+        "72d1556008687fbbaf28b5714be1ff8c0d588a082ca9ccb364011dc9c4779a25",
+        "73153e193876241c88c52ad83a113c14c9b6f9b785b934d5f94de1dbc02ea67a",
+        "733c532e40759f7496aea3e194b588b6f88341f1473dfd95b4122c5d64bb1e41",
+        "73c6d6c094cf4c9c244e7a67d53f67abf9e28513d662f7e4ef39b639f18200f9",
+        "73cb634cb0171a005a8ebc7104c22c86d56380753e389ec13f7f4c3dcdcf4485",
+        "74c7314a0bfb4762a9ee0c1cc08d69a4788603e4b94dd9676b7991bff9975ea9",
+        "7509adce957554c60ffcec56d0f15e40248f61c17a427b37c8e132383563c360",
+        "7804558dcfe428cfea0e0f962f4566ea980dd9e3a24d68dd96fc79d07a576206",
+        "78c395c9d1917cb4dd7ff0b3329752fcdcee36243c5a42ffea8680c39d01e09c",
+        "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25",
+        "7c0e8a35710fbf59b3612a5815b0e37fdb18e75052f449d1cd9b41e35e12df90",
+        "7c6368dcd4bbc20cbfae22559bf8c92d1927629e753fc6a6c3a3f159e9ad66fe",
+        "7db394bf5b7eb8ecff618dbcee82b5cc71fd5fb8b4cd812e7893541d03ebae75",
+        "805057deb3171c1fa72c0394480d8a1e0538ecb58f5eb74f3bdc1c28ed2d49fc",
+        "81ebd380be04b3c0143f2ea2723a2b2ccafa8a301f9642c893991e781fb8f8f7",
+        "838fefacc0a6b718e72258ce2d4d8f2eb60b9e6ac0609d5a041ae43ed11667c8",
+        "8592649d88abd61c9f2b5ac82fc907f98b07075fd487b3c2cd8d7cb764397106",
+        "86715ac724cfbf6ec5273fe2b4f42cf22ff346c5906cd4126e5097cb06022eec",
+        "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a",
+        "8ac64413391d38363537a6c36782bbab5235badebbd0fbaf96fa0009c0409c19",
+        "8c409f36bedfd7fd541127f9f594b4d2c6803f10755bc5f2c5703993d979e80c",
+        "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe",
+        "8ea0bae1ab64e54b5467b4e412acb8d9babe973adb7c7a4deefe84cb083dbe8a",
+        "8eb65dbe9b82459c4e6129d2f7ae5046db38917bbd792380cfe1c6f4a564fd3e",
+        "907d71dde79dafa79cc7353a91edf33e2093002eab9e216c7317071988af9b3e",
+        "972626e80cdc1aa5c65f4af390b728586b5826a2478e5aa7365ad5e298f1db9b",
+        "97752c6272be9604586b4919bec885b658f58d98dd6ce04406f17ec009786360",
+        "97ec4bdf20886e5d225a7a752d17ec7b16b24f8f56119ea69280439db51ec415",
+        "98e1809325cbd80a2bac752b379b837b9ac541bc874244daa64115ff9f110ea1",
+        "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966",
+        "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24",
+        "9b8fece14fa9955f4f86ef30dbaf8b1daa8f3f3c91dc6d13997b3736cb39fcc5",
+        "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16",
+        "9e89065429de9281d57aa1d1ceecf2aa03cb8bfb5e013f50bfbfe57f13cb5d81",
+        "9edbe98d3e3aa5d4403ac65fe506ca674f587c1487c4707b92606a993d764930",
+        "a03f556f3b411f22959f55ceb6d99773368b955327d80ad41f98260ff9ed11ed",
+        "a09d8d577e3a5ab12cff95d9f6e4fc19f466dae7650313f84fb502e77dbf779b",
+        "a183dcdf002467f66e29e52d0265a6e4c55e8d84df8636387ea9afe94b66256e",
+        "a38aac0b1296d50d567a54cc6e06854826406b560d32b35133bc6a0ff043f990",
+        "a85ace57a1c62fc38b076bad4ce4c6e9f0bae944dff23ce05738441448e7c103",
+        "a9d046e108129ad3c5a2a6fa307df62790b2b491bb77975fbb69c48c345c5425",
+        "aa4b8b3d59e00a8e032f48976c9b509860a2f6ab14bd1b1c30f1f52b47726f4d",
+        "aedbc19b446062d715ddbde454b93a91b95e97686b19c50ff2803b41a3c21f93",
+        "b01996a84a528936c8d313f182acf551215ba112ea9c4b847ed4037920b1a6e6",
+        "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52",
+        "b21bf245c211f7ae2195dc61ff061bfa4e128e4408f929e78f08bcd9c36ac49b",
+        "b2b86171b5860ee7cb5c7b3c026f4aac25a7751dee3742a957e5c5ec39d0a280",
+        "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a",
+        "b2ef5cfc09cdc18bca4992c177e2ac969c0fe496fb8650dccea95b86be8de717",
+        "b47f07fa9f9c02030dc733e6e6458f415eaf6c74d393b3a78fbd0b80e7501301",
+        "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480",
+        "bb7af282f85d5fa83b7672a0310c98ac30a75494d1057b550e5e6c853080d82e",
+        "bbad2a22790314bb026f6d766a1a09e28d640f11eb720852dfaf0a40cc4ddd03",
+        "bdba234c23bdbd8bb4af9a5eeb01a3c7f504745260be92dbc0cbf29481024d53",
+        "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a",
+        "bf24a2e8492a8b75997e44288ba152e734ca859d5916040bf028fb76debe2fe1",
+        "c06a77d7fe9cb0c21eabf39b5bb6a007c973b2acfa42793ab0757c860d99500d",
+        "c0c7cc4a9f81b94c6c69497d462de00a257101390c3c1c37357cb4a6fe513c70",
+        "c2da8d165135808da43071ba4b406aee390d6618ae890d324f00bb2b4baf12ba",
+        "c9ff8b541276cc48f72a7f6f41d3164cebc530f99c7c4d3e2e081d7149d02e18",
+        "ce4dd2be122f0c6af3aa77f204b8ed9f2e4698c3e2d5b700249da211f77998aa",
+        "cf8846e4bf74e86c755f050a2ea23d67d7718999bcc8b248d94412e6c02e779a",
+        "d0218311998c8ffe6d002a6687fe2cce16e303e023cece81b130794f135b1427",
+        "d382ac2c6c4935778f832d97b2ecbb3731c8e52c91a17f9733aecd25c27cb76b",
+        "d4681afed3ca7046450779b3580ddf32be704d9723be999817255d0bf6b9d4f3",
+        "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28",
+        "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2",
+        "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c",
+        "d8bbd3747acb69372aa8e6da185569a5ebfffda630d712e1c5798f27fa12772f",
+        "da96483016929537d9f343982b8865a4d2407fdc9265dad9f097fafddf6f49b1",
+        "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4",
+        "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58",
+        "df609126bfabac15c7e6f49aefb77e16c8b08ca3acce85f69ea0d2193f24b1cc",
+        "e00fd036eb1daf4d3703c7f28ab53dc114b77c231c7a628f840b1e1e169fd334",
+        "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396",
+        "e3677994ece6ea40060aea98bce07b18be33c65dece364fb2da58a2ee1073ab9",
+        "e39640a9f619fe50c5174bd6a9721d4cc0393b84a5818d68e20a69c5ba0ab83a",
+        "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9",
+        "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c",
+        "e834125af3d4d0b6417067a7a4eeadaf1a1fca54ee402a94a98c91c14cfce48f",
+        "e86db6a388b930f8bfa9e39815905184df8581db3cd2702dec0c204f9d44b4ee",
+        "e949e09ee0d2a5bedd46d414e1dbd2a5ead85948bc7e37ef256280b710659226",
+        "eb770f954bd07f1a4cf50ef79d49b18e483a41ccccb44dc3ef15fb8015d89f52",
+        "edb352e0b2bce245c33695085cac531c0a7d82e143148eb09109ad40218a3043",
+        "ef1738f409eaa3d500fa44be440b8ebe17b15d71c67be158727834716cc7db4f",
+        "ef81f162c1b717f62b8c2e7142dfa5d656b9c9c28fb85cfefc049bc0ef7183ab",
+        "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb",
+        "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b",
+        "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088",
+        "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79",
+        "f565e969ec1197d3b732fc2eea504d733013ae36e2382f3753c916eb46368771",
+        "f780ae7b1c8b61c49484a352a5489f4ebe56da6e4196d62861a094753cd8707b",
+        "f97eadfbb83c6dab13db6536fb13a2d77249df749bf46efa1e3498f7198469fe",
+        "f98142df97b9a6372f10f31d847e155cd4f9b04fd319c31ae3086afa6c5fb67c",
+        "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8",
+        "fca6fc0277ad8b20c476766dce5149ce310324d968f000792d9c5655d4451214",
+        "ff1b3ce2d9e61ab7e6fa45cb11a4632fea3fa46deaa044f47fbb80291d26267a"
+      ],
+      "citation_payload_sha256": [
+        "0005f610d2707d5cd853eb3affe91f6bd13fda9cd9f546275b786477d4421428",
+        "09160356d5c526f74bc7424813dc03780e4ca1544e2b11d5102ee03a1efe32d3",
+        "0b54754f86c28887b98aa9b968ef1284d87783376551cf128f7acbd240479f5d",
+        "0f93d4399987f50aba35871b222aa1cd1b5a62c0af3686f3aa3795080cb90a56",
+        "0f999310d118c7f5f05ec9ededfecf72fe4f7d4cda742770d5972bd00d0696b2",
+        "2ec4e23b1ca3271ada39a5158f7fbf947f52d49ccb943749674ffa1a167a256e",
+        "355b889a3eff1b3cf2919fbf5d079203ee4872c6c620b4124b4faa0155a2871b",
+        "3845f2565b5f22b605f5fbc46a3579f8fdf9ea1e255505ee0ddefea2eee3366c",
+        "393e77ff6c48dd12c420846d1a862d6e5e4dd06151f0538f5541c7f653203dcd",
+        "39792ee56ba83d8e549fb3b84e37e5b6711b5a9235179413c35ceaf07eefdda6",
+        "5058f9f624b21b712232d2d079c2c522ab2933c629fc369dd13e6110bf1bcfec",
+        "513a15d00bce67eefdaaaec47b16fc22a7f256f626b897f608abb593d069c0df",
+        "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a",
+        "546972e610a00f9e0eef3ff73339987a4b904a618b527428b3887bb2c497db36",
+        "582b1e4a7a0076034224d585e8d0aaf48026560714886fae363f69fa68a07531",
+        "6d3f6d979863932d4eb02d3c2827f41c0a610f3181583eed8a4dcb1443ceb536",
+        "715fa449bd56f686d88a369ba7574f0769733eb07143ed7a60ad25b9508190c2",
+        "7dbcbc55e2dade36e0a624bc12accb29bd90e690ee4dfebe83dd08cac20fa2d1",
+        "84635e18fab1400caa8417b7d534f30c93010ff7a558498b1add18a96ceb542b",
+        "89e9db8dd2134acd41e66861bceb812fa8805ffc0667d9162d8c8c0fcaea7bad",
+        "9723add51c785e470ea4e171098fd972045bb8f4fa7d87d7fd5414b11a026958",
+        "975e2a64c85b83a2240ae4dcf238d7a730fc17186625911b93d5f7fa45073498",
+        "9c998f499b412dfc4fd751aed467fb1219c52797d04195af8c61ea7e1d200210",
+        "a3c7ff85c1caf746889e56f8cff89f80954de3957745eb592235030dfa01c35c",
+        "b23d91d98f706456e33c637b4d5f9219c1dd35783a4b45cf345493ca94a255e4",
+        "b2a04563947ceabc8e7592ca92fe8065e836d38c352081c3219e9bcf40a1ca4c",
+        "bfd21b15e0a4649e2c76634946f582939859843966e076015b97719ed90a231f",
+        "c38e6bd63757ee4c55d1c33deb8dea5e57f6b237991491a9bd7ddbb2adee57b9",
+        "d07d6aca178a4f5d97f2c8f1463f77427ad8801caee496c59ecaa0240181d9cc",
+        "dedc95da41f60f1c9dbbd5b5f1d336ffd789873ec59e5f1d09c898f6a81c97d2",
+        "fd06547dfc6bd5f41c27c797ecda74f9324bbe52086779b07e544a1cebb6b96a"
+      ],
+      "decision_or_advisory_hash": "37234b970fb06bd76dbf6dcdf3ee0d8d8fecc455b9e0b7dbdc2152b85a440ffe",
+      "output_kind": "TIER1_DECISION",
+      "output_payload_sha256": "099d2caa80825b198b6119b6a8de89635c8bbcb3979f050c456b8ef53689d1ee",
+      "recipe_kind": "HONEST_NEGATIVE",
+      "run_id": "run.slice5.slice7-replay",
+      "snapshot_sha256": "113a1ab8b3c9179a3bc4d4dc4df4b0e30d2dedf2076b34005658555a246c4b4a"
+    },
+    {
+      "audit_payload_sha256": [
+        "34ba7114774a89df32ecc5fc6788d9de07f8788033e903f46230219ac939583b"
+      ],
+      "bound_version_payload_sha256": [
+        "004bebcaf040b1357ea5e808160d25877d9b20e9aac902dff2e1d85f4d5392e9",
+        "005de12463d8d62111fb707d13e3261406127fd0c8362915f3dd46e7a24a17b6",
+        "045517675e046a4da4cc26b3f22fa38cc5b265516250b8d4517f2e964ca19855",
+        "0ad336a922fa439f676c1c844ae8bc82e4ceff4852bb7f3f3af160915aab4280",
+        "0d679798551732e34240edd7eb13d2b4060709051c9f6a175d51a704d73651e3",
+        "0d6c75552847c40739050113b170ed50a9356b938637e82fcce7ad428d29fcdb",
+        "0e542c2cc14404e07084d4ae97127925d5a7b092eb5ce1bf0fab6436a6d921a6",
+        "11fd49ea73d264ebb770f6c2593484822ae24d67a35e7172256d6d8fedf65c4a",
+        "133e416534a514edc9d437f9d809a9b9577f6e217d81ce52bd896269ceb58e34",
+        "139da5cb233e126676d9976d977458a3871cb8429ba18421481dc05e9ed7a704",
+        "165f1f0bd94bbb32cc95281be07b61dfa8a881b77b0174a137d6bd00cc8645d6",
+        "1a8dfb275f6153a5ce6b957c81c490536a0232fb9c56cff0c114c29c1ed7e5fd",
+        "1aa433f04906604f33244dfff1f2eb6e7ad3b590fb04037bf44d9a4a492ef7a5",
+        "1c2d49bf0b1a68b5a5ac8bb5fba95f128c45420e31d4620a9a49ad7efc7d8eac",
+        "1c6cb895e9324474e1dcf488c0e06cfa7b808e678b7c0a703afd9b703af901d6",
+        "1f07f48dd61d015cab226cc473b1f0668c14f9e7a4d4d33a14d5bb77e7589314",
+        "1f971823d164e1cb72fab613017817154865cde7c1ff7f24e7f2f7d6ee469ae9",
+        "20b8b661de3ff24ec24360a14fc2d31f3bd159ad6786066062b62706fc86fc1e",
+        "215fd2df0d7139fda263d07fc67ac4e7828b16f523164dd5320588da914b37fe",
+        "2206389cb876531faec08f368b0c19c13f4e114f49b747a4c6ad09ba205b0211",
+        "222beee27f6f5d84c91c1d6072b2667f4f8feac41eb74617a5ae6a21994ccee4",
+        "259524d810bdd9dac2dad92b5cd7da9ed0cb52550a39c9dc95dc134c2f8fba8f",
+        "26e6889774291bcee903ecfeefe96f5f50465cd1a183d9677e080f927d47afe3",
+        "277660d9e53044891aa754c330fdfdd652eae5efc59d715391a3ac41ea5a52b6",
+        "29eb93a1598262500a2d34ecec0e123dd8c1c56aeec43eca1958ad871de65fe8",
+        "2a755c1bc39b3a8b84b4751cdaeff3a84939617ceec71ce4e20c267137a40665",
+        "2b3ff6221d8b4770a9a3677804eb523ffdf069bd2cdcabb41274d80558591768",
+        "304f87eb851d24f2f903dbf30a6f2d9addd6a35a5c6d816fd27badabd0207dd0",
+        "30723ff0a8d8a511ed7ca1fe9643029507d9e2ac31e08d24a954a64e35aa3273",
+        "309733723683e740a07dba36979fe667fac04961a7dab06d6f21c381c4b04bd4",
+        "31a1562c6cda57a95b3d4abc28e8e08487d48e4d21309adc245b8cc3cf964a02",
+        "31e00025251f7b3513dbfa05577e72cd3c208c9f0682020bfc0f61f77ab698a2",
+        "387d18505713a94a5c47eca46277da83ed9a9d85671c60206962f3f7ec6fa1e1",
+        "38bb602999ab7c822d64309556581951357427d5b106ba384672f2578c51f17e",
+        "3a4ed3739528d1c449d5cb0d8d228690b57054afb7a96e2f6125a4ff9e2c0ada",
+        "3d60e44073efb0c894fbef74624c7a5757791280b433dcd0cc00e796997e99eb",
+        "3d7d3574befd27553fd3301c03a5e94acd67f874222723c04950157504ff7c0d",
+        "3e71ed490e332706deae4f1ae83da31d7bed431414cc0897a82d60fae3f7a025",
+        "434aaa8b180edb666c448852b7add44fd50e180004575a0e2e2e3257a54ca771",
+        "4367bad683058617ffc5cdb007d6d385137b9b52d6c6836ae70323a89a30ab2e",
+        "457fd4725d8ee1f6fe0165d6f20f691206750a675d4f0e0cb3ae23acc17b9f27",
+        "463025b02e8538e3dabbbe65da4ebe7db12b9eac9bb1c650b2c11cf50144b60e",
+        "467ecf05e7b9ae61fc72ed6c2461f4954d8c4e3099b383eda5ed67252d3f0303",
+        "46cfb73d720e7fd0c7957bd85b346d72450e3fe586f76448b59a134413f74dfd",
+        "4d59ac5295cd2d152e8cc993408dc650868f9ee6dbb2d276eeb46997c9d2d9de",
+        "4dc528597c61b548776998d965ba05b6acc72fddf7a9b809228029060e730954",
+        "4fe4b39cc19fc8fa9501665c145d347f89473969e3668c37dc26a8719a43b0d2",
+        "4ff442ab861d3a7e41d7b03044c0fa5277fad53984af1daa9e9d8b1a7baead59",
+        "51845eef6abd85da11acd77b758b08cf1185788eaad762c50eab6a35c8cc1154",
+        "528dcc2a8059b2283b79da2a49bdf493c6ffc6ce6fb9c4e81401d4ac8ef29fbd",
+        "5355c11b44aa49750d9f4d487ce6f5b7af565b37c860eeb6137fae13814090d4",
+        "55ced36a8a82d70bb90e369119ac470a88c9d7c11a9761e2c818d50124cf3707",
+        "57ef7dccdebfacbcabf51ebb92966f9b3c58273d8adf382ec012e5a4ca353e3a",
+        "583ad915743fc94989d78ece097c2b4ca4382e9f56fa591d43e7503976c4eace",
+        "5a2485bc6eb991b5bdc7980f5572b215d3c25153aa6df2d02f13deebbab00cb5",
+        "5a3c1fd44eed9279abb8be3f5d69261bd7256e8727aade9b9a3b56c6b390c999",
+        "5b5e40508f7e130260e42f070c0ade3527dd246a74afdad4bdb39b3621cf82cb",
+        "5b65196c93eea9618262bd4e166a5edad07a33238c81209ff7b8d9e1cf782717",
+        "5c5213b6ce9e0117e6bad7dc2a9059be5aa2a717f8b573a6e8d3c7af0f0ae922",
+        "5e79e72cab4fdfd63d852c7a6734c6d6b254b9e974815a510bab16630c451426",
+        "64f3e2aa5bd83ffd7ff7c164a6bb5219d841b8bb69d8341a1ebda9b01a313cdd",
+        "67195dd214be452edcc27201beac8eb986fe51b0c22f84aa4babfbbf3c9342bd",
+        "6b76f91ece563514162bd800a4b8f76c6451e14133f84ee1e6633c7b01108571",
+        "6bf35e65468030e0bee2c5791514d67df76763161e6db50fdcbff3a36effc779",
+        "6d712eb7024f55458b4143700af18ba167d9ec7fd9555a84bdd58425485bc344",
+        "6e5530fcc8b0d13ebf829990cbcf67bcd04ffce0720b2c66111ef1319bd89fa6",
+        "6f7b1e9a78e7fa080b888633639dbd036be0c3351e85169e878971d0627731f0",
+        "70e3d28b80fd3e0244e2b27d95ebe860e7610fb5125df60fc5c07e31ccdbef06",
+        "7241af769419ff4b1307050bfee67e5752ffde0438e9d93dbcbba9bf5985db88",
+        "727d147c587f7d9b4169262f093ae92fdd867749d3bab009271d6a4aa265747e",
+        "72d1556008687fbbaf28b5714be1ff8c0d588a082ca9ccb364011dc9c4779a25",
+        "73153e193876241c88c52ad83a113c14c9b6f9b785b934d5f94de1dbc02ea67a",
+        "733c532e40759f7496aea3e194b588b6f88341f1473dfd95b4122c5d64bb1e41",
+        "73a49c3982da331f88b240b2d3ef19f932ebfbb5f291bd69fe7463931cbb413d",
+        "73b8f9d13c906c187405945f425f581bb8bf9e326c946a9e0eae8ebe7c85379e",
+        "73c6d6c094cf4c9c244e7a67d53f67abf9e28513d662f7e4ef39b639f18200f9",
+        "73cb634cb0171a005a8ebc7104c22c86d56380753e389ec13f7f4c3dcdcf4485",
+        "74c7314a0bfb4762a9ee0c1cc08d69a4788603e4b94dd9676b7991bff9975ea9",
+        "7509adce957554c60ffcec56d0f15e40248f61c17a427b37c8e132383563c360",
+        "7804558dcfe428cfea0e0f962f4566ea980dd9e3a24d68dd96fc79d07a576206",
+        "78c395c9d1917cb4dd7ff0b3329752fcdcee36243c5a42ffea8680c39d01e09c",
+        "795f2b413ce1de65325a868b615a1fa3a6bc7336818d19c27a3bb65a6d990ab5",
+        "799547518ed9bc5fdd13f7ba56fc6e27d8839a2d3d87dc5ff2e9e7b167833c25",
+        "7c0e8a35710fbf59b3612a5815b0e37fdb18e75052f449d1cd9b41e35e12df90",
+        "7c6368dcd4bbc20cbfae22559bf8c92d1927629e753fc6a6c3a3f159e9ad66fe",
+        "7db394bf5b7eb8ecff618dbcee82b5cc71fd5fb8b4cd812e7893541d03ebae75",
+        "805057deb3171c1fa72c0394480d8a1e0538ecb58f5eb74f3bdc1c28ed2d49fc",
+        "81ebd380be04b3c0143f2ea2723a2b2ccafa8a301f9642c893991e781fb8f8f7",
+        "838fefacc0a6b718e72258ce2d4d8f2eb60b9e6ac0609d5a041ae43ed11667c8",
+        "8592649d88abd61c9f2b5ac82fc907f98b07075fd487b3c2cd8d7cb764397106",
+        "861d3fd5bab7fcd212409059de944f1487b3ef75ae3fdc9447124934cf520e4f",
+        "86715ac724cfbf6ec5273fe2b4f42cf22ff346c5906cd4126e5097cb06022eec",
+        "89b8b982cfe614149ae76235f00b99534d751f44440a169e9e5548fb635d877a",
+        "8ac64413391d38363537a6c36782bbab5235badebbd0fbaf96fa0009c0409c19",
+        "8c409f36bedfd7fd541127f9f594b4d2c6803f10755bc5f2c5703993d979e80c",
+        "8d482c3e6cd5a539673c28763da02b21d5f22e189e4dce3f0fbad1ffcc554cbe",
+        "8ea0bae1ab64e54b5467b4e412acb8d9babe973adb7c7a4deefe84cb083dbe8a",
+        "8eb65dbe9b82459c4e6129d2f7ae5046db38917bbd792380cfe1c6f4a564fd3e",
+        "907d71dde79dafa79cc7353a91edf33e2093002eab9e216c7317071988af9b3e",
+        "93a38e0d727f2f7a0d77a135d82ecc809c3bb5bd82036469b561e26e62f312b7",
+        "972626e80cdc1aa5c65f4af390b728586b5826a2478e5aa7365ad5e298f1db9b",
+        "97752c6272be9604586b4919bec885b658f58d98dd6ce04406f17ec009786360",
+        "97ec4bdf20886e5d225a7a752d17ec7b16b24f8f56119ea69280439db51ec415",
+        "98e1809325cbd80a2bac752b379b837b9ac541bc874244daa64115ff9f110ea1",
+        "99a539b21b0ca3a973e996b7e2ee58fc72759e3c0d55d35e24679daee491a966",
+        "9b6da3431daae3e618f6b07c268ff5d3af667c9426f203015215eba294e50f24",
+        "9b8fece14fa9955f4f86ef30dbaf8b1daa8f3f3c91dc6d13997b3736cb39fcc5",
+        "9ca623715b821e7d5ea368170340488f3382f4956bf25c98c5993f44879ebd16",
+        "9e89065429de9281d57aa1d1ceecf2aa03cb8bfb5e013f50bfbfe57f13cb5d81",
+        "9edbe98d3e3aa5d4403ac65fe506ca674f587c1487c4707b92606a993d764930",
+        "a03f556f3b411f22959f55ceb6d99773368b955327d80ad41f98260ff9ed11ed",
+        "a09d8d577e3a5ab12cff95d9f6e4fc19f466dae7650313f84fb502e77dbf779b",
+        "a183dcdf002467f66e29e52d0265a6e4c55e8d84df8636387ea9afe94b66256e",
+        "a22895e066a1c777f358b7daa2d8f053a4776a92ced468a4ff2122435de60613",
+        "a373f32b221736d04f6cc43e2db58b455f0974c5ed4a17f1b20c5d038e4a6ca1",
+        "a38aac0b1296d50d567a54cc6e06854826406b560d32b35133bc6a0ff043f990",
+        "a85ace57a1c62fc38b076bad4ce4c6e9f0bae944dff23ce05738441448e7c103",
+        "a9d046e108129ad3c5a2a6fa307df62790b2b491bb77975fbb69c48c345c5425",
+        "aa4b8b3d59e00a8e032f48976c9b509860a2f6ab14bd1b1c30f1f52b47726f4d",
+        "aedbc19b446062d715ddbde454b93a91b95e97686b19c50ff2803b41a3c21f93",
+        "b01996a84a528936c8d313f182acf551215ba112ea9c4b847ed4037920b1a6e6",
+        "b15e33e6c563f7039194a7c1e2b780f29c56f65da223ec408a06ee2ca3ef5b52",
+        "b21bf245c211f7ae2195dc61ff061bfa4e128e4408f929e78f08bcd9c36ac49b",
+        "b2b86171b5860ee7cb5c7b3c026f4aac25a7751dee3742a957e5c5ec39d0a280",
+        "b2e436d4acba3b0c6888e684501e61c4af7f27fabba3d333941b6365f4db451a",
+        "b2ef5cfc09cdc18bca4992c177e2ac969c0fe496fb8650dccea95b86be8de717",
+        "b47f07fa9f9c02030dc733e6e6458f415eaf6c74d393b3a78fbd0b80e7501301",
+        "b5de2778fdaba130bd1fa81b605d1be59b2baa9f2ad54548df3488e2c6651480",
+        "bb7af282f85d5fa83b7672a0310c98ac30a75494d1057b550e5e6c853080d82e",
+        "bbad2a22790314bb026f6d766a1a09e28d640f11eb720852dfaf0a40cc4ddd03",
+        "bc7baeb2db763ad6f5af6de9f2bb52e0e9c5d0c11c035a135089e7a3631a7af2",
+        "bda6b4bff3c4f2862dea40afbad0d8e73acf8faf6e0dbdba888ff546ddf358f3",
+        "bdba234c23bdbd8bb4af9a5eeb01a3c7f504745260be92dbc0cbf29481024d53",
+        "be8233a572fc427ff5bcc2f386a5d229d7c66af2fd46f8042d6e7b0422dc621a",
+        "bf24a2e8492a8b75997e44288ba152e734ca859d5916040bf028fb76debe2fe1",
+        "c06a77d7fe9cb0c21eabf39b5bb6a007c973b2acfa42793ab0757c860d99500d",
+        "c0c7cc4a9f81b94c6c69497d462de00a257101390c3c1c37357cb4a6fe513c70",
+        "c13f224dadbb20b6b92e81bcb58c16c524ab797572edab4f037cb3dc09ad727c",
+        "c19fccb025f5153cf6ddd66f7f72118c10dc6fee38b3288784cfcc30b2144386",
+        "c2b263809cb20ec00c3d88ff11fdbe5538edef02294f54d30b4da74846ea4989",
+        "c2da8d165135808da43071ba4b406aee390d6618ae890d324f00bb2b4baf12ba",
+        "c326c47f2a5b1273d875dabfc89160d4981479f6d61271095bd5bd9fe14df053",
+        "c64aa950d30126c6779d02c3fc7f56f0f780c2be1b52b42d8da4fa31eef07587",
+        "c9ff8b541276cc48f72a7f6f41d3164cebc530f99c7c4d3e2e081d7149d02e18",
+        "cd39a7780f6102fe3375d48b040390780bd4ded415e2a4c48f04f47ab31d4c0e",
+        "ce4dd2be122f0c6af3aa77f204b8ed9f2e4698c3e2d5b700249da211f77998aa",
+        "cf8846e4bf74e86c755f050a2ea23d67d7718999bcc8b248d94412e6c02e779a",
+        "d0218311998c8ffe6d002a6687fe2cce16e303e023cece81b130794f135b1427",
+        "d382ac2c6c4935778f832d97b2ecbb3731c8e52c91a17f9733aecd25c27cb76b",
+        "d4681afed3ca7046450779b3580ddf32be704d9723be999817255d0bf6b9d4f3",
+        "d679cd5370ee5c5abf61496971f75063f0e1145a477d8dd2bcbd73139badcc28",
+        "d7b24c622540b4715297b66b3f5ffe84843786fb0b7738259917a27a9599f3b2",
+        "d7b4e42ed69e561af8a12382d3af241495d2efd3ac6438678b5f608a8744987c",
+        "d8bbd3747acb69372aa8e6da185569a5ebfffda630d712e1c5798f27fa12772f",
+        "da96483016929537d9f343982b8865a4d2407fdc9265dad9f097fafddf6f49b1",
+        "dc26f7b29b6ae88027569a39e8f71b7e8abef7362341ef41f9e2e57d74b6d1f4",
+        "def2ceddcbb98ec8fe82aa9f215ebbd4b0c096a727a1f35444d8f34c73d60e58",
+        "df609126bfabac15c7e6f49aefb77e16c8b08ca3acce85f69ea0d2193f24b1cc",
+        "e00fd036eb1daf4d3703c7f28ab53dc114b77c231c7a628f840b1e1e169fd334",
+        "e011b85461a2fcd31614602bd229b2aaa66e7ecf24dcdace8c2e852578042396",
+        "e204c58abb10b0946e18ba0201873bbff0b07ba198d828828eb2fab5009ec5e0",
+        "e2c3d8d3e3141c3f4211f6e99c0a780012af62836c12ca4726d19b7036fe16e9",
+        "e3677994ece6ea40060aea98bce07b18be33c65dece364fb2da58a2ee1073ab9",
+        "e39640a9f619fe50c5174bd6a9721d4cc0393b84a5818d68e20a69c5ba0ab83a",
+        "e5336b343b4d93d997d89b2c5345eecde072aae68b19bada24733791c8b1c5a9",
+        "e562e578c6c61d1588b9d0aadacaef8684e4393f5f48cb210cfc66b90141af0c",
+        "e834125af3d4d0b6417067a7a4eeadaf1a1fca54ee402a94a98c91c14cfce48f",
+        "e86db6a388b930f8bfa9e39815905184df8581db3cd2702dec0c204f9d44b4ee",
+        "e949e09ee0d2a5bedd46d414e1dbd2a5ead85948bc7e37ef256280b710659226",
+        "e9ba374f8b31f85cf2a88cb1a1459ab7d2f4764ead5669cb4b926d06db16cc59",
+        "eb770f954bd07f1a4cf50ef79d49b18e483a41ccccb44dc3ef15fb8015d89f52",
+        "edb352e0b2bce245c33695085cac531c0a7d82e143148eb09109ad40218a3043",
+        "ef1738f409eaa3d500fa44be440b8ebe17b15d71c67be158727834716cc7db4f",
+        "ef81f162c1b717f62b8c2e7142dfa5d656b9c9c28fb85cfefc049bc0ef7183ab",
+        "f03bba415ffb7890f631bf00ec049f73b33aed026121b4220da263d3f84a5fdb",
+        "f0e2d60c5605af15f282145264af0b79bbcb7646c8adc43532a6dca5d5cfc6bd",
+        "f1bae80e2ed1fd347334853c1ed9015e4d9330bf4a84560f8dc3a61f70efb12b",
+        "f1f7e1114242feec5819bbadd37b8e1ed4b9947c461939580073333742c99088",
+        "f29d827b62f31d405662141a929321ef55b9e4ae36debb5240555631a4d3ad79",
+        "f565e969ec1197d3b732fc2eea504d733013ae36e2382f3753c916eb46368771",
+        "f6508f0da69ea834b97ef33ef031ee6e9534e26fb58a4e1b635e4b171fdcf238",
+        "f780ae7b1c8b61c49484a352a5489f4ebe56da6e4196d62861a094753cd8707b",
+        "f97eadfbb83c6dab13db6536fb13a2d77249df749bf46efa1e3498f7198469fe",
+        "f98142df97b9a6372f10f31d847e155cd4f9b04fd319c31ae3086afa6c5fb67c",
+        "f9bd60ac116381ad711996a82864fc17512a82b7705ef8cd73e072efb7f474b8",
+        "fca6fc0277ad8b20c476766dce5149ce310324d968f000792d9c5655d4451214",
+        "ff1b3ce2d9e61ab7e6fa45cb11a4632fea3fa46deaa044f47fbb80291d26267a"
+      ],
+      "citation_payload_sha256": [
+        "2034189ddc141c806e13d32fa962fb4171feba52bdc5a158c2769916ec8c7c5e",
+        "4b496e620a3d07aa3a4adf14eafe2e36c1bd2c01673ec673f87c6d235f28ebd6",
+        "524d1ec7af3b4234354c20106808126a1df3e352bf7d629404328e7b13d5533a",
+        "580ee7d2ba5e1804555481514c926d63c0bf0cf553baccb7aab28cf626411e91",
+        "84055178a83e641208586873cd8e890bcf357c7f7fe6cfc1520abed6c1caeb0a",
+        "bf964590d3426d8eb2ac68743dff155efdc880749f540438435baff6319212ce"
+      ],
+      "decision_or_advisory_hash": "d633232523b115efedf0eff13ac81797b03cf537a0635eafa4e335cd09569678",
+      "output_kind": "TIER2_ADVISORY",
+      "output_payload_sha256": "953d79590b8da308e814c99a59b30776a1e5908dbb3780749e13e5a7d24df483",
+      "recipe_kind": "TIER2_ADVISORY",
+      "run_id": "run.slice6.slice7-replay",
+      "snapshot_sha256": "aa47d9654a5486c7916557fee261240e64a229a9d777748e3d289726946eebcd"
+    }
+  ],
+  "command_results": [
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "check",
+        "src",
+        "tests",
+        "scripts"
+      ],
+      "command_id": "GATE-01",
+      "exit_code": 0,
+      "output": "All checks passed!\n",
+      "output_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "ruff",
+        "format",
+        "--check",
+        "src",
+        "tests",
+        "scripts"
+      ],
+      "command_id": "GATE-02",
+      "exit_code": 0,
+      "output": "58 files already formatted\n",
+      "output_sha256": "c3c36fcff1e28b14cae0ee73be45b9f119bbadb20f7d5eb8ab829feeabf5769d"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "mypy",
+        "src"
+      ],
+      "command_id": "GATE-03",
+      "exit_code": 0,
+      "output": "Success: no issues found in 37 source files\n",
+      "output_sha256": "34df9cf38736563d4bb02e64b66effac851acb546ad0a3c3761547e25bbe3570"
+    },
+    {
+      "command": [
+        "uv",
+        "build"
+      ],
+      "command_id": "GATE-04",
+      "exit_code": 0,
+      "output": "Building source distribution...\nBuilding wheel from source distribution...\nSuccessfully built dist/boundstate_gptl-0.1.0.tar.gz\nSuccessfully built dist/boundstate_gptl-0.1.0-py3-none-any.whl\n",
+      "output_sha256": "e97f40655bf9340378e6c8cadc1d143a94bb790cc4e0b212b5d9cf1beea1817f"
+    },
+    {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q"
+      ],
+      "command_id": "GATE-05",
+      "exit_code": 0,
+      "output": "........................................................................ [ 25%]\n........................................................................ [ 50%]\n........................................................................ [ 75%]\n........................................................................ [100%]\n288 passed in <elapsed>\n",
+      "output_sha256": "315445b4afd6aaee2cd0ef35d0c70a185262b4b5a93218954b8545d9e329962b"
+    },
+    {
+      "command": [
+        "uv",
+        "run",
+        "--isolated",
+        "--python",
+        "3.10",
+        "--group",
+        "dev",
+        "pytest",
+        "tests/conformance/test_canonical.py",
+        "tests/conformance/test_build0_closeout.py",
+        "tests/slices/test_slice_07_replay_integrity.py",
+        "-q"
+      ],
+      "command_id": "GATE-06",
+      "exit_code": 0,
+      "output": "....................................                                     [100%]\n36 passed in <elapsed>\nInstalled 21 packages in <elapsed>\n",
+      "output_sha256": "a91aac810f0d3f504b40c3bc0529503e008b05fad1dd7eec3e2cc5e8a160850f"
+    }
+  ],
+  "disposition": "BUILD_0_COMPLETE_READY_TO_FREEZE",
+  "environment": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+    "postgresql": "PostgreSQL 14.23 (Ubuntu 14.23-0ubuntu0.22.04.1)",
+    "python": "3.12.12",
+    "uv": "uv 0.9.5"
+  },
+  "gates": [
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal",
+        "tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres",
+        "tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent",
+        "tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process",
+        "tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]"
+      ],
+      "gate_id": "SLICE_1_SAFE_REFUSAL",
+      "matched_test_count": 31,
+      "requirement": "Deterministic preflight refusal and atomic append-only PostgreSQL persistence",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#4-slice-1--safe-refusal"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_01_safe_refusal.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory"
+      ],
+      "gate_id": "SLICE_2_CANDIDATE_PRESERVATION",
+      "matched_test_count": 20,
+      "requirement": "Candidate preservation, four-state applicability, ratification, and snapshot persistence",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#5-slice-2--candidate-preservation"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_02_candidate_preservation.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope"
+      ],
+      "gate_id": "SLICE_3_MSA_CALIBRATION",
+      "matched_test_count": 31,
+      "requirement": "Calibration precedence and qualified scope-matched MSA hard gate",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#6-slice-3--msa--calibration-gate"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_03_msa_calibration_gate.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed"
+      ],
+      "gate_id": "SLICE_4_ARTIFACT_CONFIRMATION",
+      "matched_test_count": 36,
+      "requirement": "Governed scoring, evidence gating, and structured or attested artifact confirmation",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#8-slice-4--artifact-confirmation"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_04_artifact_confirmation.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate",
+        "tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative",
+        "tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres",
+        "tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring",
+        "tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically",
+        "tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed",
+        "tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict",
+        "tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity",
+        "tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract",
+        "tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration",
+        "tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid",
+        "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]",
+        "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]",
+        "tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict",
+        "tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out"
+      ],
+      "gate_id": "SLICE_5_HONEST_NEGATIVE",
+      "matched_test_count": 21,
+      "requirement": "Evidence-complete elimination and bounded-catalog negative verdict",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#9-slice-5--honest-negative"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_05_honest_negative.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected"
+      ],
+      "gate_id": "SLICE_6_TIER2_ADVISORY",
+      "matched_test_count": 38,
+      "requirement": "Deterministic model-free Tier 2 advisory with one output per run",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#10-slice-6--tier-2-advisory"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_06_tier2_advisory.py::*",
+        "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation",
+        "tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen",
+        "tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest",
+        "tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical",
+        "tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly",
+        "tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid",
+        "tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution"
+      ],
+      "gate_id": "SLICE_7_REPLAY_INTEGRITY",
+      "matched_test_count": 24,
+      "requirement": "Exact-input replay, tamper refusal, and immutable pack evolution",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#11-slice-7--replay-and-integrity"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_07_replay_integrity.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs",
+        "tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity",
+        "tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound",
+        "tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed",
+        "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope",
+        "tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record"
+      ],
+      "gate_id": "ORACLE_TIMESTAMP_IDENTITY_SCHEMA_CLOSEOUT",
+      "matched_test_count": 6,
+      "requirement": "Source-audited timestamp, identity, calibration, output, refusal, and replay-schema boundaries",
+      "source_refs": [
+        "docs/GPTL_Manufacturing_Platform_v0.4.15.md#212-determinism-contract-with-numeric-representation-closes-finding-1",
+        "docs/GPTL_Manufacturing_Platform_v0.4.15.md#213-canonical-serialization-and-hashing-contract",
+        "docs/GPTL_Manufacturing_Platform_v0.4.15.md#77-cases-and-snapshots"
+      ],
+      "test_selectors": [
+        "tests/conformance/test_build0_closeout.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically"
+      ],
+      "gate_id": "PERSISTENCE_ATOMICITY",
+      "matched_test_count": 4,
+      "requirement": "Dependent records and replay capsules commit or roll back as one PostgreSQL transaction",
+      "source_refs": [
+        "src/gptl/core/persistence.py",
+        "src/gptl/core/migrations/0004_replay_capsules.sql"
+      ],
+      "test_selectors": [
+        "*::test_failure_between_run_and_audit_insert_rolls_back",
+        "*::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "*::test_database_rejects_incomplete_snapshot_bound_commit",
+        "*::test_replay_capsule_and_run_commit_atomically"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows",
+        "tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation"
+      ],
+      "gate_id": "PERSISTENCE_APPEND_ONLY",
+      "matched_test_count": 4,
+      "requirement": "Database triggers reject mutation, deletion, and truncation of immutable records",
+      "source_refs": [
+        "src/gptl/core/migrations"
+      ],
+      "test_selectors": [
+        "*::test_database_rejects_update_and_delete_of_committed_rows",
+        "*::test_database_rejects_truncate_of_committed_rows",
+        "*::test_database_rejects_replay_capsule_mutation",
+        "tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen"
+      ],
+      "gate_id": "RESTART_CROSS_PROCESS_REPLAY",
+      "matched_test_count": 3,
+      "requirement": "Persisted decisions and exact recipes reconstruct after store reopen and in a fresh process",
+      "source_refs": [
+        "src/gptl/mie/replay.py"
+      ],
+      "test_selectors": [
+        "*::test_persisted_run_is_readable_from_a_fresh_process",
+        "*::test_every_prior_slice_replays_exactly_after_store_reopen",
+        "*::test_cross_process_replay_uses_only_persisted_capsule"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid",
+        "tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution"
+      ],
+      "gate_id": "TAMPER_MISSING_CONTENT_REFUSAL",
+      "matched_test_count": 6,
+      "requirement": "Altered, stale, absent, substituted, or non-canonical replay material fails closed",
+      "source_refs": [
+        "src/gptl/core/persistence.py",
+        "src/gptl/mie/replay.py"
+      ],
+      "test_selectors": [
+        "*::test_tampered_replay_capsule_returns_integrity_failure",
+        "*::test_stale_run_payload_checksum_returns_stored_content_invalid",
+        "*::test_unavailable_bound_content_returns_integrity_failure",
+        "*::test_validly_rehashed_output_tamper_is_caught_by_reexecution",
+        "*::test_cross_run_capsule_substitution_fails_closed",
+        "*::test_noncanonical_replay_recipe_fails_closed"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history",
+        "tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest",
+        "tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly"
+      ],
+      "gate_id": "PACK_LIFECYCLE_EVOLUTION",
+      "matched_test_count": 4,
+      "requirement": "Upgrade, correction, revocation, and supersession affect new runs without rewriting history",
+      "source_refs": [
+        "src/gptl/mie/replay.py"
+      ],
+      "test_selectors": [
+        "*::test_explicit_pack_evolution_never_resolves_latest",
+        "*::test_correction_creates_new_version_and_run_without_rewriting_history",
+        "*::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "*::test_snapshot_bound_discriminator_supersession_replays_exactly"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs",
+        "tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity",
+        "tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound",
+        "tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed",
+        "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope",
+        "tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record",
+        "tests/conformance/test_canonical.py::test_decimal_overflow_is_rejected_by_explicit_policy",
+        "tests/conformance/test_canonical.py::test_decimal_uses_explicit_fixed_scale_policy",
+        "tests/conformance/test_canonical.py::test_duplicate_keys_after_nfc_normalization_are_rejected",
+        "tests/conformance/test_canonical.py::test_float_is_rejected_at_any_depth",
+        "tests/conformance/test_canonical.py::test_signed_decimal_zero_has_one_canonical_representation",
+        "tests/conformance/test_canonical.py::test_unicode_nfc_variants_have_identical_bytes_and_hashes",
+        "tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids0]",
+        "tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids1]",
+        "tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids2]",
+        "tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable",
+        "tests/conformance/test_predicates.py::test_incompatible_declared_unit_fails_pack_validation",
+        "tests/conformance/test_predicates.py::test_incompatible_runtime_unit_is_invalid",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-FALSE-FALSE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-TRUE-FALSE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-UNKNOWN-FALSE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-FALSE-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-TRUE-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-UNKNOWN-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-FALSE-FALSE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-TRUE-TRUE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-UNKNOWN-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-FALSE-FALSE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-TRUE-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-UNKNOWN-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-FALSE-FALSE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-TRUE-TRUE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-UNKNOWN-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-FALSE-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-TRUE-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-UNKNOWN-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-FALSE-TRUE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-TRUE-TRUE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-UNKNOWN-TRUE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-FALSE-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-TRUE-TRUE]",
+        "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-UNKNOWN-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload0-logical predicate has an invalid shape]",
+        "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload1-membership terms cannot be empty]",
+        "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload2-membership terms must be unique]",
+        "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload3-range low cannot exceed high]",
+        "tests/conformance/test_predicates.py::test_missing_registered_field_is_unknown_with_no_evidence",
+        "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[FALSE-TRUE]",
+        "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[INVALID-INVALID]",
+        "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[TRUE-FALSE]",
+        "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[UNKNOWN-UNKNOWN]",
+        "tests/conformance/test_predicates.py::test_numeric_policy_overflow_is_invalid_instead_of_escaping_evaluation",
+        "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-EXCLUSIVE-INCLUSIVE-FALSE]",
+        "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-INCLUSIVE-INCLUSIVE-TRUE]",
+        "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-EXCLUSIVE-FALSE]",
+        "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-INCLUSIVE-TRUE]",
+        "tests/conformance/test_predicates.py::test_snapshot_bound_unit_conversion_is_used_for_comparison",
+        "tests/conformance/test_schema.py::test_conflicting_metadata_for_one_governed_identity_is_rejected",
+        "tests/conformance/test_schema.py::test_display_parameter_kind_must_match_registered_kind",
+        "tests/conformance/test_schema.py::test_float_cannot_enter_a_decimal_field_by_coercion",
+        "tests/conformance/test_schema.py::test_malformed_hash_is_rejected",
+        "tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[audit_event_id-?bad]",
+        "tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[requested_pack_id-]",
+        "tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[run_id-bad id]",
+        "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-02-30T12:00:00.000Z]",
+        "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.000+00:00]",
+        "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.00Z]",
+        "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00Z]",
+        "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T25:00:00.000Z]",
+        "tests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[9007199254740992]",
+        "tests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[True]",
+        "tests/conformance/test_schema.py::test_required_display_parameter_cannot_be_omitted",
+        "tests/conformance/test_schema.py::test_timestamp_policy_context_is_mandatory",
+        "tests/conformance/test_schema.py::test_unknown_display_parameter_is_rejected",
+        "tests/conformance/test_schema.py::test_unknown_display_template_is_rejected",
+        "tests/conformance/test_selection.py::test_overlapping_ungrouped_msa_records_are_invalid_configuration",
+        "tests/conformance/test_selection.py::test_selection_group_rank_tie_is_invalid_configuration",
+        "tests/conformance/test_selection.py::test_selection_preserves_distinct_ungrouped_records_and_group_winner",
+        "tests/conformance/test_source_boundaries.py::test_authoritative_source_has_no_prohibited_runtime_dependencies",
+        "tests/conformance/test_source_boundaries.py::test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7",
+        "tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal",
+        "tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres",
+        "tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent",
+        "tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process",
+        "tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed",
+        "tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate",
+        "tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative",
+        "tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres",
+        "tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring",
+        "tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically",
+        "tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed",
+        "tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict",
+        "tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity",
+        "tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract",
+        "tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration",
+        "tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid",
+        "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]",
+        "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]",
+        "tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict",
+        "tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected",
+        "tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation",
+        "tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen",
+        "tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest",
+        "tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical",
+        "tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly",
+        "tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid",
+        "tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution"
+      ],
+      "gate_id": "COMPLETION_1_ALL_ACCEPTANCE_GATES",
+      "matched_test_count": 288,
+      "requirement": "Every collected Build 0 acceptance and conformance test passes",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#13-build-0-completion-gate"
+      ],
+      "test_selectors": [
+        "tests/slices/*",
+        "tests/conformance/*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal",
+        "tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres",
+        "tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent",
+        "tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process",
+        "tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed",
+        "tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate",
+        "tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative",
+        "tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres",
+        "tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring",
+        "tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically",
+        "tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed",
+        "tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict",
+        "tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]",
+        "tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity",
+        "tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract",
+        "tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration",
+        "tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid",
+        "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]",
+        "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]",
+        "tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict",
+        "tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected",
+        "tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule",
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation",
+        "tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url",
+        "tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen",
+        "tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest",
+        "tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical",
+        "tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly",
+        "tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid",
+        "tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure",
+        "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed",
+        "tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution"
+      ],
+      "gate_id": "COMPLETION_2_REQUIREMENT_OWNERSHIP",
+      "matched_test_count": 200,
+      "requirement": "Every Build 0 requirement has one implementation slice and executable coverage",
+      "source_refs": [
+        "docs/GPTL_BUILD_PLAN_v0.16.md#12-requirement-ownership-matrix"
+      ],
+      "test_selectors": [
+        "tests/slices/*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_canonical.py::test_decimal_overflow_is_rejected_by_explicit_policy",
+        "tests/conformance/test_canonical.py::test_decimal_uses_explicit_fixed_scale_policy",
+        "tests/conformance/test_canonical.py::test_duplicate_keys_after_nfc_normalization_are_rejected",
+        "tests/conformance/test_canonical.py::test_float_is_rejected_at_any_depth",
+        "tests/conformance/test_canonical.py::test_signed_decimal_zero_has_one_canonical_representation",
+        "tests/conformance/test_canonical.py::test_unicode_nfc_variants_have_identical_bytes_and_hashes",
+        "tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically",
+        "tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical"
+      ],
+      "gate_id": "COMPLETION_3_CANONICAL_REPRODUCTION",
+      "matched_test_count": 9,
+      "requirement": "Committed canonical results reproduce byte-identically",
+      "source_refs": [
+        "src/gptl/core/canonical.py"
+      ],
+      "test_selectors": [
+        "*::test_identical_replay_is_byte_identical",
+        "*::test_identical_negative_run_replays_byte_identically",
+        "*::test_identical_advisory_replays_byte_identically",
+        "tests/conformance/test_canonical.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash"
+      ],
+      "gate_id": "COMPLETION_4_MODEL_INDEPENDENCE",
+      "matched_test_count": 3,
+      "requirement": "Removing model and renderer adapters cannot alter authoritative structured output",
+      "source_refs": [
+        "tests/conformance/test_source_boundaries.py"
+      ],
+      "test_selectors": [
+        "*::test_slice4_authoritative_path_has_no_renderer_dependency",
+        "*::test_authoritative_advisory_path_has_no_model_adapter_surface",
+        "*::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_source_boundaries.py::test_authoritative_source_has_no_prohibited_runtime_dependencies",
+        "tests/conformance/test_source_boundaries.py::test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7"
+      ],
+      "gate_id": "COMPLETION_5_SOURCE_BOUNDARIES",
+      "matched_test_count": 2,
+      "requirement": "Static scans find no vector/model authority or domain numeric constants in generic modules",
+      "source_refs": [
+        "src/gptl"
+      ],
+      "test_selectors": [
+        "tests/conformance/test_source_boundaries.py::*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact",
+        "tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]"
+      ],
+      "gate_id": "COMPLETION_6_RESEARCH_ONLY_OUTPUT",
+      "matched_test_count": 11,
+      "requirement": "Build 0 outputs remain non-dispositional, non-record-of-record, and RESEARCH_ONLY",
+      "source_refs": [
+        "src/gptl/mie/schema.py"
+      ],
+      "test_selectors": [
+        "*::test_absent_pack_produces_deterministic_preflight_refusal",
+        "*::test_structured_confirmation_returns_cited_method_artifact",
+        "*::test_complete_terminal_catalog_returns_honest_bounded_negative",
+        "*::test_each_ineligible_case_returns_typed_nonverdict_advisory*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope"
+      ],
+      "gate_id": "COMPLETION_7_FIXTURE_LABELING",
+      "matched_test_count": 2,
+      "requirement": "Synthetic/reference evidence remains honestly scoped and cannot imply production fidelity",
+      "source_refs": [
+        "src/gptl/slice3_fixture.py"
+      ],
+      "test_selectors": [
+        "*::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+        "*::test_test_fixture_msa_cannot_satisfy_a_non_test_scope"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope"
+      ],
+      "gate_id": "COMPLETION_8_SCOPE_ISOLATION",
+      "matched_test_count": 3,
+      "requirement": "TEST_FIXTURE MSA and evidence cannot satisfy another scope",
+      "source_refs": [
+        "src/gptl/mie/msa.py"
+      ],
+      "test_selectors": [
+        "*::test_test_fixture_msa_cannot_satisfy_a_non_test_scope",
+        "*::test_msa_failure_routes_are_explicit_and_stop_before_candidates*SCOPE_MISMATCH*",
+        "*::test_msa_failure_routes_are_explicit_and_stop_before_candidates*NON_TEST_SCOPE*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_schema.py::test_unknown_display_template_is_rejected",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]"
+      ],
+      "gate_id": "COMPLETION_9_GOVERNED_CONFIRMATION_ROUTING",
+      "matched_test_count": 18,
+      "requirement": "Confirmation, ratification, calibration, MSA, and display-template gates are fail-closed",
+      "source_refs": [
+        "src/gptl/mie/diagnostics.py",
+        "src/gptl/mie/calibration.py"
+      ],
+      "test_selectors": [
+        "*::test_attested_confirmation_enforces_authority_and_lifecycle*",
+        "*::test_ratification_lookup_requires_the_exact_governed_event_identity",
+        "*::test_intake_calibration_matrix_has_one_deterministic_route*",
+        "*::test_unknown_display_template_is_rejected"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal",
+        "tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows",
+        "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count",
+        "tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres",
+        "tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history",
+        "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent",
+        "tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process",
+        "tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]",
+        "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically"
+      ],
+      "gate_id": "COMPLETION_10_PERSISTENCE_CONTRACT",
+      "matched_test_count": 34,
+      "requirement": "Atomicity, append-only, checksum, schema, recovery, and record-set constraints pass",
+      "source_refs": [
+        "src/gptl/core/persistence.py",
+        "src/gptl/core/migrations"
+      ],
+      "test_selectors": [
+        "tests/slices/test_slice_01_safe_refusal.py::*",
+        "*::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "*::test_store_rejects_output_snapshot_hash_mismatch",
+        "*::test_replay_capsule_and_run_commit_atomically"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule",
+        "tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest",
+        "tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface"
+      ],
+      "gate_id": "COMPLETION_11_HISTORICAL_REPLAY",
+      "matched_test_count": 4,
+      "requirement": "Replay uses original bound state and never live/latest state",
+      "source_refs": [
+        "src/gptl/mie/replay.py"
+      ],
+      "test_selectors": [
+        "*::test_replay_has_no_network_or_implicit_latest_surface",
+        "*::test_explicit_pack_evolution_never_resolves_latest",
+        "*::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "*::test_cross_process_replay_uses_only_persisted_capsule"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres",
+        "tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres",
+        "tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres",
+        "tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres",
+        "tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres",
+        "tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres",
+        "tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices"
+      ],
+      "gate_id": "COMPLETION_12_DOCUMENTED_DEMOS",
+      "matched_test_count": 7,
+      "requirement": "Every documented slice demonstration executes against explicit PostgreSQL",
+      "source_refs": [
+        "scripts/run_slice.py"
+      ],
+      "test_selectors": [
+        "*::test_documented*demo*"
+      ]
+    },
+    {
+      "exact_test_node_ids": [
+        "tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs",
+        "tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity",
+        "tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound",
+        "tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed",
+        "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope",
+        "tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record"
+      ],
+      "gate_id": "COMPLETION_13_EVIDENCE_MANIFEST",
+      "matched_test_count": 6,
+      "requirement": "The closeout generator validates mappings and derives all result state from executed artifacts",
+      "source_refs": [
+        "scripts/generate_build0_completion_evidence_v1_0.py",
+        "docs/evidence/BUILD0_GATE_MAP_v1.0.json"
+      ],
+      "test_selectors": [
+        "tests/conformance/test_build0_closeout.py::*"
+      ]
+    }
+  ],
+  "git_tree": "55cbd0cec684b5568917d6c43589f88c3b76830a",
+  "governing_documents": {
+    "gate_map_path": "docs/evidence/BUILD0_GATE_MAP_v1.0.json",
+    "gate_map_sha256": "9041b44808baa82834ccb1890cc1ef93add729babd304c7eb00716b08547ca54",
+    "generator_path": "scripts/generate_build0_completion_evidence_v1_0.py",
+    "generator_sha256": "77f9d9a12d5095098e70de6f73adc35dce59220ab63912f379edd3272cdcd8b9",
+    "plan_path": "docs/GPTL_BUILD_PLAN_v0.16.md",
+    "plan_sha256": "599f86a2411edceaef3cbc367294e25b92c24c1ea9bdfa4fcc8b378bffc5ec4f",
+    "spec_path": "docs/GPTL_Manufacturing_Platform_v0.4.15.md",
+    "spec_sha256": "7a17b347b6f474ff108df79d091a2839f4ac4b0c055f13367555cee7425c83b4"
+  },
+  "implementation_commit": "a1f83b265fbad3630e86c5196433e6ee1b0902d8",
+  "migration_tree": {
+    "aggregate_sha256": "e69780ce9630bd220477c5099255bce264bb045b8e9e23d56d1aab756223257d",
+    "files": [
+      {
+        "path": "src/gptl/core/migrations/0001_slice_1.sql",
+        "sha256": "6e8ef39c2a75c2d1b8b5c1d3887af5d8158a7845b3647444c3c85da235b7cdf9"
+      },
+      {
+        "path": "src/gptl/core/migrations/0002_persistence_invariants.sql",
+        "sha256": "d613491e11bcfb65915636e59c198c9c9bb1834b57bcf2b9f093aaffc05f9799"
+      },
+      {
+        "path": "src/gptl/core/migrations/0003_snapshot_bound_runs.sql",
+        "sha256": "6d0a4fcf74c0699285249a6e7b713c8f77d39c343e32c3f977ecaa114b08ae86"
+      },
+      {
+        "path": "src/gptl/core/migrations/0004_replay_capsules.sql",
+        "sha256": "a21fb28046652ce2e40d3b0de9836bb758d2f85839e8ed766b4dee43bb825ad0"
+      }
+    ]
+  },
+  "schema_digests": [
+    {
+      "json_schema_sha256": "40752ab6703738149b83268f55b6f53e334c1a992e117d5d88481240de097dd7",
+      "model": "gptl.core.semantic_types.CanonicalizationPolicy"
+    },
+    {
+      "json_schema_sha256": "7f73d84201c71f6df8a461a247702fe0a4d3f725555161a1d85a558e7afea484",
+      "model": "gptl.core.records.GovernedRef"
+    },
+    {
+      "json_schema_sha256": "4f023ba60d030ec89aa9b8d8ad0f1df014e18de9accfcc334b77bfa7e65d8da8",
+      "model": "gptl.mie.calibration.CalibrationEvaluation"
+    },
+    {
+      "json_schema_sha256": "9fd724002ce002be59ba8a71d02415be64247c9bcc6a5590dc03726f62eeb26a",
+      "model": "gptl.mie.schema.RefusalDecision"
+    },
+    {
+      "json_schema_sha256": "1b5bcebe4b16a9bfbb04ff1cf8f4897b39d74e76652d8dda1400d0f67c9a0b3e",
+      "model": "gptl.mie.schema.Tier1Output"
+    },
+    {
+      "json_schema_sha256": "ec37b887f68a115f9c55091a63dd021022618ad6a2884f9ff6323f0d8899d086",
+      "model": "gptl.mie.schema.Tier2Output"
+    },
+    {
+      "json_schema_sha256": "7e3e05e64d26467c8322333598eb2539e35f7c226b1b1f000993857f9be664c3",
+      "model": "gptl.core.snapshot.KnowledgeSnapshot"
+    },
+    {
+      "json_schema_sha256": "a8900da5f37706cdcf3dada0c4f0e03fdb8dcd1892a63396c0d3081dd11bb5c9",
+      "model": "gptl.core.audit.PreflightRefusalAuditEvent"
+    },
+    {
+      "json_schema_sha256": "f94aaad2702d44f372f9ac29e0ffe090b724bae12ec81d2b58107ca3d22fb7b5",
+      "model": "gptl.core.audit.SnapshotDecisionAuditEvent"
+    },
+    {
+      "json_schema_sha256": "e70fdd622886ceefa5dc932985e2d1a724135b1c7e4e96969fa97b2d93c2c582",
+      "model": "gptl.mie.replay.ReplayPolicy"
+    },
+    {
+      "json_schema_sha256": "04c59deffec2da08137b6c47c755cba2de1df60dbaed8d9ea5a1a06bd27d27c5",
+      "model": "gptl.mie.replay.SafeRefusalReplayRecipe"
+    },
+    {
+      "json_schema_sha256": "b0adeea746353e69392d39b8fb6392150557e711c6faa05d60b1239f146ec0cf",
+      "model": "gptl.mie.replay.CandidatePreservationReplayRecipe"
+    },
+    {
+      "json_schema_sha256": "7304e5ac215916ba7aaf3fa47b75f20b5654046a1d499edfad19cb113b690128",
+      "model": "gptl.mie.replay.MSAGateReplayRecipe"
+    },
+    {
+      "json_schema_sha256": "033da62abd8f395aec3078e6b5f94a3d6483829acbba95ccacafd699005ce1cd",
+      "model": "gptl.mie.replay.ArtifactConfirmationReplayRecipe"
+    },
+    {
+      "json_schema_sha256": "369cb8644a38f3ce5469460cfbf047109ae61613aaec2c4b310f202cb114c85c",
+      "model": "gptl.mie.replay.HonestNegativeReplayRecipe"
+    },
+    {
+      "json_schema_sha256": "81ee87499152fef04e6d66c29557a1ac3636b5d0bb1d7d27ac9caace847f5d8e",
+      "model": "gptl.mie.replay.Tier2AdvisoryReplayRecipe"
+    },
+    {
+      "json_schema_sha256": "72b667628e06c4a2f7a0398f158a77a03664843e697a5c805ecb050864a95096",
+      "model": "gptl.mie.replay.ReplayVerified"
+    },
+    {
+      "json_schema_sha256": "4bee87e70b737ec29a165d4f5fd084e3aae9ae0274a2b08564e44b564d63578b",
+      "model": "gptl.mie.replay.ReplayIntegrityFailure"
+    }
+  ],
+  "schema_version": "gptl.build0-completion-evidence.v1",
+  "source_tree": {
+    "aggregate_sha256": "b0383db80262a5f28d8038fd28fcb7a895a3c68dddddb6b479867ba8e821039d",
+    "files": [
+      {
+        "path": "src/gptl/__init__.py",
+        "sha256": "0d56d399dbacfc18d9fc076874c8bd5534b0ba2c1b786b0feea68cb4cb180801"
+      },
+      {
+        "path": "src/gptl/core/__init__.py",
+        "sha256": "ee570165b5b367f9708cd66e77d5dbb95ff1d40439205916441d16bea6f39b95"
+      },
+      {
+        "path": "src/gptl/core/audit.py",
+        "sha256": "21facbaa6f88b8f47f8fd0a3f10a0c47c21bacdbf43ce975441518282511d343"
+      },
+      {
+        "path": "src/gptl/core/canonical.py",
+        "sha256": "a72c966a8a734ac022520b8d833c850ae2393922b6fcd6b6cc2e1bead0477a19"
+      },
+      {
+        "path": "src/gptl/core/directives.py",
+        "sha256": "4a92fff7bfd174b1761e8d51e5d0b3a3bcc6c03bd0cf43c51cf45c8c2242152d"
+      },
+      {
+        "path": "src/gptl/core/migrations/__init__.py",
+        "sha256": "860b6718dd6c78737784baab95cd3569ef84abeaf57f7374cbe85675a683aba0"
+      },
+      {
+        "path": "src/gptl/core/pack_registry.py",
+        "sha256": "e2731fd55ecca85507bedbd1ce6ffbca0d36e112fde0cfe998540dd95cdcbe6d"
+      },
+      {
+        "path": "src/gptl/core/persistence.py",
+        "sha256": "ec5cc6c1b7f6be3eb89959ce80257be3cc8b142301a91abe730446773c4f236d"
+      },
+      {
+        "path": "src/gptl/core/ratification.py",
+        "sha256": "65029d867a4240a0df8e59f8127ec6594b0657579f00489aba5a62edd67301fc"
+      },
+      {
+        "path": "src/gptl/core/records.py",
+        "sha256": "c1a29fdd5207417ef8d2bd3ed8f430f03f77e1bb828c9ba081644721c011e422"
+      },
+      {
+        "path": "src/gptl/core/semantic_types.py",
+        "sha256": "eb3c86dc70f22e91fd7fb1d20d0c5b6c4294b9ebd4aeae7a4a31b57500d6ad03"
+      },
+      {
+        "path": "src/gptl/core/snapshot.py",
+        "sha256": "7113fe91fe0e10b6c432422fe4810102ad9166fd32310c27d52118507d125e8c"
+      },
+      {
+        "path": "src/gptl/mie/__init__.py",
+        "sha256": "06c69a387379fffc7893845ca88612ba078c587bac9d8d9fbe0cbf032a4450cc"
+      },
+      {
+        "path": "src/gptl/mie/advisory.py",
+        "sha256": "a70a38337a1156632e683026451efacc915d493a9c1c900b01faad7c1a569a48"
+      },
+      {
+        "path": "src/gptl/mie/calibration.py",
+        "sha256": "244f20bf180a7c17312f12e10cda3cd9383c59065429e29b391489e85971dade"
+      },
+      {
+        "path": "src/gptl/mie/candidates.py",
+        "sha256": "69c110f3cc3c91c38a5d687132e3c65705fa7b728b77ea726e3fcf32a1dfd6d1"
+      },
+      {
+        "path": "src/gptl/mie/diagnostics.py",
+        "sha256": "01d74a2555335c6ace8b93b5c7a3c95b828335f39402dbaa7f1850eb7ffd7c23"
+      },
+      {
+        "path": "src/gptl/mie/msa.py",
+        "sha256": "e01f30a0af32e07adb89c2561bf8002f67a18380bdcae9be90d96bc90e9a4f4b"
+      },
+      {
+        "path": "src/gptl/mie/negative.py",
+        "sha256": "cf75c2ed65ae07f612d16533212c73ad8b0c8908a77f8b7bccf6883fe3b61e1d"
+      },
+      {
+        "path": "src/gptl/mie/predicates.py",
+        "sha256": "7ac8606b499ba2926597058100d1fd961183af1a2320969b36387a1eaffbf6f4"
+      },
+      {
+        "path": "src/gptl/mie/records.py",
+        "sha256": "612600c299ecb12a1ddfa68e52da3ed7d9d8a5be19ce2b35605d823412e027cf"
+      },
+      {
+        "path": "src/gptl/mie/replay.py",
+        "sha256": "9703f7201031ba6dc2670e1d20a4c5318277c2c3d3ea1dbb58f2a6d99252c513"
+      },
+      {
+        "path": "src/gptl/mie/schema.py",
+        "sha256": "9423f17c2dfcf04dfa191e73acc1e01e4aab3b6a0358108926fea9e58bb01f6d"
+      },
+      {
+        "path": "src/gptl/mie/selection.py",
+        "sha256": "ed5cf12d6a6fb556e35ec167462d715b6daf767a4336e1eef941323150995505"
+      },
+      {
+        "path": "src/gptl/mie/service.py",
+        "sha256": "8f4040b13740552b319ad9c1b108ad9fdfb96fff9cfa0a64bec213a478203fb5"
+      },
+      {
+        "path": "src/gptl/mie/slice2_service.py",
+        "sha256": "648afb6568afdeeec209e56a0adf61e015e95f0eed72e86f2eb139de7953fc44"
+      },
+      {
+        "path": "src/gptl/mie/slice3_service.py",
+        "sha256": "c8f075350a0b70533fce0f8ef2f0b70af29c101721d5a2a4001981d8e2cadc5a"
+      },
+      {
+        "path": "src/gptl/mie/slice4_service.py",
+        "sha256": "9700cc85988122a222b013203085a184035d40c9eef586b35f1506686a81ac3e"
+      },
+      {
+        "path": "src/gptl/mie/slice5_service.py",
+        "sha256": "0eca98613be95b74d33c1fb85b961fb0b4bf6cf40b90bb4ffdddcd882dec6b57"
+      },
+      {
+        "path": "src/gptl/mie/slice6_service.py",
+        "sha256": "80be8f41697de4e843b143b937624850f8d1c42f1ea43742b34678535d951080"
+      },
+      {
+        "path": "src/gptl/slice1_fixture.py",
+        "sha256": "3ff102a42952806bd54bdd9d0d4d00043e67d751cd481b26d89aeaaed1ada5f6"
+      },
+      {
+        "path": "src/gptl/slice2_fixture.py",
+        "sha256": "259a725770e20131f96a8e3f45d7f96e01a0742531819ef4058d6e5f259838cb"
+      },
+      {
+        "path": "src/gptl/slice3_fixture.py",
+        "sha256": "d7c42fe46c003d9be3c88c778bb06355116757d30e31a11ff3d2bdd926b59d65"
+      },
+      {
+        "path": "src/gptl/slice4_fixture.py",
+        "sha256": "45630b9d8949f484842fed0ab0abe405fd1ccde3a7e828f87c9972e6683aba40"
+      },
+      {
+        "path": "src/gptl/slice5_fixture.py",
+        "sha256": "51b31e3c1c5ff9fef316552d765658a56d5d9e7215e05e289b40a45c74334663"
+      },
+      {
+        "path": "src/gptl/slice6_fixture.py",
+        "sha256": "941bf44dfa8bc9c73643f810f72be439c956319d25c3e8b690d09c59b2f739d3"
+      },
+      {
+        "path": "src/gptl/slice7_fixture.py",
+        "sha256": "e236e057f355d61a05ec7b656498e756f403f041257ceaed7084f00e0755876b"
+      }
+    ]
+  },
+  "test_inventory": {
+    "collection_command": {
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "--collect-only",
+        "-q"
+      ],
+      "exit_code": 0,
+      "output": "tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs\ntests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity\ntests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound\ntests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record\ntests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope\ntests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed\ntests/conformance/test_canonical.py::test_unicode_nfc_variants_have_identical_bytes_and_hashes\ntests/conformance/test_canonical.py::test_duplicate_keys_after_nfc_normalization_are_rejected\ntests/conformance/test_canonical.py::test_float_is_rejected_at_any_depth\ntests/conformance/test_canonical.py::test_decimal_uses_explicit_fixed_scale_policy\ntests/conformance/test_canonical.py::test_signed_decimal_zero_has_one_canonical_representation\ntests/conformance/test_canonical.py::test_decimal_overflow_is_rejected_by_explicit_policy\ntests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable\ntests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids0]\ntests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids1]\ntests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids2]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-TRUE-TRUE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-FALSE-FALSE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-UNKNOWN-UNKNOWN]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-TRUE-FALSE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-FALSE-FALSE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-UNKNOWN-FALSE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-TRUE-UNKNOWN]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-FALSE-FALSE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-UNKNOWN-UNKNOWN]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-TRUE-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-FALSE-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-UNKNOWN-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-TRUE-TRUE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-FALSE-TRUE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-UNKNOWN-TRUE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-TRUE-TRUE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-FALSE-FALSE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-UNKNOWN-UNKNOWN]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-TRUE-TRUE]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-FALSE-UNKNOWN]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-UNKNOWN-UNKNOWN]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-TRUE-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-FALSE-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-UNKNOWN-INVALID]\ntests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-INVALID-INVALID]\ntests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[TRUE-FALSE]\ntests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[FALSE-TRUE]\ntests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[UNKNOWN-UNKNOWN]\ntests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[INVALID-INVALID]\ntests/conformance/test_predicates.py::test_missing_registered_field_is_unknown_with_no_evidence\ntests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-INCLUSIVE-INCLUSIVE-TRUE]\ntests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-EXCLUSIVE-INCLUSIVE-FALSE]\ntests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-INCLUSIVE-TRUE]\ntests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-EXCLUSIVE-FALSE]\ntests/conformance/test_predicates.py::test_snapshot_bound_unit_conversion_is_used_for_comparison\ntests/conformance/test_predicates.py::test_incompatible_runtime_unit_is_invalid\ntests/conformance/test_predicates.py::test_numeric_policy_overflow_is_invalid_instead_of_escaping_evaluation\ntests/conformance/test_predicates.py::test_incompatible_declared_unit_fails_pack_validation\ntests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload0-logical predicate has an invalid shape]\ntests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload1-membership terms cannot be empty]\ntests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload2-membership terms must be unique]\ntests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload3-range low cannot exceed high]\ntests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[run_id-bad id]\ntests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[requested_pack_id-]\ntests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[audit_event_id-?bad]\ntests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00Z]\ntests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.00Z]\ntests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-02-30T12:00:00.000Z]\ntests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T25:00:00.000Z]\ntests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.000+00:00]\ntests/conformance/test_schema.py::test_timestamp_policy_context_is_mandatory\ntests/conformance/test_schema.py::test_unknown_display_template_is_rejected\ntests/conformance/test_schema.py::test_unknown_display_parameter_is_rejected\ntests/conformance/test_schema.py::test_required_display_parameter_cannot_be_omitted\ntests/conformance/test_schema.py::test_display_parameter_kind_must_match_registered_kind\ntests/conformance/test_schema.py::test_malformed_hash_is_rejected\ntests/conformance/test_schema.py::test_conflicting_metadata_for_one_governed_identity_is_rejected\ntests/conformance/test_schema.py::test_float_cannot_enter_a_decimal_field_by_coercion\ntests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[True]\ntests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[9007199254740992]\ntests/conformance/test_selection.py::test_selection_preserves_distinct_ungrouped_records_and_group_winner\ntests/conformance/test_selection.py::test_selection_group_rank_tie_is_invalid_configuration\ntests/conformance/test_selection.py::test_overlapping_ungrouped_msa_records_are_invalid_configuration\ntests/conformance/test_source_boundaries.py::test_authoritative_source_has_no_prohibited_runtime_dependencies\ntests/conformance/test_source_boundaries.py::test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7\ntests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal\ntests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary\ntests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback\ntests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections\ntests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent\ntests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history\ntests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift\ntests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema\ntests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres\ntests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process\ntests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back\ntests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash\ntests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]\ntests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count\ntests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]\ntests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]\ntests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion\ntests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal\ntests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence\ntests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading\ntests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation\ntests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory\ntests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field\ntests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity\ntests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time\ntests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error\ntests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records\ntests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary\ntests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version\ntests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run\ntests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record\ntests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1\ntests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres\ntests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record\ntests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit\ntests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed\ntests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion\ntests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]\ntests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates\ntests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid\ntests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state\ntests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy\ntests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy\ntests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference\ntests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record\ntests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres\ntests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact\ntests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate\ntests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal\ntests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed\ntests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support\ntests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency\ntests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity\ntests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity\ntests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay\ntests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity\ntests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result\ntests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity\ntests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation\ntests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration\ntests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation\ntests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration\ntests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]\ntests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]\ntests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order\ntests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain\ntests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority\ntests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload\ntests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres\ntests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative\ntests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed\ntests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity\ntests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out\ntests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring\ntests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict\ntests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict\ntests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration\ntests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate\ntests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative\ntests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]\ntests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]\ntests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]\ntests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid\ntests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]\ntests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]\ntests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate\ntests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically\ntests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract\ntests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload\ntests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]\ntests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]\ntests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support\ntests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection\ntests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data\ntests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed\ntests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version\ntests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]\ntests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]\ntests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]\ntests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]\ntests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]\ntests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method\ntests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates\ntests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set\ntests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit\ntests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited\ntests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]\ntests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]\ntests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]\ntests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]\ntests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]\ntests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds\ntests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output\ntests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration\ntests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface\ntests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash\ntests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected\ntests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically\ntests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload\ntests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres\ntests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen\ntests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical\ntests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface\ntests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure\ntests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed\ntests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically\ntests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation\ntests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure\ntests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid\ntests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure\ntests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution\ntests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed\ntests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed\ntests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed\ntests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed\ntests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed\ntests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure\ntests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest\ntests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history\ntests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay\ntests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly\ntests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule\ntests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices\ntests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url\n\n288 tests collected in <elapsed>\n",
+      "output_sha256": "bb9ee6dda640a6f5d2a2f368a71a529eb16576d18c9f0c3e0498b7cafeae2c4b"
+    },
+    "count": 288,
+    "exact_node_ids": [
+      "tests/conformance/test_build0_closeout.py::test_authoritative_identifiers_are_caller_bound_replay_inputs",
+      "tests/conformance/test_build0_closeout.py::test_authoritative_source_does_not_generate_identity",
+      "tests/conformance/test_build0_closeout.py::test_preflight_timestamp_width_is_explicitly_policy_bound",
+      "tests/conformance/test_build0_closeout.py::test_refusal_and_replay_result_unions_are_closed",
+      "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope",
+      "tests/conformance/test_build0_closeout.py::test_unavailable_calibration_remains_an_explicit_cited_record",
+      "tests/conformance/test_canonical.py::test_decimal_overflow_is_rejected_by_explicit_policy",
+      "tests/conformance/test_canonical.py::test_decimal_uses_explicit_fixed_scale_policy",
+      "tests/conformance/test_canonical.py::test_duplicate_keys_after_nfc_normalization_are_rejected",
+      "tests/conformance/test_canonical.py::test_float_is_rejected_at_any_depth",
+      "tests/conformance/test_canonical.py::test_signed_decimal_zero_has_one_canonical_representation",
+      "tests/conformance/test_canonical.py::test_unicode_nfc_variants_have_identical_bytes_and_hashes",
+      "tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids0]",
+      "tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids1]",
+      "tests/conformance/test_migrations.py::test_migration_history_must_be_an_exact_packaged_prefix[applied_ids2]",
+      "tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable",
+      "tests/conformance/test_predicates.py::test_incompatible_declared_unit_fails_pack_validation",
+      "tests/conformance/test_predicates.py::test_incompatible_runtime_unit_is_invalid",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-FALSE-FALSE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-TRUE-FALSE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-FALSE-UNKNOWN-FALSE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-FALSE-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-TRUE-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-INVALID-UNKNOWN-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-FALSE-FALSE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-TRUE-TRUE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-TRUE-UNKNOWN-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-FALSE-FALSE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-TRUE-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[all-UNKNOWN-UNKNOWN-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-FALSE-FALSE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-TRUE-TRUE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-FALSE-UNKNOWN-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-FALSE-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-TRUE-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-INVALID-UNKNOWN-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-FALSE-TRUE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-TRUE-TRUE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-TRUE-UNKNOWN-TRUE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-FALSE-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-TRUE-TRUE]",
+      "tests/conformance/test_predicates.py::test_logical_truth_tables_are_exhaustive[any-UNKNOWN-UNKNOWN-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload0-logical predicate has an invalid shape]",
+      "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload1-membership terms cannot be empty]",
+      "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload2-membership terms must be unique]",
+      "tests/conformance/test_predicates.py::test_malformed_closed_ast_is_rejected[payload3-range low cannot exceed high]",
+      "tests/conformance/test_predicates.py::test_missing_registered_field_is_unknown_with_no_evidence",
+      "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[FALSE-TRUE]",
+      "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[INVALID-INVALID]",
+      "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[TRUE-FALSE]",
+      "tests/conformance/test_predicates.py::test_not_truth_table_is_exhaustive[UNKNOWN-UNKNOWN]",
+      "tests/conformance/test_predicates.py::test_numeric_policy_overflow_is_invalid_instead_of_escaping_evaluation",
+      "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-EXCLUSIVE-INCLUSIVE-FALSE]",
+      "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[20-INCLUSIVE-INCLUSIVE-TRUE]",
+      "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-EXCLUSIVE-FALSE]",
+      "tests/conformance/test_predicates.py::test_range_boundaries_are_explicit[30-INCLUSIVE-INCLUSIVE-TRUE]",
+      "tests/conformance/test_predicates.py::test_snapshot_bound_unit_conversion_is_used_for_comparison",
+      "tests/conformance/test_schema.py::test_conflicting_metadata_for_one_governed_identity_is_rejected",
+      "tests/conformance/test_schema.py::test_display_parameter_kind_must_match_registered_kind",
+      "tests/conformance/test_schema.py::test_float_cannot_enter_a_decimal_field_by_coercion",
+      "tests/conformance/test_schema.py::test_malformed_hash_is_rejected",
+      "tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[audit_event_id-?bad]",
+      "tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[requested_pack_id-]",
+      "tests/conformance/test_schema.py::test_malformed_identifiers_are_rejected[run_id-bad id]",
+      "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-02-30T12:00:00.000Z]",
+      "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.000+00:00]",
+      "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00.00Z]",
+      "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T12:00:00Z]",
+      "tests/conformance/test_schema.py::test_noncanonical_timestamps_are_rejected[2026-06-21T25:00:00.000Z]",
+      "tests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[9007199254740992]",
+      "tests/conformance/test_schema.py::test_record_versions_are_strict_jcs_safe_integers[True]",
+      "tests/conformance/test_schema.py::test_required_display_parameter_cannot_be_omitted",
+      "tests/conformance/test_schema.py::test_timestamp_policy_context_is_mandatory",
+      "tests/conformance/test_schema.py::test_unknown_display_parameter_is_rejected",
+      "tests/conformance/test_schema.py::test_unknown_display_template_is_rejected",
+      "tests/conformance/test_selection.py::test_overlapping_ungrouped_msa_records_are_invalid_configuration",
+      "tests/conformance/test_selection.py::test_selection_group_rank_tie_is_invalid_configuration",
+      "tests/conformance/test_selection.py::test_selection_preserves_distinct_ungrouped_records_and_group_winner",
+      "tests/conformance/test_source_boundaries.py::test_authoritative_source_has_no_prohibited_runtime_dependencies",
+      "tests/conformance/test_source_boundaries.py::test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7",
+      "tests/slices/test_slice_01_safe_refusal.py::test_absent_pack_produces_deterministic_preflight_refusal",
+      "tests/slices/test_slice_01_safe_refusal.py::test_available_exact_pack_stops_at_later_slice_boundary",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_bound_versions-binding_id-binding.fabricated]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_citations-citation_id-citation.fabricated]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_fabricated_preflight_bindings[gptl_snapshots-None-None]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_late_audit_row_that_exceeds_declared_count",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_run_without_declared_audit_rows",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_truncate_of_committed_rows",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[audit]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_unknown_hash_algorithm[run]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_update_and_delete_of_committed_rows",
+      "tests/slices/test_slice_01_safe_refusal.py::test_database_rejects_zero_audit_count",
+      "tests/slices/test_slice_01_safe_refusal.py::test_documented_demo_runs_against_postgres",
+      "tests/slices/test_slice_01_safe_refusal.py::test_failure_between_run_and_audit_insert_rolls_back",
+      "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_empty_migration_history",
+      "tests/slices/test_slice_01_safe_refusal.py::test_initialize_rejects_migration_checksum_drift",
+      "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-0-WRONG_AUDIT_TYPE-record type mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[audit-1-wrong.schema-schema version mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-0-WRONG_RUN_TYPE-record type mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_load_rejects_incorrect_persisted_metadata[run-1-wrong.schema-schema version mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_migrations_are_ordered_checksummed_and_idempotent",
+      "tests/slices/test_slice_01_safe_refusal.py::test_persisted_run_is_readable_from_a_fresh_process",
+      "tests/slices/test_slice_01_safe_refusal.py::test_postgres_persists_atomic_run_and_audit_across_connections",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_has_no_non_postgres_fallback",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_honors_connection_selected_schema",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_a_well_formed_but_incorrect_decision_hash",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[as_of_time-2026-06-21T12:00:00.001Z-as_of_time mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[decision_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff-decision hash mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[requested_pack_id-pack.other-requested pack mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[run_id-run.other-run ID mismatch]",
+      "tests/slices/test_slice_01_safe_refusal.py::test_store_rejects_audit_records_not_bound_to_the_decision[sequence-1-sequence must be contiguous]",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_backdated_revocation_applies_only_after_its_recorded_time",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_database_rejects_incomplete_snapshot_bound_commit",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_documented_candidate_preservation_demo_runs_against_postgres",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_fully_ratified_candidate_set_reaches_slice_3_boundary",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_integrity_failure_precedes_ratification_state_and_candidate_loading",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_invalid_pack_returns_configuration_refusal",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_pack_version_mismatch_raises_named_binding_error",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_ratification_lookup_requires_the_exact_governed_event_identity",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_refusal_context_scoping_rejects_cross_boundary_records",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_revocation_changes_new_run_without_rewriting_historical_run",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_runtime_invalid_applicability_surfaces_candidate_error_and_evidence",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_scalar_intake_rejects_multiple_values_for_one_field",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_selection_rank_tie_fails_pack_validation",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_binds_every_decision_effective_version",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_bound_run_persists_and_reloads_complete_record",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_snapshot_write_failure_rolls_back_every_dependent_record",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_store_rejects_output_snapshot_hash_mismatch",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_store_retains_verified_read_compatibility_with_slice2_v1",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_unknown_applicability_is_preserved_and_blocks_negative_conclusion",
+      "tests/slices/test_slice_02_candidate_preservation.py::test_unratified_human_input_returns_non_dispositional_advisory",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_calibration_validity_boundaries_are_inclusive_and_policy_bound",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_documented_slice3_demo_runs_against_postgres",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_gate_precedence_stops_before_invalid_downstream_state",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_grouped_msa_precedence_applies_and_ungrouped_overlap_is_invalid",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[INVALID-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_invalid]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[STALE-True-TIER1_DECISION-STALE_OR_INVALID_CALIBRATION-calibration_stale]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[UNAVAILABLE-True-TIER1_DECISION-MISSING_REQUIRED_EVIDENCE-calibration_unavailable]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-False-TIER2_ADVISORY-ADVISORY_NO_VERDICT-intake_unratified]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_intake_calibration_matrix_has_one_deterministic_route[VALID-True-TIER1_DECISION-WITHIN_MEASUREMENT_VARIATION-within_variation]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_invalid_deviation_and_contract_mismatch_fail_closed",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_boundary_uses_snapshot_bound_unit_conversion",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_reason_precedence_is_governed_policy",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[GROUPED_TIE-CONFIGURATION_INVALID-msa_configuration_invalid]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[INVALID_UNIT-CONFIGURATION_INVALID-msa_configuration_invalid]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[MISSING-MSA_UNCHARACTERIZED-msa_missing]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NON_TEST_SCOPE-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[NOT_APPLICABLE-MSA_UNCHARACTERIZED-msa_not_applicable]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[SCOPE_MISMATCH-MSA_UNCHARACTERIZED-msa_scope_mismatch]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNIMPLEMENTED-MSA_UNCHARACTERIZED-msa_unimplemented_class]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNKNOWN-MSA_UNCHARACTERIZED-msa_unknown_applicability]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_msa_failure_routes_are_explicit_and_stop_before_candidates[UNQUALIFIED-MSA_UNCHARACTERIZED-msa_unqualified]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_outside_variation_returns_open_unassessed_candidates",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_persists_with_explicit_schema_and_reloads_complete_record",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[UNAVAILABLE-INVALID_UNIT-deviation1]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_slice3_replay_is_byte_identical[VALID-QUALIFIED-deviation0]",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binding_rejects_conflicting_runtime_reference",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+      "tests/slices/test_slice_03_msa_calibration_gate.py::test_test_fixture_msa_cannot_satisfy_a_non_test_scope",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_REVOKED-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ATTESTATION_SUPERSEDED-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[DISALLOWED_ROLE-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[LATE_ATTESTATION_REVOCATION-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[ROLE_REVOKED-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_APPROVER-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[SEPARATION_AUTHOR-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_attested_confirmation_enforces_authority_and_lifecycle[VALID-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold0-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold1-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_confirmation_threshold_uses_exact_decimal_boundary[threshold2-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_contradictory_unsuperseded_results_fail_integrity",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_commutative_over_finite_outcome_domain",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_aggregation_is_invariant_to_result_order",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_discriminator_result_must_bind_evaluated_observation",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_documented_slice4_demo_runs_against_postgres",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta0-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta1-METHOD_ARTIFACT]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_dominance_margin_uses_exact_decimal_boundary[delta2-INDETERMINATE]",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_explicit_discriminator_supersession_selects_one_active_result",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_failed_structured_confirm_predicate_blocks_confirmation",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_later_recorded_revocation_changes_new_run_not_historical_replay",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_referenced_numeric_policy_fails_configuration",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_required_structured_evidence_blocks_confirmation",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_missing_supersession_target_fails_integrity",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_attestations_fail_integrity",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_multiple_active_role_authorizations_fail_integrity",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_output_schema_failure_returns_governed_engine_refusal",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_overlapping_discriminator_outcomes_fail_configuration",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_partial_required_signature_evidence_never_aggregates_support",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_authoritative_path_has_no_renderer_dependency",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_persists_explicit_schema_and_complete_payload",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_slice4_snapshot_binds_numeric_policy_confirmation_and_authority",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_structured_confirmation_returns_cited_method_artifact",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_uniquely_dominant_winner_allows_a_second_confirmed_candidate",
+      "tests/slices/test_slice_04_artifact_confirmation.py::test_zero_signature_observations_remain_open_unassessed",
+      "tests/slices/test_slice_05_honest_negative.py::test_catalog_fraction_below_governed_minimum_remains_indeterminate",
+      "tests/slices/test_slice_05_honest_negative.py::test_complete_terminal_catalog_returns_honest_bounded_negative",
+      "tests/slices/test_slice_05_honest_negative.py::test_documented_slice5_demo_runs_against_postgres",
+      "tests/slices/test_slice_05_honest_negative.py::test_hard_elimination_stops_before_candidate_scoring",
+      "tests/slices/test_slice_05_honest_negative.py::test_identical_negative_run_replays_byte_identically",
+      "tests/slices/test_slice_05_honest_negative.py::test_missing_terminal_ruling_citation_fails_closed",
+      "tests/slices/test_slice_05_honest_negative.py::test_open_unassessed_candidate_blocks_negative_verdict",
+      "tests/slices/test_slice_05_honest_negative.py::test_positive_artifact_verdict_has_precedence_over_bounded_negative",
+      "tests/slices/test_slice_05_honest_negative.py::test_rule_out_contract_must_cover_every_published_candidate",
+      "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold0-IndeterminateDecision]",
+      "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold1-KnownArtifactsExcludedDecision]",
+      "tests/slices/test_slice_05_honest_negative.py::test_rule_out_threshold_uses_exact_decimal_boundary[threshold2-KnownArtifactsExcludedDecision]",
+      "tests/slices/test_slice_05_honest_negative.py::test_ruling_citation_intersection_requires_full_governed_identity",
+      "tests/slices/test_slice_05_honest_negative.py::test_slice5_persists_explicit_schema_and_complete_payload",
+      "tests/slices/test_slice_05_honest_negative.py::test_slice5_snapshot_binds_every_negative_contract",
+      "tests/slices/test_slice_05_honest_negative.py::test_unknown_catalog_denominator_refuses_configuration",
+      "tests/slices/test_slice_05_honest_negative.py::test_unknown_gap_template_is_configuration_invalid",
+      "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[catalog_boundary]",
+      "tests/slices/test_slice_05_honest_negative.py::test_unregistered_policy_directive_is_rejected_at_construction[known_artifacts_excluded_action]",
+      "tests/slices/test_slice_05_honest_negative.py::test_unresolved_applicability_blocks_negative_verdict",
+      "tests/slices/test_slice_05_honest_negative.py::test_zero_support_without_every_required_discriminator_never_rules_out",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_advisory_schema_cannot_carry_verdict_refusal_or_support",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_authoritative_advisory_path_has_no_model_adapter_surface",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_documented_slice6_demo_runs_against_postgres",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[AMBIGUOUS_METHOD-AMBIGUOUS-gap.method-ambiguous-proposed1-measurements1-records1]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[MISSING_MSA-RESOLVED-gap.msa-missing-proposed3-measurements3-records3]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[STALE_CALIBRATION-RESOLVED-gap.calibration-stale-proposed5-measurements5-records5]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNAVAILABLE_CALIBRATION-RESOLVED-gap.calibration-unavailable-proposed6-measurements6-records6]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNIMPLEMENTED_MSA-RESOLVED-gap.msa-unimplemented-proposed4-measurements4-records4]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_APPLICABILITY-RESOLVED-gap.applicability-unknown-proposed7-measurements7-records7]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNKNOWN_METHOD-UNKNOWN-gap.method-unknown-proposed2-measurements2-records2]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_each_ineligible_case_returns_typed_nonverdict_advisory[UNRATIFIED_INTAKE-RESOLVED-gap.intake-unratified-proposed0-measurements0-records0]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_equivalent_text_search_accelerator_cannot_change_output",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_exact_advisory_query_is_snapshot_bound_and_cited",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_identical_advisory_replays_byte_identically",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_normalization_uses_governed_fixed_unicode_data",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_lexical_tie_break_replays_across_process_hash_seeds",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_non_equivalent_text_search_accelerator_fails_configuration",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolved_advisory_preserves_complete_published_candidate_set",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_policy_rejects_an_unimplemented_unicode_data_version",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query0-EXACT-RESOLVED-expected_refs0]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query1-CONTROLLED_TERM-AMBIGUOUS-expected_refs1]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query2-RELATIONAL-RESOLVED-expected_refs2]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query3-LEXICAL-RESOLVED-expected_refs3]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_resolver_uses_declared_lane_order_and_stable_governed_tie_break[query4-LEXICAL-AMBIGUOUS-expected_refs4]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_persists_explicit_schema_and_complete_payload",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[advisory_bound_refs]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[build_tier2_advisory]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[execute_tier2_advisory]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[normalize_lexical_text]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_slice6_public_functions_declare_their_contract[resolve_advisory_method]",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_tier2_rejects_a_positive_tier1_verdict_before_route_selection",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_unexpected_unicode_data_version_fails_closed",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_applicability_evidence_remains_explicit",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_unknown_method_remains_explicit_without_candidates",
+      "tests/slices/test_slice_06_tier2_advisory.py::test_unregistered_advisory_directive_is_rejected",
+      "tests/slices/test_slice_07_replay_integrity.py::test_correction_creates_new_version_and_run_without_rewriting_history",
+      "tests/slices/test_slice_07_replay_integrity.py::test_cross_process_replay_uses_only_persisted_capsule",
+      "tests/slices/test_slice_07_replay_integrity.py::test_cross_run_capsule_substitution_fails_closed",
+      "tests/slices/test_slice_07_replay_integrity.py::test_database_rejects_replay_capsule_mutation",
+      "tests/slices/test_slice_07_replay_integrity.py::test_documented_slice7_demo_replays_all_prior_slices",
+      "tests/slices/test_slice_07_replay_integrity.py::test_every_documented_demo_requires_an_explicit_database_url",
+      "tests/slices/test_slice_07_replay_integrity.py::test_every_prior_slice_replays_exactly_after_store_reopen",
+      "tests/slices/test_slice_07_replay_integrity.py::test_explicit_pack_evolution_never_resolves_latest",
+      "tests/slices/test_slice_07_replay_integrity.py::test_identical_replay_is_byte_identical",
+      "tests/slices/test_slice_07_replay_integrity.py::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+      "tests/slices/test_slice_07_replay_integrity.py::test_missing_run_returns_governed_integrity_failure",
+      "tests/slices/test_slice_07_replay_integrity.py::test_noncanonical_replay_recipe_fails_closed",
+      "tests/slices/test_slice_07_replay_integrity.py::test_reexecution_exception_returns_integrity_failure",
+      "tests/slices/test_slice_07_replay_integrity.py::test_replay_capsule_and_run_commit_atomically",
+      "tests/slices/test_slice_07_replay_integrity.py::test_replay_has_no_network_or_implicit_latest_surface",
+      "tests/slices/test_slice_07_replay_integrity.py::test_replay_policy_reference_mismatch_fails_closed",
+      "tests/slices/test_slice_07_replay_integrity.py::test_replay_recipe_schema_mismatch_fails_closed",
+      "tests/slices/test_slice_07_replay_integrity.py::test_run_without_exact_recipe_fails_closed",
+      "tests/slices/test_slice_07_replay_integrity.py::test_snapshot_bound_discriminator_supersession_replays_exactly",
+      "tests/slices/test_slice_07_replay_integrity.py::test_stale_run_payload_checksum_returns_stored_content_invalid",
+      "tests/slices/test_slice_07_replay_integrity.py::test_tampered_replay_capsule_returns_integrity_failure",
+      "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_bound_content_returns_integrity_failure",
+      "tests/slices/test_slice_07_replay_integrity.py::test_unavailable_replay_algorithm_fails_closed",
+      "tests/slices/test_slice_07_replay_integrity.py::test_validly_rehashed_output_tamper_is_caught_by_reexecution"
+    ],
+    "sha256": "cfb4f4543d7830bc796ce7aca5a3a67ff63516eaf6c32fac1956535e5470ce11"
+  }
+}
+```
+
+<!-- END GPTL_BUILD0_EVIDENCE_JSON_V1.0 -->
