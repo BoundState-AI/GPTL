@@ -1,4 +1,4 @@
-"""MIE canonical output schemas implemented through Slice 2."""
+"""MIE canonical output schemas implemented through Slice 3."""
 
 from __future__ import annotations
 

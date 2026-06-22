@@ -236,12 +236,46 @@ def test_msa_boundary_uses_snapshot_bound_unit_conversion() -> None:
     assert exact.output.decision.measured_deviation == Decimal("0.0100")
     assert exact.output.decision.measured_uncertainty == Decimal("0.0100")
     assert exact.output.decision.uncertainty_unit_id == "unit.mm"
+    assert exact.output.decision.assessments == ()
+    assert exact.output.decision.required_human_action == policy.within_variation_action
+    assert exact.output.decision.route_reason_id == policy.route_reasons.within_variation
     assert isinstance(above.output, Tier1Output)
     assert isinstance(above.output.decision, IndeterminateDecision)
     assert above.output.decision.route_reason_id == policy.route_reasons.outside_variation
     assert above.output.decision.measured_deviation == Decimal("0.0101")
     assert above.output.decision.measured_uncertainty == Decimal("0.0100")
     assert above.output.decision.uncertainty_unit_id == "unit.mm"
+
+
+@pytest.mark.parametrize(
+    "calibration,msa_scenario,deviation",
+    (
+        ("VALID", "QUALIFIED", Decimal("0.0100")),
+        ("UNAVAILABLE", "INVALID_UNIT", Decimal("0.0100")),
+    ),
+)
+def test_slice3_replay_is_byte_identical(
+    calibration: str,
+    msa_scenario: str,
+    deviation: Decimal,
+) -> None:
+    policy = slice3_policy()
+    request = slice3_request(f"replay-{calibration}")
+    runtime = slice3_runtime(calibration, msa_scenario, deviation, True)
+
+    first = build_msa_calibration_gate(request, runtime, policy)
+    second = build_msa_calibration_gate(request, runtime, policy)
+
+    assert isinstance(first.output, Tier1Output)
+    assert isinstance(second.output, Tier1Output)
+    assert canonical_bytes(
+        first.output,
+        policy.slice2_policy.canonicalization_policy,
+    ) == canonical_bytes(
+        second.output,
+        policy.slice2_policy.canonicalization_policy,
+    )
+    assert first.output.decision_hash == second.output.decision_hash
 
 
 def test_outside_variation_returns_open_unassessed_candidates() -> None:
@@ -290,6 +324,12 @@ def test_gate_precedence_stops_before_invalid_downstream_state() -> None:
     policy = slice3_policy()
     unratified = slice3_runtime("INVALID", "INVALID_UNIT", Decimal("0.0100"), False)
     invalid_calibration = slice3_runtime("INVALID", "INVALID_UNIT", Decimal("0.0100"), True)
+    unavailable_calibration = slice3_runtime(
+        "UNAVAILABLE",
+        "INVALID_UNIT",
+        Decimal("0.0100"),
+        True,
+    )
 
     intake_result = build_msa_calibration_gate(
         slice3_request("precedence-intake"),
@@ -301,6 +341,11 @@ def test_gate_precedence_stops_before_invalid_downstream_state() -> None:
         invalid_calibration,
         policy,
     )
+    unavailable_result = build_msa_calibration_gate(
+        slice3_request("precedence-unavailable"),
+        unavailable_calibration,
+        policy,
+    )
 
     assert isinstance(intake_result.output, Tier2Output)
     assert (
@@ -310,6 +355,13 @@ def test_gate_precedence_stops_before_invalid_downstream_state() -> None:
     assert isinstance(calibration_result.output, Tier1Output)
     assert calibration_result.output.decision.refusal_type == "STALE_OR_INVALID_CALIBRATION"
     assert calibration_result.output.decision.msa_applicability_evaluations is None
+    assert isinstance(unavailable_result.output, Tier1Output)
+    assert unavailable_result.output.decision.refusal_type == "MISSING_REQUIRED_EVIDENCE"
+    assert (
+        unavailable_result.output.decision.route_reason_id
+        == policy.route_reasons.calibration_unavailable
+    )
+    assert unavailable_result.output.decision.msa_applicability_evaluations is None
 
 
 def test_msa_failure_reason_precedence_is_governed_policy() -> None:
