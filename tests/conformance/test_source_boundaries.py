@@ -26,9 +26,11 @@ def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice5() -> N
         (source_root / name).read_text(encoding="utf-8")
         for name in (
             "diagnostics.py",
+            "advisory.py",
             "negative.py",
             "slice4_service.py",
             "slice5_service.py",
+            "slice6_service.py",
         )
     )
     decimal_literals = {

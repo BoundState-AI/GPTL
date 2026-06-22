@@ -1,4 +1,4 @@
-"""MIE canonical output schemas implemented through Slice 5."""
+"""MIE canonical output schemas implemented through Slice 6."""
 
 from __future__ import annotations
 
@@ -457,6 +457,16 @@ class AdvisoryDecision(BaseModel):
     def validate_advisory(self) -> AdvisoryDecision:
         if self.method_resolution == "RESOLVED" and self.method_ref is None:
             raise ValueError("resolved advisory requires method ref")
+        if self.method_resolution != "RESOLVED" and self.method_ref is not None:
+            raise ValueError("unresolved advisory cannot select a method")
+        if self.method_resolution == "UNKNOWN" and (
+            self.candidate_failure_mode_refs
+            or self.applicability_evaluations
+            or self.open_discriminator_refs
+        ):
+            raise ValueError("unknown method advisory cannot carry method-scoped candidates")
+        if self.method_resolution == "AMBIGUOUS" and not self.candidate_failure_mode_refs:
+            raise ValueError("ambiguous method advisory must preserve bounded candidates")
         for values, label in (
             (self.proposed_field_ids, "proposed_field_ids"),
             (self.required_measurement_ids, "required_measurement_ids"),
@@ -468,6 +478,25 @@ class AdvisoryDecision(BaseModel):
                 raise ValueError(f"{label} must be unique and sorted")
         _validate_ref_order(self.candidate_failure_mode_refs, "candidate_failure_mode_refs")
         _validate_ref_order(self.open_discriminator_refs, "open_discriminator_refs")
+        evaluation_keys = tuple(
+            (item.predicate_ref.logical_id, item.predicate_ref.version_id)
+            for item in self.applicability_evaluations
+        )
+        if evaluation_keys != tuple(sorted(set(evaluation_keys))):
+            raise ValueError("advisory applicability evaluations must be unique and sorted")
+        citation_keys = tuple(
+            (
+                item.record_type_id,
+                item.record_ref.logical_id,
+                item.record_ref.version_id,
+                item.evidence_location,
+            )
+            for item in self.citations
+        )
+        if citation_keys != tuple(sorted(set(citation_keys))):
+            raise ValueError("advisory citations must be unique and sorted")
+        if not self.next_steps:
+            raise ValueError("advisory next steps must be nonempty")
         if not self.audit_event_ids:
             raise ValueError("advisory requires an audit event")
         return self
@@ -478,6 +507,16 @@ class Tier2Output(BaseModel):
     output_kind: Literal["TIER2_ADVISORY"]
     advisory: AdvisoryDecision
     advisory_hash: Sha256Hex
+
+
+class RenderedArtifact(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    decision_id: OpaqueId
+    renderer_id: OpaqueId
+    renderer_version: OpaqueId
+    rendered_text: str
+    generated_from_decision_hash: Sha256Hex
+    non_record_of_record: Literal[True]
 
 
 MIEOutput = Annotated[Tier1Output | Tier2Output, Field(discriminator="output_kind")]
