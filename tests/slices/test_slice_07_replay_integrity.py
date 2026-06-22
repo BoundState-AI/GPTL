@@ -208,6 +208,31 @@ def test_tampered_replay_capsule_returns_integrity_failure(postgres_url: str) ->
     assert result.reason_id == policy.stored_content_invalid_reason_id
 
 
+def test_stale_run_payload_checksum_returns_stored_content_invalid(postgres_url: str) -> None:
+    policy = replay_policy()
+    recipe = replay_recipes()[4]
+    store = PostgresRunStore(postgres_url, policy.canonicalization_policy)
+    store.initialize()
+    execute_replayable_run(recipe, policy, store)
+    _bypass_update(
+        postgres_url,
+        "gptl_runs",
+        "payload = %s",
+        (b"{}",),
+        recipe.request.run_id,
+    )
+
+    result = verify_persisted_replay(
+        "replay.slice7.stale-run-checksum",
+        recipe.request.run_id,
+        store,
+        policy,
+    )
+
+    assert isinstance(result, ReplayIntegrityFailure)
+    assert result.reason_id == policy.stored_content_invalid_reason_id
+
+
 def test_unavailable_bound_content_returns_integrity_failure(postgres_url: str) -> None:
     policy = replay_policy()
     recipe = replay_recipes()[3]
@@ -301,6 +326,90 @@ def test_replay_policy_reference_mismatch_fails_closed(postgres_url: str) -> Non
 
     result = verify_persisted_replay(
         "replay.slice7.policy-mismatch",
+        recipe.request.run_id,
+        store,
+        policy,
+    )
+
+    assert isinstance(result, ReplayIntegrityFailure)
+    assert result.reason_id == policy.recipe_invalid_reason_id
+
+
+def test_replay_recipe_schema_mismatch_fails_closed(postgres_url: str) -> None:
+    policy = replay_policy()
+    recipe = replay_recipes()[1]
+    store = PostgresRunStore(postgres_url, policy.canonicalization_policy)
+    store.initialize()
+    execute_replayable_run(recipe, policy, store)
+    _bypass_update(
+        postgres_url,
+        "gptl_replay_capsules",
+        "recipe_schema_version = %s",
+        ("gptl.replay-recipe.removed",),
+        recipe.request.run_id,
+    )
+
+    result = verify_persisted_replay(
+        "replay.slice7.recipe-schema-mismatch",
+        recipe.request.run_id,
+        store,
+        policy,
+    )
+
+    assert isinstance(result, ReplayIntegrityFailure)
+    assert result.reason_id == policy.recipe_invalid_reason_id
+
+
+def test_cross_run_capsule_substitution_fails_closed(postgres_url: str) -> None:
+    policy = replay_policy()
+    target, source = replay_recipes()[2:4]
+    store = PostgresRunStore(postgres_url, policy.canonicalization_policy)
+    store.initialize()
+    execute_replayable_run(target, policy, store)
+    execute_replayable_run(source, policy, store)
+    source_run = store.load_run(source.request.run_id)
+    assert source_run is not None
+    assert source_run.replay_capsule is not None
+    source_capsule = source_run.replay_capsule
+    _bypass_update(
+        postgres_url,
+        "gptl_replay_capsules",
+        "payload = %s, payload_hash = %s",
+        (source_capsule.payload, source_capsule.payload_hash),
+        target.request.run_id,
+    )
+
+    result = verify_persisted_replay(
+        "replay.slice7.cross-run-capsule",
+        target.request.run_id,
+        store,
+        policy,
+    )
+
+    assert isinstance(result, ReplayIntegrityFailure)
+    assert result.reason_id == policy.recipe_invalid_reason_id
+
+
+def test_noncanonical_replay_recipe_fails_closed(postgres_url: str) -> None:
+    policy = replay_policy()
+    recipe = replay_recipes()[5]
+    store = PostgresRunStore(postgres_url, policy.canonicalization_policy)
+    store.initialize()
+    execute_replayable_run(recipe, policy, store)
+    stored = store.load_run(recipe.request.run_id)
+    assert stored is not None
+    assert stored.replay_capsule is not None
+    noncanonical = b" " + stored.replay_capsule.payload
+    _bypass_update(
+        postgres_url,
+        "gptl_replay_capsules",
+        "payload = %s, payload_hash = %s",
+        (noncanonical, hashlib.sha256(noncanonical).hexdigest()),
+        recipe.request.run_id,
+    )
+
+    result = verify_persisted_replay(
+        "replay.slice7.noncanonical-recipe",
         recipe.request.run_id,
         store,
         policy,
@@ -531,6 +640,19 @@ def test_documented_slice7_demo_replays_all_prior_slices(postgres_url: str) -> N
     )
 
     assert completed.stdout.count('"status": "VERIFIED"') == len(replay_recipes())
+
+
+def test_every_documented_demo_requires_an_explicit_database_url() -> None:
+    repository_root = Path(__file__).parents[2]
+    build_plan = (repository_root / "docs" / "GPTL_BUILD_PLAN_v0.15.md").read_text(encoding="utf-8")
+    demo_rows = tuple(
+        line
+        for line in build_plan.splitlines()
+        if line.startswith(tuple(f"| {n} |" for n in range(1, 8)))
+    )
+
+    assert len(demo_rows) == len(range(1, 8))
+    assert all('--database-url "$GPTL_DATABASE_URL"' in row for row in demo_rows)
 
 
 def _bypass_update(

@@ -5,7 +5,7 @@ Canonical architecture and implementation contracts for the BoundState General P
 Current governing specification:
 
 - [GPTL Manufacturing Intelligence Platform v0.4.14](docs/GPTL_Manufacturing_Platform_v0.4.14.md)
-- [MIE Build 0 vertical-slice plan v0.14](docs/GPTL_BUILD_PLAN_v0.14.md)
+- [MIE Build 0 vertical-slice plan v0.15](docs/GPTL_BUILD_PLAN_v0.15.md)
 
 Immutable ORACLE review input:
 
@@ -14,6 +14,7 @@ Immutable ORACLE review input:
 
 Prior immutable revision:
 
+- [MIE Build 0 vertical-slice plan v0.14](docs/GPTL_BUILD_PLAN_v0.14.md)
 - [GPTL Manufacturing Intelligence Platform v0.4.13](docs/GPTL_Manufacturing_Platform_v0.4.13.md)
 - [MIE Build 0 vertical-slice plan v0.13](docs/GPTL_BUILD_PLAN_v0.13.md)
 - [GPTL Manufacturing Intelligence Platform v0.4.12](docs/GPTL_Manufacturing_Platform_v0.4.12.md)

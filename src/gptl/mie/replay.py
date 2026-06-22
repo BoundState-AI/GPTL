@@ -426,7 +426,7 @@ def evaluate_pack_eligibility(
     catalog: PackLifecycleCatalog,
     policy: PackLifecyclePolicy,
 ) -> PackEligibilityResult:
-    """Evaluate only the explicitly requested pack version and its as-of lifecycle chain."""
+    """Evaluate an exact pack as-of; canonical timestamps make lexical ordering chronological."""
     matches = tuple(
         item for item in catalog.pack_refs if item.version_id == requested_pack_version_id
     )
