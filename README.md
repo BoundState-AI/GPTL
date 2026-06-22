@@ -7,7 +7,11 @@ Current governing specification:
 - [GPTL Manufacturing Intelligence Platform v0.4.14](docs/GPTL_Manufacturing_Platform_v0.4.14.md)
 - [MIE Build 0 vertical-slice plan v0.15](docs/GPTL_BUILD_PLAN_v0.15.md)
 
-Immutable ORACLE review input:
+Current single-file ORACLE review input:
+
+- [Build 0 completion review bundle v1.0](docs/GPTL_ORACLE_BUILD0_COMPLETION_REVIEW_v1.0.md)
+
+Prior immutable ORACLE review input:
 
 - [MIE Build 0 vertical-slice plan v0.1](docs/GPTL_BUILD_PLAN_v0.1.md)
 - [Single-file specification/build review bundle v0.1](docs/GPTL_ORACLE_BUILD_REVIEW_v0.1.md)
@@ -56,4 +60,4 @@ uv run python scripts/run_slice.py tier2-advisory --database-url "$GPTL_DATABASE
 uv run python scripts/run_slice.py replay-integrity --database-url "$GPTL_DATABASE_URL"
 ```
 
-The database URL is mandatory. There is no embedded-database fallback or application default. The ORACLE v0.1 review bundle remains an immutable historical review input; `scripts/rebuild_oracle_bundle_v0_1.py` reproduces that artifact and intentionally does not use the active contract.
+The database URL is mandatory. There is no embedded-database fallback or application default. `scripts/rebuild_oracle_build0_completion_bundle_v1_0.py` reproduces the current completion-review bundle from the active contract. The ORACLE v0.1 review bundle remains an immutable historical review input; `scripts/rebuild_oracle_bundle_v0_1.py` reproduces that artifact and intentionally does not use the active contract.
