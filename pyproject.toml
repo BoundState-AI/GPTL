@@ -3,7 +3,7 @@ name = "boundstate-gptl"
 version = "0.1.0"
 description = "Deterministic GPTL safety substrate and MIE diagnostic engine"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 dependencies = [
     "psycopg[binary]>=3.2,<4",
     "pydantic>=2.12,<3",
