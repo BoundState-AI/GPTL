@@ -107,6 +107,7 @@ def slice4_policy() -> Slice4Policy:
         )
         for template_id in (
             "action.collect-open-discriminators",
+            "action.report-engine-failure",
             "action.retest-reference-standard",
             "action.review-artifact-evidence",
         )
@@ -138,12 +139,14 @@ def slice4_policy() -> Slice4Policy:
         route_policy_ref=governed_ref("route-policy.slice4"),
         route_reasons=Slice4RouteReasons(
             diagnostic_configuration_invalid=TermId("route.diagnostic-configuration-invalid"),
+            diagnostic_engine_failure=TermId("route.diagnostic-engine-failure"),
             diagnostic_integrity_failure=TermId("route.diagnostic-integrity-failure"),
             method_artifact=TermId("route.method-artifact"),
             diagnostic_indeterminate=TermId("route.diagnostic-indeterminate"),
         ),
         method_artifact_action=_directive("action.review-artifact-evidence"),
         indeterminate_action=_directive("action.collect-open-discriminators"),
+        engine_failure_action=_directive("action.report-engine-failure"),
         what_would_change_artifact=(_directive("action.retest-reference-standard"),),
         method_artifact_event_type_id=TermId("audit.method-artifact"),
         indeterminate_event_type_id=TermId("audit.diagnostic-indeterminate"),
@@ -580,7 +583,7 @@ def _diagnostic_records(
             evidence_location=EvidenceLocator("fixture:candidate-diagnostic-contract"),
             failure_mode_ref=candidate_ref,
             signature_feature_refs=features_by_candidate[candidate_ref],
-            required_signature_field_ids=(FIELD_PEAK_SHAPE,),
+            required_signature_field_ids=tuple(sorted((FIELD_PEAK_SHAPE, FIELD_REFERENCE_RESCAN))),
             discriminator_refs=discriminators_by_candidate[candidate_ref],
             confirm_test_ref=governed_ref(
                 f"confirm-test.{candidate_ref.logical_id.removeprefix('failure.')}"

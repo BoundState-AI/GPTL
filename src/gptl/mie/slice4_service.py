@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import TypeVar
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
 from gptl.core.directives import DisplayDirective
 from gptl.core.persistence import SLICE4_RUN_SCHEMA_VERSION, PostgresRunStore
@@ -22,6 +22,7 @@ from gptl.mie.diagnostics import (
     ConfirmTest,
     DiagnosticActiveState,
     DiagnosticConfigurationError,
+    DiagnosticEngineError,
     DiagnosticIntegrityError,
     DiagnosticRoutePolicy,
     Discriminator,
@@ -69,6 +70,7 @@ from gptl.mie.slice3_service import (
 class Slice4RouteReasons(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
     diagnostic_configuration_invalid: TermId
+    diagnostic_engine_failure: TermId
     diagnostic_integrity_failure: TermId
     method_artifact: TermId
     diagnostic_indeterminate: TermId
@@ -88,6 +90,7 @@ class Slice4Policy(BaseModel):
     route_reasons: Slice4RouteReasons
     method_artifact_action: DisplayDirective
     indeterminate_action: DisplayDirective
+    engine_failure_action: DisplayDirective
     what_would_change_artifact: tuple[DisplayDirective, ...]
     method_artifact_event_type_id: TermId
     indeterminate_event_type_id: TermId
@@ -96,6 +99,7 @@ class Slice4Policy(BaseModel):
         directives = (
             self.method_artifact_action,
             self.indeterminate_action,
+            self.engine_failure_action,
             *self.what_would_change_artifact,
         )
         if not self.what_would_change_artifact:
@@ -285,6 +289,18 @@ def build_artifact_confirmation(
             None,
             sorted_citations((*prepared.citations, *diagnostic_citations)),
         )
+    except DiagnosticConfigurationError:
+        return _diagnostic_refusal(
+            request,
+            runtime,
+            policy,
+            prepared,
+            RefusalType.CONFIGURATION_INVALID,
+            policy.route_reasons.diagnostic_configuration_invalid,
+            (),
+            None,
+            sorted_citations((*prepared.citations, *diagnostic_citations)),
+        )
     try:
         candidates = load_candidate_set(
             runtime.slice3_runtime.slice2_runtime.pack,
@@ -376,6 +392,18 @@ def build_artifact_confirmation(
             prepared,
             RefusalType.INTEGRITY_FAILURE,
             policy.route_reasons.diagnostic_integrity_failure,
+            candidates.assessments,
+            None,
+            base_citations,
+        )
+    except (DiagnosticEngineError, ValidationError):
+        return _diagnostic_refusal(
+            request,
+            runtime,
+            policy,
+            prepared,
+            RefusalType.ENGINE_FAILURE,
+            policy.route_reasons.diagnostic_engine_failure,
             candidates.assessments,
             None,
             base_citations,
@@ -604,7 +632,8 @@ def _route_diagnostic_result(
         other_scores = tuple(
             item.support.support_score
             for item in evaluable
-            if item.support is not None and item.contract != candidate.contract
+            if item.support is not None
+            and item.contract.contract_ref != candidate.contract.contract_ref
         )
         dominance_satisfied = (
             not other_scores or candidate.support.support_score - max(other_scores) >= delta
@@ -654,7 +683,7 @@ def _route_diagnostic_result(
             tuple(item.discriminator_ref for item in runtime.discriminators)
         )
     if prepared.msa.selected_study_ref is None or prepared.msa.measured_uncertainty is None:
-        raise DiagnosticConfigurationError("outside-variation continuation lost selected MSA")
+        raise DiagnosticEngineError("outside-variation continuation lost selected MSA")
     decision = IndeterminateDecision.model_validate(
         {
             **investigation_header(
@@ -707,7 +736,7 @@ def _artifact_result(
         or prepared.msa.selected_study_ref is None
         or prepared.msa.measured_uncertainty is None
     ):
-        raise DiagnosticConfigurationError("artifact verdict lost required evidence")
+        raise DiagnosticEngineError("artifact verdict lost required evidence")
     confirm_refs = {
         (item.logical_id, item.version_id) for item in dominant.confirmation.evidence_refs
     }
@@ -766,11 +795,12 @@ def _diagnostic_refusal(
     configuration_issues: tuple[CandidateConfigurationIssue, ...] | None,
     citations: tuple[Citation, ...],
 ) -> Slice2ExecutionResult:
-    action = (
-        policy.slice3_policy.slice2_policy.integrity_action
-        if refusal_type == RefusalType.INTEGRITY_FAILURE
-        else policy.slice3_policy.slice2_policy.configuration_action
-    )
+    if refusal_type == RefusalType.INTEGRITY_FAILURE:
+        action = policy.slice3_policy.slice2_policy.integrity_action
+    elif refusal_type == RefusalType.ENGINE_FAILURE:
+        action = policy.engine_failure_action
+    else:
+        action = policy.slice3_policy.slice2_policy.configuration_action
     return build_snapshot_refusal(
         request,
         runtime.slice3_runtime.slice2_runtime,

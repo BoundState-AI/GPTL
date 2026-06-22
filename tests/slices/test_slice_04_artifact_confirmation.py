@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import itertools
 import subprocess
 import sys
@@ -7,9 +8,12 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from gptl.core.canonical import canonical_bytes
 from gptl.core.persistence import SLICE4_RUN_SCHEMA_VERSION, PostgresRunStore
+from gptl.core.records import GovernedRef, sorted_unique_refs
+from gptl.mie import slice4_service
 from gptl.mie.candidates import load_candidate_set
 from gptl.mie.diagnostics import (
     evaluate_discriminators,
@@ -24,10 +28,14 @@ from gptl.mie.slice4_service import (
     build_artifact_confirmation,
     execute_artifact_confirmation,
 )
+from gptl.slice2_fixture import governed_ref
 from gptl.slice4_fixture import (
     AS_OF,
+    FIELD_PEAK_SHAPE,
     FIELD_REFERENCE_RESCAN,
     LATER_AS_OF,
+    PEAK_OVERLAP,
+    RESCAN_ARTIFACT,
     RESCAN_REAL,
     slice4_policy,
     slice4_request,
@@ -60,6 +68,49 @@ def test_structured_confirmation_returns_cited_method_artifact() -> None:
     assert confirmed[0].candidate_support_score == Decimal("1.0000")
 
 
+def test_uniquely_dominant_winner_allows_a_second_confirmed_candidate() -> None:
+    policy = slice4_policy()
+    result = build_artifact_confirmation(
+        slice4_request("two-confirmed", AS_OF),
+        _runtime_with_two_confirmed_candidates(),
+        policy,
+    )
+
+    assert isinstance(result.output, Tier1Output)
+    decision = result.output.decision
+    assert isinstance(decision, MethodArtifactDecision)
+    assert decision.confirmed_candidate_ref.logical_id == "failure.peak-overlap"
+    confirmed = tuple(item for item in decision.assessments if item.status == "CONFIRMED")
+    assert len(confirmed) == 2
+    assert [item.candidate_support_score for item in confirmed] == [
+        Decimal("0.8000"),
+        Decimal("1.0000"),
+    ]
+
+
+def test_output_schema_failure_returns_governed_engine_refusal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def reject_output(*args: object, **kwargs: object) -> object:
+        raise ValidationError.from_exception_data("MethodArtifactDecision", [])
+
+    monkeypatch.setattr(MethodArtifactDecision, "model_validate", reject_output)
+    policy = slice4_policy()
+
+    result = build_artifact_confirmation(
+        slice4_request("schema-engine-failure", AS_OF),
+        slice4_runtime("STRUCTURED", "NONE", True, "NONE"),
+        policy,
+    )
+
+    assert isinstance(result.output, Tier1Output)
+    decision = result.output.decision
+    assert decision.verdict == "REFUSED"
+    assert decision.refusal_type == "ENGINE_FAILURE"
+    assert decision.route_reason_id == policy.route_reasons.diagnostic_engine_failure
+    assert decision.required_human_action == policy.engine_failure_action
+
+
 def test_zero_signature_observations_remain_open_unassessed() -> None:
     result = build_artifact_confirmation(
         slice4_request("zero-signature", AS_OF),
@@ -75,6 +126,39 @@ def test_zero_signature_observations_remain_open_unassessed() -> None:
     assert all(item.signature_match_score is None for item in decision.assessments)
     assert all(item.signature_coverage == Decimal("0.0000") for item in decision.assessments)
     assert all(item.candidate_support_score is None for item in decision.assessments)
+
+
+def test_partial_required_signature_evidence_never_aggregates_support() -> None:
+    runtime = slice4_runtime("STRUCTURED", "NONE", True, "NONE")
+    values = tuple(
+        item
+        for item in runtime.slice3_runtime.slice2_runtime.intake.values
+        if item.field_id != FIELD_REFERENCE_RESCAN
+    )
+    intake = runtime.slice3_runtime.slice2_runtime.intake.model_copy(update={"values": values})
+    slice2 = runtime.slice3_runtime.slice2_runtime.model_copy(update={"intake": intake})
+    slice3 = runtime.slice3_runtime.model_copy(update={"slice2_runtime": slice2})
+    partial = runtime.model_copy(update={"slice3_runtime": slice3})
+
+    result = build_artifact_confirmation(
+        slice4_request("partial-signature", AS_OF),
+        partial,
+        slice4_policy(),
+    )
+
+    assert isinstance(result.output, Tier1Output)
+    decision = result.output.decision
+    assert isinstance(decision, IndeterminateDecision)
+    assert all(item.evidence_state == "OPEN_UNASSESSED" for item in decision.assessments)
+    assert all(item.signature_match_score is not None for item in decision.assessments)
+    assert all(item.signature_coverage == Decimal("0.6000") for item in decision.assessments)
+    assert all(item.candidate_support_score is None for item in decision.assessments)
+
+
+def test_slice4_authoritative_path_has_no_renderer_dependency() -> None:
+    source = inspect.getsource(slice4_service).lower()
+
+    assert "render" not in source
 
 
 def test_missing_required_structured_evidence_blocks_confirmation() -> None:
@@ -120,6 +204,70 @@ def test_attested_confirmation_enforces_authority_and_lifecycle(
     assert result.output.decision.verdict == expected_verdict
     if expected_verdict != "METHOD_ARTIFACT":
         assert all(item.status != "CONFIRMED" for item in result.output.decision.assessments)
+
+
+def test_multiple_active_role_authorizations_fail_integrity() -> None:
+    runtime = slice4_runtime("HUMAN_ATTESTED", "VALID", True, "NONE")
+    duplicate = runtime.role_authorization_events[0].model_copy(
+        update={"event_ref": governed_ref("role-authorization.eds-reviewer-duplicate")}
+    )
+    changed = runtime.model_copy(
+        update={
+            "role_authorization_events": tuple(
+                sorted(
+                    (*runtime.role_authorization_events, duplicate),
+                    key=lambda item: (
+                        item.event_ref.logical_id,
+                        item.event_ref.version_number,
+                        item.event_ref.version_id,
+                    ),
+                )
+            )
+        }
+    )
+    changed = _bind_additional_refs(changed, (duplicate.event_ref,))
+
+    result = build_artifact_confirmation(
+        slice4_request("duplicate-role-authorization", AS_OF),
+        changed,
+        slice4_policy(),
+    )
+
+    assert isinstance(result.output, Tier1Output)
+    assert result.output.decision.verdict == "REFUSED"
+    assert result.output.decision.refusal_type == "INTEGRITY_FAILURE"
+
+
+def test_multiple_active_attestations_fail_integrity() -> None:
+    runtime = slice4_runtime("HUMAN_ATTESTED", "VALID", True, "NONE")
+    duplicate = runtime.attestation_events[0].model_copy(
+        update={"attestation_ref": governed_ref("attestation.peak-overlap-duplicate")}
+    )
+    changed = runtime.model_copy(
+        update={
+            "attestation_events": tuple(
+                sorted(
+                    (*runtime.attestation_events, duplicate),
+                    key=lambda item: (
+                        item.attestation_ref.logical_id,
+                        item.attestation_ref.version_number,
+                        item.attestation_ref.version_id,
+                    ),
+                )
+            )
+        }
+    )
+    changed = _bind_additional_refs(changed, (duplicate.attestation_ref,))
+
+    result = build_artifact_confirmation(
+        slice4_request("duplicate-attestation", AS_OF),
+        changed,
+        slice4_policy(),
+    )
+
+    assert isinstance(result.output, Tier1Output)
+    assert result.output.decision.verdict == "REFUSED"
+    assert result.output.decision.refusal_type == "INTEGRITY_FAILURE"
 
 
 def test_later_recorded_revocation_changes_new_run_not_historical_replay() -> None:
@@ -583,3 +731,72 @@ def _runtime_with_peak_support_09840(
         for item in runtime.numeric_policies
     )
     return runtime.model_copy(update={"signature_features": features, "numeric_policies": policies})
+
+
+def _runtime_with_two_confirmed_candidates() -> Slice4Runtime:
+    runtime = slice4_runtime("STRUCTURED", "NONE", True, "NONE")
+    drift = runtime.candidate_contracts[0]
+    features = []
+    for item in runtime.signature_features:
+        if item.candidate_ref == drift.failure_mode_ref:
+            expected = PEAK_OVERLAP if item.observable_id == FIELD_PEAK_SHAPE else RESCAN_ARTIFACT
+            item = item.model_copy(
+                update={
+                    "match_predicate": Predicate(
+                        kind="comparison",
+                        comparison=EqualityComparison(
+                            op="eq",
+                            field_id=item.observable_id,
+                            operand=EnumValue(kind="ENUM", value=expected),
+                        ),
+                    )
+                }
+            )
+        features.append(item)
+    policies = tuple(
+        item.model_copy(update={"value": Decimal("0.20")})
+        if item.policy_kind in {"DISCRIMINATING_POWER", "HIGH_POWER_THRESHOLD"}
+        else item
+        for item in runtime.numeric_policies
+    )
+    confirm_tests = tuple(
+        item.model_copy(
+            update={
+                "predicate": Predicate(
+                    kind="comparison",
+                    comparison=EqualityComparison(
+                        op="eq",
+                        field_id=FIELD_PEAK_SHAPE,
+                        operand=EnumValue(kind="ENUM", value=PEAK_OVERLAP),
+                    ),
+                )
+            }
+        )
+        if item.test_ref == drift.confirm_test_ref
+        else item
+        for item in runtime.confirm_tests
+    )
+    return runtime.model_copy(
+        update={
+            "signature_features": tuple(features),
+            "numeric_policies": policies,
+            "confirm_tests": confirm_tests,
+        }
+    )
+
+
+def _bind_additional_refs(
+    runtime: Slice4Runtime,
+    refs: tuple[GovernedRef, ...],
+) -> Slice4Runtime:
+    additional = sorted_unique_refs(
+        (
+            *runtime.slice3_runtime.slice2_runtime.additional_bound_refs,
+            *refs,
+        )
+    )
+    slice2 = runtime.slice3_runtime.slice2_runtime.model_copy(
+        update={"additional_bound_refs": additional}
+    )
+    slice3 = runtime.slice3_runtime.model_copy(update={"slice2_runtime": slice2})
+    return runtime.model_copy(update={"slice3_runtime": slice3})

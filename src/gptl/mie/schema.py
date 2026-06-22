@@ -320,9 +320,13 @@ class MethodArtifactDecision(InvestigationDecision):
             raise ValueError("measurement comparison values cannot be negative")
         if not Decimal("0") <= self.evaluated_fraction_within_published_catalog <= Decimal("1"):
             raise ValueError("evaluated published-catalog fraction must be bounded to [0,1]")
-        confirmed = tuple(item for item in self.assessments if item.status == "CONFIRMED")
-        if len(confirmed) != 1 or confirmed[0].candidate_ref != self.confirmed_candidate_ref:
-            raise ValueError("artifact verdict requires exactly one matching confirmed candidate")
+        matching_winner = tuple(
+            item
+            for item in self.assessments
+            if item.candidate_ref == self.confirmed_candidate_ref and item.status == "CONFIRMED"
+        )
+        if len(matching_winner) != 1:
+            raise ValueError("artifact verdict winner must be a confirmed candidate")
         citation_keys = tuple(
             (
                 item.record_type_id,

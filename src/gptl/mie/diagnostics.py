@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation, localcontext
-from enum import Enum
-from typing import Annotated, Literal
+from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -35,10 +34,7 @@ from gptl.mie.predicates import (
     validate_predicate_configuration,
 )
 
-
-class DiagnosticFailure(str, Enum):
-    CONFIGURATION_INVALID = "CONFIGURATION_INVALID"
-    INTEGRITY_FAILURE = "INTEGRITY_FAILURE"
+DECIMAL_OPERATION_CARRY_DIGITS: Final = 1
 
 
 class GovernedNumericPolicy(BaseModel):
@@ -358,6 +354,10 @@ class DiagnosticConfigurationError(ValueError):
 
 
 class DiagnosticIntegrityError(ValueError):
+    pass
+
+
+class DiagnosticEngineError(RuntimeError):
     pass
 
 
@@ -1022,7 +1022,8 @@ def _commutative_mass(
     # product stays at sufficient precision and crosses the canonical boundary once.
     with localcontext() as context:
         context.prec = (
-            max(len(powers), 1) * (policy.decimal_max_integer_digits + policy.decimal_scale) + 1
+            max(len(powers), 1) * (policy.decimal_max_integer_digits + policy.decimal_scale)
+            + DECIMAL_OPERATION_CARRY_DIGITS
         )
         complement_product = Decimal("1")
         for power in powers:
@@ -1044,7 +1045,7 @@ def _ratio(
                 + policy.decimal_scale
                 + len(numerator.as_tuple().digits)
                 + len(denominator.as_tuple().digits)
-                + 1
+                + DECIMAL_OPERATION_CARRY_DIGITS
             )
             value = numerator / denominator
     except InvalidOperation as exc:
