@@ -28,10 +28,12 @@ from gptl.mie.schema import (
 SCHEMA_VERSION: Final = "gptl.slice1.v1"
 SNAPSHOT_RUN_SCHEMA_VERSION: Final = "gptl.slice2.v2"
 SLICE3_RUN_SCHEMA_VERSION: Final = "gptl.slice3.v1"
+SLICE4_RUN_SCHEMA_VERSION: Final = "gptl.slice4.v1"
 WRITABLE_SNAPSHOT_RUN_SCHEMA_VERSIONS: Final = frozenset(
     {
         SNAPSHOT_RUN_SCHEMA_VERSION,
         SLICE3_RUN_SCHEMA_VERSION,
+        SLICE4_RUN_SCHEMA_VERSION,
     }
 )
 SUPPORTED_SNAPSHOT_RUN_SCHEMA_VERSIONS: Final = frozenset(

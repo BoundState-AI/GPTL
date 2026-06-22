@@ -1,4 +1,4 @@
-"""MIE canonical output schemas implemented through Slice 3."""
+"""MIE canonical output schemas implemented through Slice 4."""
 
 from __future__ import annotations
 
@@ -78,6 +78,20 @@ class CandidateAssessment(BaseModel):
                 raise ValueError("UNKNOWN applicability must remain unresolved")
             if self.signature_match_score is not None or self.candidate_support_score is not None:
                 raise ValueError("unresolved applicability cannot carry scores")
+        for value, label in (
+            (self.signature_coverage, "signature coverage"),
+            (self.signature_match_score, "signature match score"),
+            (self.candidate_support_score, "candidate support score"),
+        ):
+            if value is not None and not Decimal("0") <= value <= Decimal("1"):
+                raise ValueError(f"{label} must be bounded to [0,1]")
+        if self.evidence_state == "OPEN_UNASSESSED" and self.candidate_support_score is not None:
+            raise ValueError("open-unassessed candidate cannot carry aggregated support")
+        if self.status == "CONFIRMED":
+            if self.evidence_state != "EVALUABLE":
+                raise ValueError("confirmed candidate must be evaluable")
+            if self.signature_match_score is None or self.candidate_support_score is None:
+                raise ValueError("confirmed candidate requires signature and support scores")
         return self
 
 
@@ -275,6 +289,7 @@ class IndeterminateDecision(InvestigationDecision):
     measured_deviation: CanonicalDecimal
     measured_uncertainty: CanonicalDecimal
     uncertainty_unit_id: UnitId
+    diagnostic_state_hash: Sha256Hex | None
     open_discriminator_refs: tuple[GovernedRef, ...]
 
     @model_validator(mode="after")
@@ -287,8 +302,48 @@ class IndeterminateDecision(InvestigationDecision):
         return self
 
 
+class MethodArtifactDecision(InvestigationDecision):
+    verdict: Literal["METHOD_ARTIFACT"]
+    msa_study_ref: GovernedRef
+    measured_deviation: CanonicalDecimal
+    measured_uncertainty: CanonicalDecimal
+    uncertainty_unit_id: UnitId
+    diagnostic_state_hash: Sha256Hex
+    confirmed_candidate_ref: GovernedRef
+    evaluated_fraction_within_published_catalog: CanonicalDecimal
+    confirm_evidence: tuple[Citation, ...]
+    what_would_change_this: tuple[DisplayDirective, ...]
+
+    @model_validator(mode="after")
+    def validate_artifact(self) -> MethodArtifactDecision:
+        if self.measured_deviation < Decimal("0") or self.measured_uncertainty < Decimal("0"):
+            raise ValueError("measurement comparison values cannot be negative")
+        if not Decimal("0") <= self.evaluated_fraction_within_published_catalog <= Decimal("1"):
+            raise ValueError("evaluated published-catalog fraction must be bounded to [0,1]")
+        confirmed = tuple(item for item in self.assessments if item.status == "CONFIRMED")
+        if len(confirmed) != 1 or confirmed[0].candidate_ref != self.confirmed_candidate_ref:
+            raise ValueError("artifact verdict requires exactly one matching confirmed candidate")
+        citation_keys = tuple(
+            (
+                item.record_type_id,
+                item.record_ref.logical_id,
+                item.record_ref.version_id,
+                item.evidence_location,
+            )
+            for item in self.confirm_evidence
+        )
+        if not citation_keys or citation_keys != tuple(sorted(set(citation_keys))):
+            raise ValueError("confirm evidence must be nonempty, unique, and sorted")
+        if not self.what_would_change_this:
+            raise ValueError("artifact verdict requires a governed change directive")
+        return self
+
+
 Tier1Decision = Annotated[
-    RefusalDecision | WithinMeasurementVariationDecision | IndeterminateDecision,
+    RefusalDecision
+    | WithinMeasurementVariationDecision
+    | IndeterminateDecision
+    | MethodArtifactDecision,
     Field(discriminator="verdict"),
 ]
 

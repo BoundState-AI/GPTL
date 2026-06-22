@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from gptl.core.canonical import canonical_sha256
@@ -32,6 +34,7 @@ from gptl.mie.predicates import ContextValue, NumericValue
 from gptl.mie.schema import (
     Citation,
     IndeterminateDecision,
+    MethodArtifactDecision,
     RefusalType,
     Tier1Output,
     WithinMeasurementVariationDecision,
@@ -158,11 +161,40 @@ class Slice3Runtime(BaseModel):
         return self
 
 
+@dataclass(frozen=True)
+class Slice3OutsideVariationReady:
+    intake: Slice2IntakeReady
+    calibration: CalibrationEvaluation
+    msa: MSAGateResult
+    citations: tuple[Citation, ...]
+    context_values: tuple[ContextValue, ...]
+
+
 def build_msa_calibration_gate(
     request: Slice2Request,
     runtime: Slice3Runtime,
     policy: Slice3Policy,
 ) -> Slice2ExecutionResult:
+    prepared = prepare_msa_calibration_gate(request, runtime, policy)
+    if isinstance(prepared, Slice2ExecutionResult):
+        return prepared
+    return _outside_variation_result(
+        request,
+        runtime,
+        policy,
+        prepared.intake,
+        prepared.calibration,
+        prepared.msa,
+        prepared.citations,
+        prepared.context_values,
+    )
+
+
+def prepare_msa_calibration_gate(
+    request: Slice2Request,
+    runtime: Slice3Runtime,
+    policy: Slice3Policy,
+) -> Slice3OutsideVariationReady | Slice2ExecutionResult:
     _validate_snapshot_bindings(runtime, policy)
     intake_result = prepare_snapshot_bound_intake(
         request,
@@ -279,7 +311,7 @@ def build_msa_calibration_gate(
         policy.msa_uncharacterized_precedence,
     )
     msa_citations = _msa_citations(runtime.msa_studies, msa)
-    citations = _sorted_citations((*calibration_citations, *msa_citations))
+    citations = sorted_citations((*calibration_citations, *msa_citations))
     if msa.outcome == MSAGateOutcome.CONFIGURATION_INVALID:
         return build_snapshot_refusal(
             request,
@@ -324,15 +356,12 @@ def build_msa_calibration_gate(
             msa,
             citations,
         )
-    return _outside_variation_result(
-        request,
-        runtime,
-        policy,
-        intake_result,
-        calibration,
-        msa,
-        citations,
-        context_values,
+    return Slice3OutsideVariationReady(
+        intake=intake_result,
+        calibration=calibration,
+        msa=msa,
+        citations=citations,
+        context_values=context_values,
     )
 
 
@@ -367,7 +396,7 @@ def _within_variation_result(
         raise ValueError("within-variation result requires one selected MSA study")
     decision = WithinMeasurementVariationDecision.model_validate(
         {
-            **_investigation_header(request, runtime, policy, intake_result, calibration, msa),
+            **investigation_header(request, runtime, policy, intake_result, calibration, msa),
             "verdict": "WITHIN_MEASUREMENT_VARIATION",
             "assessments": (),
             "citations": citations,
@@ -379,7 +408,7 @@ def _within_variation_result(
         },
         context={"canonicalization_policy": policy.slice2_policy.canonicalization_policy},
     )
-    return _decision_result(
+    return build_investigation_result(
         request,
         runtime,
         policy,
@@ -422,7 +451,7 @@ def _outside_variation_result(
             citations,
             (),
         )
-    combined_citations = _sorted_citations((*citations, *candidates.citations))
+    combined_citations = sorted_citations((*citations, *candidates.citations))
     if candidates.has_invalid:
         return build_snapshot_refusal(
             request,
@@ -472,7 +501,7 @@ def _outside_variation_result(
         raise ValueError("outside-variation result requires compared uncertainty")
     decision = IndeterminateDecision.model_validate(
         {
-            **_investigation_header(request, runtime, policy, intake_result, calibration, msa),
+            **investigation_header(request, runtime, policy, intake_result, calibration, msa),
             "verdict": "INDETERMINATE",
             "assessments": candidates.assessments,
             "citations": combined_citations,
@@ -481,11 +510,12 @@ def _outside_variation_result(
             "measured_deviation": msa.measured_deviation.value,
             "measured_uncertainty": msa.measured_uncertainty.value,
             "uncertainty_unit_id": msa.measured_uncertainty.unit_id,
+            "diagnostic_state_hash": None,
             "open_discriminator_refs": runtime.open_discriminator_refs,
         },
         context={"canonicalization_policy": policy.slice2_policy.canonicalization_policy},
     )
-    return _decision_result(
+    return build_investigation_result(
         request,
         runtime,
         policy,
@@ -495,7 +525,7 @@ def _outside_variation_result(
     )
 
 
-def _investigation_header(
+def investigation_header(
     request: Slice2Request,
     runtime: Slice3Runtime,
     policy: Slice3Policy,
@@ -523,12 +553,12 @@ def _investigation_header(
     }
 
 
-def _decision_result(
+def build_investigation_result(
     request: Slice2Request,
     runtime: Slice3Runtime,
     policy: Slice3Policy,
     intake_result: Slice2IntakeReady,
-    decision: WithinMeasurementVariationDecision | IndeterminateDecision,
+    decision: (WithinMeasurementVariationDecision | IndeterminateDecision | MethodArtifactDecision),
     event_type_id: TermId,
 ) -> Slice2ExecutionResult:
     decision_hash = canonical_sha256(
@@ -613,7 +643,7 @@ def _msa_citations(
     }
     selected = result.selected_study_ref
     evidence_keys = {(item.logical_id, item.version_id) for item in result.evidence_refs}
-    return _sorted_citations(
+    return sorted_citations(
         tuple(
             Citation(
                 record_type_id=study.study_record_type_id,
@@ -629,7 +659,7 @@ def _msa_citations(
     )
 
 
-def _sorted_citations(citations: tuple[Citation, ...]) -> tuple[Citation, ...]:
+def sorted_citations(citations: tuple[Citation, ...]) -> tuple[Citation, ...]:
     unique: dict[tuple[str, str], Citation] = {}
     for item in citations:
         key = (item.record_ref.logical_id, item.record_ref.version_id)

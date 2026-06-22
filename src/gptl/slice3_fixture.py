@@ -181,6 +181,25 @@ def slice3_runtime(
     policy = slice3_policy()
     run_scope_ref = BENCH_SCOPE_REF if msa_scenario == "NON_TEST_SCOPE" else TEST_SCOPE_REF
     pack = slice3_candidate_pack(run_scope_ref)
+    return slice3_runtime_for_pack(
+        calibration_scenario,
+        msa_scenario,
+        deviation,
+        ratified,
+        pack,
+        policy,
+    )
+
+
+def slice3_runtime_for_pack(
+    calibration_scenario: CalibrationScenario,
+    msa_scenario: MSAScenario,
+    deviation: Decimal,
+    ratified: bool,
+    pack: CandidatePack,
+    policy: Slice3Policy,
+) -> Slice3Runtime:
+    run_scope_ref = pack.manifest.evidence_scope_ref
     intake, active_event = _slice3_intake(pack, deviation)
     calibration = _calibration(calibration_scenario)
     calibration_policy = CalibrationValidityPolicy(
