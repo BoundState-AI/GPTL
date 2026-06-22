@@ -13,6 +13,9 @@ PUBLISHED_MIGRATION_SHA256 = {
     "0003_snapshot_bound_runs.sql": (
         "6d0a4fcf74c0699285249a6e7b713c8f77d39c343e32c3f977ecaa114b08ae86"
     ),
+    "0004_replay_capsules.sql": (
+        "a21fb28046652ce2e40d3b0de9836bb758d2f85839e8ed766b4dee43bb825ad0"
+    ),
 }
 
 

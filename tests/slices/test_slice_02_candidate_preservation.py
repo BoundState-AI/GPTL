@@ -482,8 +482,9 @@ def test_store_retains_verified_read_compatibility_with_slice2_v1(
             INSERT INTO gptl_runs (
                 run_id, case_id, context_kind, as_of_time, record_type,
                 schema_version, hash_algorithm, payload_hash, payload,
-                audit_count, snapshot_count, citation_count, bound_version_count
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                audit_count, snapshot_count, citation_count, bound_version_count,
+                replay_capsule_count
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 request.run_id,
@@ -499,6 +500,7 @@ def test_store_retains_verified_read_compatibility_with_slice2_v1(
                 1,
                 0,
                 1,
+                0,
             ),
         )
         connection.execute(
@@ -637,9 +639,9 @@ def test_database_rejects_incomplete_snapshot_bound_commit(postgres_url: str) ->
                         run_id, case_id, context_kind, as_of_time, record_type,
                         schema_version, hash_algorithm, payload_hash, payload,
                         audit_count, snapshot_count, citation_count,
-                        bound_version_count
+                        bound_version_count, replay_capsule_count
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                     )
                     """,
                     (
@@ -656,6 +658,7 @@ def test_database_rejects_incomplete_snapshot_bound_commit(postgres_url: str) ->
                         1,
                         0,
                         1,
+                        0,
                     ),
                 )
                 connection.execute(

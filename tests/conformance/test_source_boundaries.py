@@ -20,7 +20,7 @@ def test_authoritative_source_has_no_prohibited_runtime_dependencies() -> None:
         assert prohibited not in source
 
 
-def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice5() -> None:
+def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7() -> None:
     source_root = Path(__file__).parents[2] / "src" / "gptl" / "mie"
     source = "\n".join(
         (source_root / name).read_text(encoding="utf-8")
@@ -28,6 +28,7 @@ def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice5() -> N
             "diagnostics.py",
             "advisory.py",
             "negative.py",
+            "replay.py",
             "slice4_service.py",
             "slice5_service.py",
             "slice6_service.py",

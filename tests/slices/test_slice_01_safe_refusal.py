@@ -47,9 +47,10 @@ def _insert_direct_complete_run(
             INSERT INTO gptl_runs (
                 run_id, case_id, context_kind, as_of_time, record_type,
                 schema_version, hash_algorithm, payload_hash, payload, audit_count,
-                snapshot_count, citation_count, bound_version_count
+                snapshot_count, citation_count, bound_version_count,
+                replay_capsule_count
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             """,
             (
@@ -61,6 +62,7 @@ def _insert_direct_complete_run(
                 payload_hash,
                 payload,
                 1,
+                0,
                 0,
                 0,
                 0,
@@ -163,6 +165,7 @@ def test_migrations_are_ordered_checksummed_and_idempotent(postgres_url: str) ->
         "0001_slice_1",
         "0002_persistence_invariants",
         "0003_snapshot_bound_runs",
+        "0004_replay_capsules",
     ]
     assert all(len(payload_hash.strip()) == 64 for _, payload_hash in rows)
 
@@ -338,9 +341,10 @@ def test_database_rejects_run_without_declared_audit_rows(postgres_url: str) -> 
                 INSERT INTO gptl_runs (
                     run_id, case_id, context_kind, as_of_time, record_type,
                     schema_version, hash_algorithm, payload_hash, payload, audit_count,
-                    snapshot_count, citation_count, bound_version_count
+                    snapshot_count, citation_count, bound_version_count,
+                    replay_capsule_count
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 """,
                 (
@@ -354,6 +358,7 @@ def test_database_rejects_run_without_declared_audit_rows(postgres_url: str) -> 
                     hashlib.sha256(payload).hexdigest(),
                     payload,
                     1,
+                    0,
                     0,
                     0,
                     0,
@@ -377,9 +382,10 @@ def test_database_rejects_zero_audit_count(postgres_url: str) -> None:
                 INSERT INTO gptl_runs (
                     run_id, case_id, context_kind, as_of_time, record_type,
                     schema_version, hash_algorithm, payload_hash, payload, audit_count,
-                    snapshot_count, citation_count, bound_version_count
+                    snapshot_count, citation_count, bound_version_count,
+                    replay_capsule_count
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 """,
                 (
@@ -392,6 +398,7 @@ def test_database_rejects_zero_audit_count(postgres_url: str) -> None:
                     HASH_ALGORITHM,
                     hashlib.sha256(payload).hexdigest(),
                     payload,
+                    0,
                     0,
                     0,
                     0,

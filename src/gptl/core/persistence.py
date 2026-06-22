@@ -15,7 +15,7 @@ from psycopg import sql
 from gptl.core.audit import PreflightRefusalAuditEvent, SnapshotDecisionAuditEvent
 from gptl.core.canonical import canonical_bytes, canonical_sha256, verify_sha256
 from gptl.core.records import GovernedRef, sorted_unique_refs
-from gptl.core.semantic_types import CanonicalizationPolicy
+from gptl.core.semantic_types import CanonicalizationPolicy, LogicalId, VersionId
 from gptl.core.snapshot import KnowledgeSnapshot, snapshot_hash
 from gptl.mie.schema import (
     AdvisoryDecision,
@@ -54,6 +54,7 @@ SNAPSHOT_AUDIT_RECORD_TYPE: Final = "SNAPSHOT_DECISION_AUDIT_EVENT"
 SNAPSHOT_RECORD_TYPE: Final = "KNOWLEDGE_SNAPSHOT"
 CITATION_RECORD_TYPE: Final = "EVIDENCE_CITATION"
 BOUND_VERSION_RECORD_TYPE: Final = "BOUND_VERSION"
+REPLAY_CAPSULE_RECORD_TYPE: Final = "REPLAY_CAPSULE"
 MIGRATION_FILE_PATTERN = re.compile(r"^(?P<ordinal>\d{4})_[a-z0-9_]+\.sql$")
 
 
@@ -77,6 +78,23 @@ class Migration:
 
 
 @dataclass(frozen=True)
+class ReplayCapsulePayload:
+    algorithm_id: str
+    recipe_schema_version: str
+    replay_policy_ref: GovernedRef
+    payload: bytes
+
+
+@dataclass(frozen=True)
+class StoredReplayCapsule:
+    algorithm_id: str
+    recipe_schema_version: str
+    replay_policy_ref: GovernedRef
+    payload: bytes
+    payload_hash: str
+
+
+@dataclass(frozen=True)
 class StoredRun:
     run_id: str
     context_kind: str
@@ -89,6 +107,7 @@ class StoredRun:
     snapshot_payload: bytes | None
     citation_payloads: tuple[bytes, ...]
     bound_version_payloads: tuple[bytes, ...]
+    replay_capsule: StoredReplayCapsule | None
 
 
 class PostgresRunStore:
@@ -228,6 +247,24 @@ class PostgresRunStore:
         output: Tier1Output,
         audit_events: Sequence[PreflightRefusalAuditEvent],
     ) -> None:
+        self._persist_preflight_run(run_id, output, audit_events, None)
+
+    def persist_replayable_preflight_run(
+        self,
+        run_id: str,
+        output: Tier1Output,
+        audit_events: Sequence[PreflightRefusalAuditEvent],
+        replay_capsule: ReplayCapsulePayload,
+    ) -> None:
+        self._persist_preflight_run(run_id, output, audit_events, replay_capsule)
+
+    def _persist_preflight_run(
+        self,
+        run_id: str,
+        output: Tier1Output,
+        audit_events: Sequence[PreflightRefusalAuditEvent],
+        replay_capsule: ReplayCapsulePayload | None,
+    ) -> None:
         if output.decision.context.context_kind != "PREFLIGHT":
             raise ValueError("persist_preflight_run accepts PREFLIGHT decisions only")
         if tuple(output.decision.audit_event_ids) != tuple(
@@ -265,10 +302,10 @@ class PostgresRunStore:
                             run_id, case_id, context_kind, as_of_time, record_type,
                             schema_version, hash_algorithm, payload_hash, payload,
                             audit_count, snapshot_count, citation_count,
-                            bound_version_count
+                            bound_version_count, replay_capsule_count
                         ) VALUES (
                             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                            %s, %s, %s
+                            %s, %s, %s, %s
                         )
                         """,
                         (
@@ -285,9 +322,17 @@ class PostgresRunStore:
                             0,
                             0,
                             0,
+                            1 if replay_capsule is not None else 0,
                         ),
                     )
                     self._insert_audit_events(cursor, audit_events, SCHEMA_VERSION)
+                    if replay_capsule is not None:
+                        self._insert_replay_capsule(
+                            cursor,
+                            run_id,
+                            replay_capsule,
+                            SCHEMA_VERSION,
+                        )
 
     def persist_snapshot_run(
         self,
@@ -297,6 +342,46 @@ class PostgresRunStore:
         audit_events: Sequence[SnapshotDecisionAuditEvent],
         bound_versions: Sequence[GovernedRef],
         schema_version: str,
+    ) -> None:
+        self._persist_snapshot_run(
+            run_id,
+            output,
+            snapshot,
+            audit_events,
+            bound_versions,
+            schema_version,
+            None,
+        )
+
+    def persist_replayable_snapshot_run(
+        self,
+        run_id: str,
+        output: MIEOutput,
+        snapshot: KnowledgeSnapshot,
+        audit_events: Sequence[SnapshotDecisionAuditEvent],
+        bound_versions: Sequence[GovernedRef],
+        schema_version: str,
+        replay_capsule: ReplayCapsulePayload,
+    ) -> None:
+        self._persist_snapshot_run(
+            run_id,
+            output,
+            snapshot,
+            audit_events,
+            bound_versions,
+            schema_version,
+            replay_capsule,
+        )
+
+    def _persist_snapshot_run(
+        self,
+        run_id: str,
+        output: MIEOutput,
+        snapshot: KnowledgeSnapshot,
+        audit_events: Sequence[SnapshotDecisionAuditEvent],
+        bound_versions: Sequence[GovernedRef],
+        schema_version: str,
+        replay_capsule: ReplayCapsulePayload | None,
     ) -> None:
         if schema_version not in WRITABLE_SNAPSHOT_RUN_SCHEMA_VERSIONS:
             raise ValueError("snapshot run schema is not writable")
@@ -348,10 +433,10 @@ class PostgresRunStore:
                             run_id, case_id, context_kind, as_of_time, record_type,
                             schema_version, hash_algorithm, payload_hash, payload,
                             audit_count, snapshot_count, citation_count,
-                            bound_version_count
+                            bound_version_count, replay_capsule_count
                         ) VALUES (
                             %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                            %s, %s, %s
+                            %s, %s, %s, %s
                         )
                         """,
                         (
@@ -368,6 +453,7 @@ class PostgresRunStore:
                             1,
                             len(citations),
                             len(normalized_versions),
+                            1 if replay_capsule is not None else 0,
                         ),
                     )
                     self._insert_snapshot(
@@ -389,6 +475,48 @@ class PostgresRunStore:
                         audit_events,
                         schema_version,
                     )
+                    if replay_capsule is not None:
+                        self._insert_replay_capsule(
+                            cursor,
+                            run_id,
+                            replay_capsule,
+                            schema_version,
+                        )
+
+    def _insert_replay_capsule(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        run_id: str,
+        replay_capsule: ReplayCapsulePayload,
+        schema_version: str,
+    ) -> None:
+        if not replay_capsule.algorithm_id or not replay_capsule.recipe_schema_version:
+            raise ValueError("replay capsule requires algorithm and recipe schema identities")
+        payload_hash = hashlib.sha256(replay_capsule.payload).hexdigest()
+        cursor.execute(
+            """
+            INSERT INTO gptl_replay_capsules (
+                run_id, algorithm_id, recipe_schema_version,
+                replay_policy_logical_id, replay_policy_version_id,
+                replay_policy_version_number, replay_policy_content_hash,
+                payload_hash, payload, record_type, schema_version, hash_algorithm
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                run_id,
+                replay_capsule.algorithm_id,
+                replay_capsule.recipe_schema_version,
+                replay_capsule.replay_policy_ref.logical_id,
+                replay_capsule.replay_policy_ref.version_id,
+                replay_capsule.replay_policy_ref.version_number,
+                replay_capsule.replay_policy_ref.content_hash,
+                payload_hash,
+                replay_capsule.payload,
+                REPLAY_CAPSULE_RECORD_TYPE,
+                schema_version,
+                HASH_ALGORITHM,
+            ),
+        )
 
     def _insert_audit_events(
         self,
@@ -510,7 +638,7 @@ class PostgresRunStore:
                 cursor.execute(
                     "SELECT payload, payload_hash, audit_count, record_type, "
                     "schema_version, hash_algorithm, context_kind, snapshot_count, "
-                    "citation_count, bound_version_count "
+                    "citation_count, bound_version_count, replay_capsule_count "
                     "FROM gptl_runs WHERE run_id = %s",
                     (run_id,),
                 )
@@ -586,6 +714,12 @@ class PostgresRunStore:
                     BOUND_VERSION_RECORD_TYPE,
                     expected_schema,
                 )
+                replay_capsule = self._load_replay_capsule(
+                    cursor,
+                    run_id,
+                    row[10],
+                    expected_schema,
+                )
                 return StoredRun(
                     run_id=run_id,
                     context_kind=context_kind,
@@ -598,7 +732,55 @@ class PostgresRunStore:
                     snapshot_payload=snapshot_payload,
                     citation_payloads=citation_payloads,
                     bound_version_payloads=bound_version_payloads,
+                    replay_capsule=replay_capsule,
                 )
+
+    def _load_replay_capsule(
+        self,
+        cursor: psycopg.Cursor[tuple[object, ...]],
+        run_id: str,
+        expected_count: object,
+        expected_schema: str,
+    ) -> StoredReplayCapsule | None:
+        cursor.execute(
+            "SELECT algorithm_id, recipe_schema_version, replay_policy_logical_id, "
+            "replay_policy_version_id, replay_policy_version_number, "
+            "replay_policy_content_hash, payload, payload_hash, "
+            "record_type, schema_version, hash_algorithm "
+            "FROM gptl_replay_capsules WHERE run_id = %s",
+            (run_id,),
+        )
+        rows = cursor.fetchall()
+        if len(rows) != expected_count:
+            raise PersistenceIntegrityError("persisted replay capsule count mismatch")
+        if not rows:
+            return None
+        row = cast(
+            tuple[str, str, str, str, int, str, bytes, str, str, str, str],
+            rows[0],
+        )
+        self._validate_record_metadata(
+            row[8],
+            row[9],
+            row[10],
+            REPLAY_CAPSULE_RECORD_TYPE,
+            expected_schema,
+        )
+        payload = bytes(row[6])
+        payload_hash = row[7].strip()
+        verify_sha256(payload, payload_hash)
+        return StoredReplayCapsule(
+            algorithm_id=row[0],
+            recipe_schema_version=row[1],
+            replay_policy_ref=GovernedRef(
+                logical_id=LogicalId(row[2]),
+                version_id=VersionId(row[3]),
+                version_number=row[4],
+                content_hash=row[5].strip(),
+            ),
+            payload=payload,
+            payload_hash=payload_hash,
+        )
 
     def _load_snapshot_payload(
         self,

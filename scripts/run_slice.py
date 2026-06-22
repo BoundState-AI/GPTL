@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from gptl.core.canonical import canonical_bytes
 from gptl.core.persistence import PostgresRunStore
+from gptl.mie.replay import execute_replayable_run, verify_persisted_replay
 from gptl.mie.service import execute_safe_refusal
 from gptl.mie.slice2_service import execute_candidate_preservation
 from gptl.mie.slice3_service import execute_msa_calibration_gate
@@ -25,6 +26,7 @@ from gptl.slice3_fixture import slice3_policy, slice3_request, slice3_runtime
 from gptl.slice4_fixture import AS_OF, slice4_policy, slice4_request, slice4_runtime
 from gptl.slice5_fixture import slice5_policy, slice5_request, slice5_runtime
 from gptl.slice6_fixture import slice6_policy, slice6_query, slice6_request, slice6_runtime
+from gptl.slice7_fixture import replay_policy, replay_recipes
 
 
 def run_safe_refusal(database_url: str) -> None:
@@ -173,6 +175,45 @@ def run_tier2_advisory(database_url: str) -> None:
     print(json.dumps(json.loads(persisted.audit_payloads[0]), indent=2))
 
 
+def run_replay_integrity(database_url: str, run_id: str | None) -> None:
+    policy = replay_policy()
+    store = PostgresRunStore(database_url, policy.canonicalization_policy)
+    store.initialize()
+    if run_id is not None:
+        result = verify_persisted_replay(
+            f"replay.cli.{run_id}",
+            run_id,
+            store,
+            policy,
+        )
+        print(
+            json.dumps(
+                json.loads(canonical_bytes(result, policy.canonicalization_policy)), indent=2
+            )
+        )
+        if result.status != "VERIFIED":
+            raise RuntimeError("persisted replay failed integrity verification")
+        return
+    results = []
+    for recipe in replay_recipes():
+        execute_replayable_run(recipe, policy, store)
+        results.append(
+            verify_persisted_replay(
+                f"replay.cli.{recipe.request.run_id}",
+                recipe.request.run_id,
+                store,
+                policy,
+            )
+        )
+    if any(item.status != "VERIFIED" for item in results):
+        raise RuntimeError("Build 0 replay demonstration failed integrity verification")
+    print(
+        json.dumps(
+            json.loads(canonical_bytes(tuple(results), policy.canonicalization_policy)), indent=2
+        )
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -184,9 +225,11 @@ def main() -> None:
             "artifact-confirmation",
             "honest-negative",
             "tier2-advisory",
+            "replay-integrity",
         ),
     )
     parser.add_argument("--database-url", required=True)
+    parser.add_argument("--run-id")
     arguments = parser.parse_args()
     if arguments.scenario == "safe-refusal":
         run_safe_refusal(arguments.database_url)
@@ -198,8 +241,10 @@ def main() -> None:
         run_artifact_confirmation(arguments.database_url)
     elif arguments.scenario == "honest-negative":
         run_honest_negative(arguments.database_url)
-    else:
+    elif arguments.scenario == "tier2-advisory":
         run_tier2_advisory(arguments.database_url)
+    else:
+        run_replay_integrity(arguments.database_url, arguments.run_id)
 
 
 if __name__ == "__main__":
