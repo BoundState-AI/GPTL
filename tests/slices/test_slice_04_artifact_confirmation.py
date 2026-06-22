@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from gptl.core.canonical import canonical_bytes
+from gptl.core.canonical import canonical_bytes, canonical_sha256
 from gptl.core.persistence import SLICE4_RUN_SCHEMA_VERSION, PostgresRunStore
 from gptl.core.records import GovernedRef, sorted_unique_refs
 from gptl.mie import slice4_service
@@ -19,6 +19,7 @@ from gptl.mie.diagnostics import (
     evaluate_discriminators,
     evaluate_signature,
     evaluate_support,
+    resolve_diagnostic_active_state,
 )
 from gptl.mie.predicates import EnumValue, EqualityComparison, Predicate
 from gptl.mie.schema import IndeterminateDecision, MethodArtifactDecision, Tier1Output
@@ -41,6 +42,29 @@ from gptl.slice4_fixture import (
     slice4_request,
     slice4_runtime,
 )
+
+
+def test_diagnostic_state_hash_has_one_exact_canonical_payload() -> None:
+    runtime = slice4_runtime("STRUCTURED", "NONE", True, "NONE")
+    request = slice4_request("diagnostic-state-hash", AS_OF)
+    policy = slice4_policy().slice3_policy.slice2_policy.canonicalization_policy
+
+    state = resolve_diagnostic_active_state(
+        runtime.discriminator_results,
+        runtime.role_authorization_events,
+        runtime.attestation_events,
+        request.as_of_time,
+        policy,
+    )
+    payload = {
+        "as_of_time": state.as_of_time,
+        "active_discriminator_result_refs": state.active_discriminator_result_refs,
+        "active_role_authorization_refs": state.active_role_authorization_refs,
+        "active_attestation_refs": state.active_attestation_refs,
+    }
+
+    assert state.state_hash == canonical_sha256(payload, policy)
+    assert state.state_hash != canonical_sha256({**payload, "state_hash": state.state_hash}, policy)
 
 
 def test_structured_confirmation_returns_cited_method_artifact() -> None:
