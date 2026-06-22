@@ -20,11 +20,16 @@ def test_authoritative_source_has_no_prohibited_runtime_dependencies() -> None:
         assert prohibited not in source
 
 
-def test_slice4_engine_has_no_domain_numeric_constants() -> None:
+def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice5() -> None:
     source_root = Path(__file__).parents[2] / "src" / "gptl" / "mie"
     source = "\n".join(
         (source_root / name).read_text(encoding="utf-8")
-        for name in ("diagnostics.py", "slice4_service.py")
+        for name in (
+            "diagnostics.py",
+            "negative.py",
+            "slice4_service.py",
+            "slice5_service.py",
+        )
     )
     decimal_literals = {
         value

@@ -247,7 +247,7 @@ class Slice4Runtime(BaseModel):
 
 
 @dataclass(frozen=True)
-class _EvaluatedCandidate:
+class EvaluatedCandidate:
     assessment: CandidateAssessment
     contract: CandidateDiagnosticContract
     support: SupportEvaluation | None
@@ -255,11 +255,19 @@ class _EvaluatedCandidate:
     discriminators: tuple[Discriminator, ...]
 
 
-def build_artifact_confirmation(
+@dataclass(frozen=True)
+class Slice4InputsReady:
+    prepared: Slice3OutsideVariationReady
+    active_state: DiagnosticActiveState
+    assessments: tuple[CandidateAssessment, ...]
+    citations: tuple[Citation, ...]
+
+
+def prepare_diagnostic_inputs(
     request: Slice2Request,
     runtime: Slice4Runtime,
     policy: Slice4Policy,
-) -> Slice2ExecutionResult:
+) -> Slice2ExecutionResult | Slice4InputsReady:
     _validate_snapshot_bindings(runtime, policy)
     prepared = prepare_msa_calibration_gate(
         request,
@@ -278,7 +286,7 @@ def build_artifact_confirmation(
             policy.slice3_policy.slice2_policy.canonicalization_policy,
         )
     except DiagnosticIntegrityError:
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
@@ -290,7 +298,7 @@ def build_artifact_confirmation(
             sorted_citations((*prepared.citations, *diagnostic_citations)),
         )
     except DiagnosticConfigurationError:
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
@@ -309,7 +317,7 @@ def build_artifact_confirmation(
         )
     except CandidatePackConfigurationError:
         refusal_citations = sorted_citations((*prepared.citations, *diagnostic_citations))
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
@@ -324,7 +332,7 @@ def build_artifact_confirmation(
         (*prepared.citations, *candidates.citations, *diagnostic_citations)
     )
     if candidates.has_invalid:
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
@@ -361,52 +369,74 @@ def build_artifact_confirmation(
             base_citations,
             missing_fields,
         )
+    return Slice4InputsReady(
+        prepared=prepared,
+        active_state=active_state,
+        assessments=candidates.assessments,
+        citations=base_citations,
+    )
+
+
+def build_artifact_confirmation(
+    request: Slice2Request,
+    runtime: Slice4Runtime,
+    policy: Slice4Policy,
+) -> Slice2ExecutionResult:
+    inputs = prepare_diagnostic_inputs(request, runtime, policy)
+    if isinstance(inputs, Slice2ExecutionResult):
+        return inputs
     try:
-        evaluated = _evaluate_candidates(request, runtime, policy, prepared, candidates.assessments)
-        return _route_diagnostic_result(
+        evaluated = evaluate_diagnostic_candidates(
             request,
             runtime,
             policy,
-            prepared,
+            inputs.prepared,
+            inputs.assessments,
+        )
+        return route_diagnostic_result(
+            request,
+            runtime,
+            policy,
+            inputs.prepared,
             evaluated,
-            active_state,
-            base_citations,
+            inputs.active_state,
+            inputs.citations,
         )
     except DiagnosticConfigurationError:
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
-            prepared,
+            inputs.prepared,
             RefusalType.CONFIGURATION_INVALID,
             policy.route_reasons.diagnostic_configuration_invalid,
-            candidates.assessments,
+            inputs.assessments,
             None,
-            base_citations,
+            inputs.citations,
         )
     except DiagnosticIntegrityError:
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
-            prepared,
+            inputs.prepared,
             RefusalType.INTEGRITY_FAILURE,
             policy.route_reasons.diagnostic_integrity_failure,
-            candidates.assessments,
+            inputs.assessments,
             None,
-            base_citations,
+            inputs.citations,
         )
     except (DiagnosticEngineError, ValidationError):
-        return _diagnostic_refusal(
+        return build_diagnostic_refusal(
             request,
             runtime,
             policy,
-            prepared,
+            inputs.prepared,
             RefusalType.ENGINE_FAILURE,
             policy.route_reasons.diagnostic_engine_failure,
-            candidates.assessments,
+            inputs.assessments,
             None,
-            base_citations,
+            inputs.citations,
         )
 
 
@@ -428,19 +458,22 @@ def execute_artifact_confirmation(
     return result
 
 
-def _evaluate_candidates(
+def evaluate_diagnostic_candidates(
     request: Slice2Request,
     runtime: Slice4Runtime,
     policy: Slice4Policy,
     prepared: Slice3OutsideVariationReady,
     assessments: tuple[CandidateAssessment, ...],
-) -> tuple[_EvaluatedCandidate, ...]:
+) -> tuple[EvaluatedCandidate, ...]:
     contracts = {item.failure_mode_ref: item for item in runtime.candidate_contracts}
-    evaluated: list[_EvaluatedCandidate] = []
+    evaluated: list[EvaluatedCandidate] = []
     for assessment in assessments:
         contract = contracts[assessment.candidate_ref]
-        if assessment.applicability != ApplicabilityTruth.TRUE:
-            evaluated.append(_EvaluatedCandidate(assessment, contract, None, None, ()))
+        if (
+            assessment.applicability != ApplicabilityTruth.TRUE
+            or assessment.evidence_state == "ELIMINATED"
+        ):
+            evaluated.append(EvaluatedCandidate(assessment, contract, None, None, ()))
             continue
         features = tuple(
             item
@@ -460,7 +493,7 @@ def _evaluate_candidates(
             policy.slice3_policy.slice2_policy.canonicalization_policy,
         )
         if signature.evidence_state == "OPEN_UNASSESSED":
-            open_assessment = _assessment(
+            open_assessment = updated_assessment(
                 assessment,
                 "OPEN_UNASSESSED",
                 "OPEN_UNASSESSED",
@@ -473,7 +506,7 @@ def _evaluate_candidates(
                     contract.min_signature_coverage_policy_ref,
                 ),
             )
-            evaluated.append(_EvaluatedCandidate(open_assessment, contract, None, None, ()))
+            evaluated.append(EvaluatedCandidate(open_assessment, contract, None, None, ()))
             continue
         discriminators = tuple(
             item
@@ -553,7 +586,7 @@ def _evaluate_candidates(
             and support.support_score >= tau_confirm
             and confirmation.satisfied
         )
-        final_assessment = _assessment(
+        final_assessment = updated_assessment(
             assessment,
             "EVALUABLE",
             "CONFIRMED" if confirmed else "CANDIDATE",
@@ -578,7 +611,7 @@ def _evaluate_candidates(
             ),
         )
         evaluated.append(
-            _EvaluatedCandidate(
+            EvaluatedCandidate(
                 final_assessment,
                 contract,
                 support,
@@ -597,12 +630,12 @@ def _evaluate_candidates(
     )
 
 
-def _route_diagnostic_result(
+def route_diagnostic_result(
     request: Slice2Request,
     runtime: Slice4Runtime,
     policy: Slice4Policy,
     prepared: Slice3OutsideVariationReady,
-    evaluated: tuple[_EvaluatedCandidate, ...],
+    evaluated: tuple[EvaluatedCandidate, ...],
     active_state: DiagnosticActiveState,
     citations: tuple[Citation, ...],
 ) -> Slice2ExecutionResult:
@@ -617,7 +650,7 @@ def _route_diagnostic_result(
         request.as_of_time,
         policy.slice3_policy.slice2_policy.operational_mode,
     ).value
-    dominant: list[_EvaluatedCandidate] = []
+    dominant: list[EvaluatedCandidate] = []
     for candidate in confirmed:
         if candidate.support is None:
             continue
@@ -726,7 +759,7 @@ def _artifact_result(
     policy: Slice4Policy,
     prepared: Slice3OutsideVariationReady,
     assessments: tuple[CandidateAssessment, ...],
-    dominant: _EvaluatedCandidate,
+    dominant: EvaluatedCandidate,
     fraction: Decimal,
     active_state: DiagnosticActiveState,
     citations: tuple[Citation, ...],
@@ -784,7 +817,7 @@ def _artifact_result(
     )
 
 
-def _diagnostic_refusal(
+def build_diagnostic_refusal(
     request: Slice2Request,
     runtime: Slice4Runtime,
     policy: Slice4Policy,
@@ -819,7 +852,7 @@ def _diagnostic_refusal(
     )
 
 
-def _assessment(
+def updated_assessment(
     base: CandidateAssessment,
     evidence_state: str,
     status: str,

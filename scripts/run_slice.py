@@ -13,6 +13,7 @@ from gptl.mie.service import execute_safe_refusal
 from gptl.mie.slice2_service import execute_candidate_preservation
 from gptl.mie.slice3_service import execute_msa_calibration_gate
 from gptl.mie.slice4_service import execute_artifact_confirmation
+from gptl.mie.slice5_service import execute_honest_negative
 from gptl.slice1_fixture import (
     empty_pack_registry,
     safe_refusal_policy,
@@ -21,6 +22,7 @@ from gptl.slice1_fixture import (
 from gptl.slice2_fixture import ratified_runtime, slice2_policy, slice2_request
 from gptl.slice3_fixture import slice3_policy, slice3_request, slice3_runtime
 from gptl.slice4_fixture import AS_OF, slice4_policy, slice4_request, slice4_runtime
+from gptl.slice5_fixture import slice5_policy, slice5_request, slice5_runtime
 
 
 def run_safe_refusal(database_url: str) -> None:
@@ -112,6 +114,34 @@ def run_artifact_confirmation(database_url: str) -> None:
     print(json.dumps(json.loads(persisted.audit_payloads[0]), indent=2))
 
 
+def run_honest_negative(database_url: str) -> None:
+    policy = slice5_policy()
+    request = slice5_request("demo")
+    runtime = slice5_runtime("COMPLETE")
+    store = PostgresRunStore(
+        database_url,
+        policy.slice4_policy.slice3_policy.slice2_policy.canonicalization_policy,
+    )
+    store.initialize()
+    result = execute_honest_negative(request, runtime, policy, store)
+    persisted = store.load_run(request.run_id)
+    if persisted is None or persisted.snapshot_payload is None:
+        raise RuntimeError("honest-negative run was not persisted completely")
+    print(
+        json.dumps(
+            json.loads(
+                canonical_bytes(
+                    result.output,
+                    policy.slice4_policy.slice3_policy.slice2_policy.canonicalization_policy,
+                )
+            ),
+            indent=2,
+        )
+    )
+    print(json.dumps(json.loads(persisted.snapshot_payload), indent=2))
+    print(json.dumps(json.loads(persisted.audit_payloads[0]), indent=2))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -121,6 +151,7 @@ def main() -> None:
             "candidate-preservation",
             "msa-gate",
             "artifact-confirmation",
+            "honest-negative",
         ),
     )
     parser.add_argument("--database-url", required=True)
@@ -131,8 +162,10 @@ def main() -> None:
         run_candidate_preservation(arguments.database_url)
     elif arguments.scenario == "msa-gate":
         run_msa_gate(arguments.database_url)
-    else:
+    elif arguments.scenario == "artifact-confirmation":
         run_artifact_confirmation(arguments.database_url)
+    else:
+        run_honest_negative(arguments.database_url)
 
 
 if __name__ == "__main__":

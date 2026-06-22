@@ -1,4 +1,4 @@
-"""MIE canonical output schemas implemented through Slice 4."""
+"""MIE canonical output schemas implemented through Slice 5."""
 
 from __future__ import annotations
 
@@ -343,11 +343,78 @@ class MethodArtifactDecision(InvestigationDecision):
         return self
 
 
+class EvaluatedArtifact(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    failure_mode_ref: GovernedRef
+    terminal_status: Literal["ELIMINATED", "RULED_OUT"]
+    discriminator_refs: tuple[GovernedRef, ...]
+    ruling_citations: tuple[Citation, ...]
+
+    @model_validator(mode="after")
+    def validate_evidence(self) -> EvaluatedArtifact:
+        _validate_ref_order(self.discriminator_refs, "evaluated artifact discriminator refs")
+        citation_keys = tuple(
+            (
+                item.record_type_id,
+                item.record_ref.logical_id,
+                item.record_ref.version_id,
+                item.evidence_location,
+            )
+            for item in self.ruling_citations
+        )
+        if not citation_keys or citation_keys != tuple(sorted(set(citation_keys))):
+            raise ValueError("evaluated artifact requires unique sorted ruling citations")
+        return self
+
+
+class KnownGap(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    category_id: TermId
+    why_unevaluated: DisplayDirective
+    what_would_enable: DisplayDirective
+
+
+class KnownArtifactsExcludedDecision(InvestigationDecision):
+    verdict: Literal["KNOWN_ARTIFACTS_EXCLUDED"]
+    artifacts_evaluated: tuple[EvaluatedArtifact, ...]
+    known_unevaluated_gaps: tuple[KnownGap, ...]
+    catalog_boundary: DisplayDirective
+    evaluated_fraction_within_published_catalog: CanonicalDecimal
+
+    @model_validator(mode="after")
+    def validate_bounded_negative(self) -> KnownArtifactsExcludedDecision:
+        if not Decimal("0") <= self.evaluated_fraction_within_published_catalog <= Decimal("1"):
+            raise ValueError("evaluated published-catalog fraction must be bounded to [0,1]")
+        assessment_status = {item.candidate_ref: item.status for item in self.assessments}
+        if not assessment_status or any(
+            status not in {"ELIMINATED", "RULED_OUT"} for status in assessment_status.values()
+        ):
+            raise ValueError("bounded negative requires every candidate to be terminally excluded")
+        artifact_keys = tuple(
+            (item.failure_mode_ref.logical_id, item.failure_mode_ref.version_id)
+            for item in self.artifacts_evaluated
+        )
+        if artifact_keys != tuple(sorted(set(artifact_keys))):
+            raise ValueError("evaluated artifacts must be nonempty, unique, and sorted")
+        if set(assessment_status) != {item.failure_mode_ref for item in self.artifacts_evaluated}:
+            raise ValueError("evaluated artifacts must cover the exact assessed candidate set")
+        if any(
+            assessment_status[item.failure_mode_ref] != item.terminal_status
+            for item in self.artifacts_evaluated
+        ):
+            raise ValueError("evaluated artifact status must match its candidate assessment")
+        gap_ids = tuple(item.category_id for item in self.known_unevaluated_gaps)
+        if gap_ids != tuple(sorted(set(gap_ids))):
+            raise ValueError("known gap categories must be unique and sorted")
+        return self
+
+
 Tier1Decision = Annotated[
     RefusalDecision
     | WithinMeasurementVariationDecision
     | IndeterminateDecision
-    | MethodArtifactDecision,
+    | MethodArtifactDecision
+    | KnownArtifactsExcludedDecision,
     Field(discriminator="verdict"),
 ]
 

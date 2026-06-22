@@ -48,8 +48,10 @@ class GovernedNumericPolicy(BaseModel):
         "MIN_SIGNATURE_COVERAGE",
         "TAU_CONFIRM",
         "TAU_VERDICT",
+        "TAU_RULEOUT",
         "DELTA_DOMINANCE",
         "HIGH_POWER_THRESHOLD",
+        "MIN_CATALOG_EVALUATED_FRACTION",
     ]
     value: CanonicalDecimal
     unit_id: UnitId
@@ -1051,6 +1053,14 @@ def _ratio(
     except InvalidOperation as exc:
         raise DiagnosticConfigurationError("diagnostic ratio cannot be represented") from exc
     return _canonical_value(value, policy)
+
+
+def canonical_ratio(
+    numerator: Decimal,
+    denominator: Decimal,
+    policy: CanonicalizationPolicy,
+) -> CanonicalDecimal:
+    return _ratio(numerator, denominator, policy)
 
 
 def _canonical_value(value: Decimal, policy: CanonicalizationPolicy) -> Decimal:

@@ -34,6 +34,7 @@ from gptl.mie.predicates import ContextValue, NumericValue
 from gptl.mie.schema import (
     Citation,
     IndeterminateDecision,
+    KnownArtifactsExcludedDecision,
     MethodArtifactDecision,
     RefusalType,
     Tier1Output,
@@ -558,7 +559,12 @@ def build_investigation_result(
     runtime: Slice3Runtime,
     policy: Slice3Policy,
     intake_result: Slice2IntakeReady,
-    decision: (WithinMeasurementVariationDecision | IndeterminateDecision | MethodArtifactDecision),
+    decision: (
+        WithinMeasurementVariationDecision
+        | IndeterminateDecision
+        | MethodArtifactDecision
+        | KnownArtifactsExcludedDecision
+    ),
     event_type_id: TermId,
 ) -> Slice2ExecutionResult:
     decision_hash = canonical_sha256(
