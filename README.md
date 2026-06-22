@@ -7,6 +7,11 @@ Current governing specification:
 - [GPTL Manufacturing Intelligence Platform v0.4.15](docs/GPTL_Manufacturing_Platform_v0.4.15.md)
 - [MIE Build 0 vertical-slice plan v0.16](docs/GPTL_BUILD_PLAN_v0.16.md)
 
+Build 0 completion evidence:
+
+- [Source-audited freeze record v1.0](docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.0.md)
+- [Machine-readable freeze record v1.0](docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.0.json)
+
 Most recent immutable ORACLE review input:
 
 - [Build 0 completion review bundle v1.0](docs/GPTL_ORACLE_BUILD0_COMPLETION_REVIEW_v1.0.md)
