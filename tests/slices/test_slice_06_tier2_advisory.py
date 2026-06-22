@@ -7,16 +7,25 @@ import sys
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
-from gptl.core.canonical import canonical_bytes
+from gptl.core.canonical import canonical_bytes, canonical_sha256
 from gptl.core.directives import DisplayDirective
 from gptl.core.persistence import SLICE6_RUN_SCHEMA_VERSION, PostgresRunStore
 from gptl.core.semantic_types import FieldId, TemplateId, TermId
+from gptl.mie import advisory as advisory_module
 from gptl.mie import slice6_service
-from gptl.mie.advisory import AdvisoryQuery, resolve_advisory_method
+from gptl.mie.advisory import (
+    LEXICAL_UNICODE_DATA_VERSION,
+    AdvisoryQuery,
+    LexicalResolverPolicy,
+    normalize_lexical_text,
+    resolve_advisory_method,
+)
 from gptl.mie.schema import AdvisoryDecision, RenderedArtifact, Tier2Output
 from gptl.mie.slice6_service import (
     AdvisoryConfigurationError,
+    advisory_bound_refs,
     build_tier2_advisory,
     execute_tier2_advisory,
 )
@@ -117,15 +126,21 @@ def test_each_ineligible_case_returns_typed_nonverdict_advisory(
     measurements: tuple[str, ...],
     records: tuple[str, ...],
 ) -> None:
+    policy = slice6_policy()
     result = build_tier2_advisory(
         slice6_request(scenario.lower()),
         slice6_query(scenario),
         slice6_runtime(scenario),
-        slice6_policy(),
+        policy,
     )
 
     assert isinstance(result.output, Tier2Output)
+    assert result.output.output_kind == "TIER2_ADVISORY"
     advisory = result.output.advisory
+    canonicalization = (
+        policy.slice5_policy.slice4_policy.slice3_policy.slice2_policy.canonicalization_policy
+    )
+    assert result.output.advisory_hash == canonical_sha256(advisory, canonicalization)
     assert advisory.status == "ADVISORY_NO_VERDICT"
     assert advisory.method_resolution == resolution
     assert advisory.tier1_eligibility_gap_ids == (gap,)
@@ -149,6 +164,65 @@ def test_advisory_schema_cannot_carry_verdict_refusal_or_support() -> None:
     }
 
     assert not (set(AdvisoryDecision.model_fields) & forbidden)
+
+
+def test_tier2_rejects_a_positive_tier1_verdict_before_route_selection() -> None:
+    with pytest.raises(
+        AdvisoryConfigurationError,
+        match="cannot consume or replace a Tier 1 verdict",
+    ):
+        build_tier2_advisory(
+            slice6_request("positive-verdict-rejected"),
+            slice6_query("POSITIVE_PRECEDENCE"),
+            slice6_runtime("POSITIVE_PRECEDENCE"),
+            slice6_policy(),
+        )
+
+
+def test_lexical_normalization_uses_governed_fixed_unicode_data() -> None:
+    policy = slice6_runtime("MISSING_MSA").resolver_policy
+
+    assert policy.normalization_id == "NFKC_UCD_3_2_ASCII_CASEFOLD_ALNUM_V1"
+    assert policy.unicode_data_version == LEXICAL_UNICODE_DATA_VERSION
+    assert normalize_lexical_text("\uff25\uff24\uff33 \ufb00") == ("eds", "ff")
+
+
+def test_unexpected_unicode_data_version_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class UnexpectedUnicodeData:
+        unidata_version = "unexpected"
+
+    monkeypatch.setattr(
+        advisory_module,
+        "_LEXICAL_UNICODE_DATABASE",
+        UnexpectedUnicodeData(),
+    )
+
+    with pytest.raises(ValueError, match="does not match governed policy"):
+        normalize_lexical_text("eds")
+
+
+def test_resolver_policy_rejects_an_unimplemented_unicode_data_version() -> None:
+    payload = slice6_runtime("MISSING_MSA").resolver_policy.model_dump(mode="python")
+    payload["unicode_data_version"] = "15.1.0"
+
+    with pytest.raises(ValidationError, match="unicode_data_version"):
+        LexicalResolverPolicy.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "public_function",
+    (
+        normalize_lexical_text,
+        resolve_advisory_method,
+        build_tier2_advisory,
+        execute_tier2_advisory,
+        advisory_bound_refs,
+    ),
+)
+def test_slice6_public_functions_declare_their_contract(public_function: object) -> None:
+    assert inspect.getdoc(public_function)
 
 
 def test_ambiguous_alias_preserves_every_bounded_candidate_without_selecting_method() -> None:

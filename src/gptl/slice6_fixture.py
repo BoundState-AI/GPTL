@@ -51,6 +51,7 @@ AdvisoryScenario = Literal[
     "STALE_CALIBRATION",
     "UNAVAILABLE_CALIBRATION",
     "UNKNOWN_APPLICABILITY",
+    "POSITIVE_PRECEDENCE",
 ]
 
 
@@ -150,11 +151,12 @@ def slice6_query(scenario: AdvisoryScenario) -> AdvisoryQuery:
 
 def slice6_runtime(scenario: AdvisoryScenario) -> Slice6Runtime:
     policy = slice6_policy()
-    runtime5 = (
-        slice5_runtime("UNKNOWN_APPLICABILITY")
-        if scenario == "UNKNOWN_APPLICABILITY"
-        else slice5_runtime("COMPLETE")
-    )
+    if scenario == "UNKNOWN_APPLICABILITY":
+        runtime5 = slice5_runtime("UNKNOWN_APPLICABILITY")
+    elif scenario == "POSITIVE_PRECEDENCE":
+        runtime5 = slice5_runtime("POSITIVE_PRECEDENCE")
+    else:
+        runtime5 = slice5_runtime("COMPLETE")
     runtime5 = _slice6_engine_runtime(runtime5)
     if scenario == "UNRATIFIED_INTAKE":
         runtime5 = _unratified_runtime(runtime5)
@@ -224,7 +226,8 @@ def lexical_resolver_policy(runtime: Slice5Runtime) -> LexicalResolverPolicy:
             "record_type_id": "record.lexical-resolver-policy",
             "evidence_location": "fixture:lexical-resolver-policy",
             "algorithm_id": "BUILD0_LEXICAL_V1",
-            "normalization_id": "NFKC_CASEFOLD_ASCII_ALNUM_V1",
+            "normalization_id": "NFKC_UCD_3_2_ASCII_CASEFOLD_ALNUM_V1",
+            "unicode_data_version": "3.2.0",
             "retrieval_order": RETRIEVAL_LANE_ORDER,
             "weights": (
                 RetrievalWeight(lane="EXACT", value=Decimal("1.00")),

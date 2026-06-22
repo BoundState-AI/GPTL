@@ -26,6 +26,7 @@ from gptl.mie.schema import (
     AdvisoryDecision,
     Citation,
     RefusalDecision,
+    Tier1Decision,
     Tier1Output,
     Tier2Output,
 )
@@ -78,6 +79,7 @@ def build_tier2_advisory(
     policy: Slice6Policy,
     accelerated_method_refs: tuple[GovernedRef, ...] | None = None,
 ) -> Slice2ExecutionResult:
+    """Build a non-verdict advisory only from an ineligible Tier 1 attempt."""
     _validate_directives(runtime, policy)
     try:
         resolution = resolve_advisory_method(
@@ -101,7 +103,8 @@ def build_tier2_advisory(
         policy.slice5_policy,
     )
     _validate_snapshot_bindings(tier1_attempt, effective_runtime, policy, query)
-    rule = _route_rule(resolution, tier1_attempt, effective_runtime.route_rules)
+    source_body = _advisory_source_body(resolution, tier1_attempt)
+    rule = _route_rule(resolution, source_body, effective_runtime.route_rules)
     applicability_evaluations = _advisory_applicability_evaluations(
         resolution,
         tier1_attempt,
@@ -122,11 +125,6 @@ def build_tier2_advisory(
         )
         if resolution.resolution == "RESOLVED"
         else ()
-    )
-    source_body = (
-        tier1_attempt.output.decision
-        if isinstance(tier1_attempt.output, Tier1Output)
-        else tier1_attempt.output.advisory
     )
     source_missing_fields = (
         source_body.missing_field_ids if isinstance(source_body, RefusalDecision) else ()
@@ -197,6 +195,7 @@ def execute_tier2_advisory(
     store: PostgresRunStore,
     accelerated_method_refs: tuple[GovernedRef, ...] | None = None,
 ) -> Slice2ExecutionResult:
+    """Build and atomically persist a snapshot-bound Tier 2 advisory run."""
     result = build_tier2_advisory(
         request,
         query,
@@ -217,7 +216,7 @@ def execute_tier2_advisory(
 
 def _route_rule(
     resolution: MethodResolutionResult,
-    tier1_attempt: Slice2ExecutionResult,
+    source_body: Tier1Decision | AdvisoryDecision,
     rules: tuple[AdvisoryRouteRule, ...],
 ) -> AdvisoryRouteRule:
     if resolution.resolution == "UNKNOWN":
@@ -225,11 +224,6 @@ def _route_rule(
     elif resolution.resolution == "AMBIGUOUS":
         matches = tuple(item for item in rules if item.trigger == "METHOD_AMBIGUOUS")
     else:
-        source_body = (
-            tier1_attempt.output.decision
-            if isinstance(tier1_attempt.output, Tier1Output)
-            else tier1_attempt.output.advisory
-        )
         source_reason = source_body.route_reason_id
         if source_reason is None:
             raise AdvisoryConfigurationError("Tier 1 attempt has no advisory route reason")
@@ -368,6 +362,7 @@ def _runtime_with_query_binding(
 
 
 def advisory_bound_refs(runtime: Slice6Runtime) -> tuple[GovernedRef, ...]:
+    """Return every advisory record that must be present in the decision snapshot."""
     return (
         runtime.catalog.catalog_ref,
         *runtime.catalog.evidence_refs,
@@ -385,6 +380,21 @@ def advisory_bound_refs(runtime: Slice6Runtime) -> tuple[GovernedRef, ...]:
         ),
         *(ref for item in runtime.route_rules for ref in (item.rule_ref, *item.evidence_refs)),
     )
+
+
+def _advisory_source_body(
+    resolution: MethodResolutionResult,
+    tier1_attempt: Slice2ExecutionResult,
+) -> Tier1Decision | AdvisoryDecision:
+    if isinstance(tier1_attempt.output, Tier1Output):
+        if resolution.resolution == "RESOLVED" and not isinstance(
+            tier1_attempt.output.decision, RefusalDecision
+        ):
+            raise AdvisoryConfigurationError(
+                "Tier 2 advisory cannot consume or replace a Tier 1 verdict"
+            )
+        return tier1_attempt.output.decision
+    return tier1_attempt.output.advisory
 
 
 _RecordT = TypeVar("_RecordT")

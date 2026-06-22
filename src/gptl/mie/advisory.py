@@ -28,6 +28,9 @@ RETRIEVAL_LANE_ORDER: tuple[RetrievalLane, ...] = (
     "LEXICAL",
 )
 ASCII_TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
+LEXICAL_UNICODE_DATA_VERSION = "3.2.0"
+# CPython's default UCD changes across minors; the frozen table keeps governed replay portable.
+_LEXICAL_UNICODE_DATABASE = unicodedata.ucd_3_2_0
 
 
 class RetrievalWeight(BaseModel):
@@ -48,7 +51,8 @@ class LexicalResolverPolicy(BaseModel):
     record_type_id: TermId
     evidence_location: EvidenceLocator
     algorithm_id: Literal["BUILD0_LEXICAL_V1"]
-    normalization_id: Literal["NFKC_CASEFOLD_ASCII_ALNUM_V1"]
+    normalization_id: Literal["NFKC_UCD_3_2_ASCII_CASEFOLD_ALNUM_V1"]
+    unicode_data_version: Literal["3.2.0"]
     retrieval_order: tuple[RetrievalLane, ...]
     weights: tuple[RetrievalWeight, ...]
     minimum_score: CanonicalDecimal
@@ -56,6 +60,7 @@ class LexicalResolverPolicy(BaseModel):
 
     @model_validator(mode="after")
     def validate_policy(self) -> LexicalResolverPolicy:
+        _validate_unicode_data_version(self.unicode_data_version)
         if self.retrieval_order != RETRIEVAL_LANE_ORDER:
             raise ValueError("retrieval order must match the implemented algorithm")
         lanes = tuple(item.lane for item in self.weights)
@@ -221,8 +226,18 @@ class MethodResolutionResult(BaseModel):
 
 
 def normalize_lexical_text(value: str) -> tuple[str, ...]:
-    normalized = unicodedata.normalize("NFKC", value).casefold()
-    return tuple(ASCII_TOKEN_PATTERN.findall(normalized))
+    """Normalize against the resolver's fixed Unicode table and ASCII-only fold contract."""
+    _validate_unicode_data_version(LEXICAL_UNICODE_DATA_VERSION)
+    normalized = _LEXICAL_UNICODE_DATABASE.normalize("NFKC", value)
+    ascii_folded = "".join(
+        character.lower()
+        if "A" <= character <= "Z"
+        else character
+        if "a" <= character <= "z" or "0" <= character <= "9"
+        else " "
+        for character in normalized
+    )
+    return tuple(ASCII_TOKEN_PATTERN.findall(ascii_folded))
 
 
 def resolve_advisory_method(
@@ -231,6 +246,8 @@ def resolve_advisory_method(
     policy: LexicalResolverPolicy,
     accelerated_method_refs: tuple[GovernedRef, ...] | None = None,
 ) -> MethodResolutionResult:
+    """Resolve a governed query without allowing an accelerator to alter canonical ranking."""
+    _validate_unicode_data_version(policy.unicode_data_version)
     query_tokens = set(normalize_lexical_text(query.method_text))
     normalized_text = " ".join(normalize_lexical_text(query.method_text))
     weights = {item.lane: item.value for item in policy.weights}
@@ -324,3 +341,8 @@ def _ref_key(ref: GovernedRef) -> tuple[str, int, str, str]:
 def _validate_refs(refs: tuple[GovernedRef, ...], label: str) -> None:
     if not refs or sorted_unique_refs(refs) != refs:
         raise ValueError(f"{label} must be nonempty, unique, and sorted")
+
+
+def _validate_unicode_data_version(expected: str) -> None:
+    if _LEXICAL_UNICODE_DATABASE.unidata_version != expected:
+        raise ValueError("lexical Unicode data version does not match governed policy")
