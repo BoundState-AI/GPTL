@@ -65,7 +65,7 @@ def _run(command: list[str]) -> dict[str, Any]:
     )
     output = _normalize_command_output(completed.stdout + completed.stderr)
     result = {
-        "command": command,
+        "command": _normalize_command(command),
         "exit_code": completed.returncode,
         "output": output,
         "output_sha256": _sha256(output.encode("utf-8")),
@@ -77,8 +77,25 @@ def _run(command: list[str]) -> dict[str, Any]:
 
 def _normalize_command_output(value: str) -> str:
     normalized = value.replace(str(ROOT), "<REPOSITORY_ROOT>")
-    normalized = re.sub(r"\bin \d+(?:\.\d+)?s\b", "in <elapsed>s", normalized)
+    normalized = re.sub(r"\bin \d+(?:\.\d+)?(?:ms|s)\b", "in <elapsed>", normalized)
     return normalized.rstrip() + "\n"
+
+
+def _normalize_command(command: list[str]) -> list[str]:
+    executable_names = {
+        str(Path(sys.executable).resolve()): "python",
+    }
+    for name in ("uv", "pg_config"):
+        executable = shutil.which(name)
+        if executable is not None:
+            executable_names[str(Path(executable).resolve())] = name
+    normalized = []
+    for argument in command:
+        resolved = str(Path(argument).resolve()) if Path(argument).is_absolute() else argument
+        normalized.append(
+            executable_names.get(resolved, argument.replace(str(ROOT), "<REPOSITORY_ROOT>"))
+        )
+    return normalized
 
 
 def _git_value(*arguments: str) -> str:
