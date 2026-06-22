@@ -19,10 +19,11 @@ Prior immutable completion evidence:
 
 Current single-file ORACLE review input:
 
-- [Build 0 source-audited freeze closeout bundle v1.1](docs/GPTL_ORACLE_BUILD0_CLOSEOUT_REVIEW_v1.1.md)
+- [Build 0 independently verified freeze closeout bundle v1.2](docs/GPTL_ORACLE_BUILD0_CLOSEOUT_REVIEW_v1.2.md)
 
 Prior immutable ORACLE review input:
 
+- [Build 0 source-audited freeze closeout bundle v1.1](docs/GPTL_ORACLE_BUILD0_CLOSEOUT_REVIEW_v1.1.md)
 - [Build 0 completion review bundle v1.0](docs/GPTL_ORACLE_BUILD0_COMPLETION_REVIEW_v1.0.md)
 - [MIE Build 0 vertical-slice plan v0.1](docs/GPTL_BUILD_PLAN_v0.1.md)
 - [Single-file specification/build review bundle v0.1](docs/GPTL_ORACLE_BUILD_REVIEW_v0.1.md)
@@ -75,4 +76,4 @@ uv run python scripts/run_slice.py tier2-advisory --database-url "$GPTL_DATABASE
 uv run python scripts/run_slice.py replay-integrity --database-url "$GPTL_DATABASE_URL"
 ```
 
-The database URL is mandatory. There is no embedded-database fallback or application default. `scripts/rebuild_oracle_build0_closeout_bundle_v1_1.py` reproduces the current source-audited freeze bundle. Earlier ORACLE bundles remain immutable historical review inputs and are reproduced only by their version-specific scripts.
+The database URL is mandatory. There is no embedded-database fallback or application default. `scripts/rebuild_oracle_build0_closeout_bundle_v1_2.py` reproduces the current independently verified freeze bundle. Earlier ORACLE bundles remain immutable historical review inputs and are reproduced only by their version-specific scripts.
