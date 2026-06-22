@@ -9,6 +9,11 @@ Current governing specification:
 
 Build 0 completion evidence:
 
+- [Source-audited freeze record v1.1](docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.1.md)
+- [Machine-readable freeze record v1.1](docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.1.json)
+
+Prior immutable completion evidence:
+
 - [Source-audited freeze record v1.0](docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.0.md)
 - [Machine-readable freeze record v1.0](docs/evidence/GPTL_BUILD0_COMPLETION_EVIDENCE_v1.0.json)
 
