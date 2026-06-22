@@ -643,12 +643,9 @@ def _msa_citations(
     studies: tuple[MSAStudy, ...],
     result: MSAGateResult,
 ) -> tuple[Citation, ...]:
-    evaluated_predicates = {
-        (item.predicate_ref.logical_id, item.predicate_ref.version_id)
-        for item in result.applicability_evaluations
-    }
+    evaluated_predicates = {item.predicate_ref for item in result.applicability_evaluations}
     selected = result.selected_study_ref
-    evidence_keys = {(item.logical_id, item.version_id) for item in result.evidence_refs}
+    evidence_refs = set(result.evidence_refs)
     return sorted_citations(
         tuple(
             Citation(
@@ -657,10 +654,9 @@ def _msa_citations(
                 evidence_location=study.study_evidence_location,
             )
             for study in studies
-            if (study.predicate_ref.logical_id, study.predicate_ref.version_id)
-            in evaluated_predicates
+            if study.predicate_ref in evaluated_predicates
             or study.study_ref == selected
-            or (study.study_ref.logical_id, study.study_ref.version_id) in evidence_keys
+            or study.study_ref in evidence_refs
         )
     )
 

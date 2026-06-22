@@ -414,6 +414,8 @@ def _catalog_evaluated_fraction(
     policy: Slice5Policy,
     evaluated: tuple[EvaluatedCandidate, ...],
 ) -> Decimal:
+    # Negative coverage keeps hard-eliminated candidates in the known denominator;
+    # the positive-path helper intentionally covers only evaluated candidates.
     policy4 = policy.slice4_policy
     runtime4 = runtime.slice4_runtime
     threshold = numeric_policy_by_ref(
@@ -546,6 +548,8 @@ def _negative_citations(runtime: Slice5Runtime) -> tuple[Citation, ...]:
         runtime.known_gaps,
         (runtime.negative_route_policy,),
     )
+    # Evidence refs have no independent record type or location. They remain bound
+    # in the snapshot rather than being promoted into fabricated Citation records.
     return sorted_citations(
         tuple(
             Citation(
@@ -571,12 +575,8 @@ def _citations_for_refs(
     citations: tuple[Citation, ...],
     refs: tuple[GovernedRef, ...],
 ) -> tuple[Citation, ...]:
-    keys = {(item.logical_id, item.version_id) for item in refs}
-    selected = tuple(
-        item
-        for item in citations
-        if (item.record_ref.logical_id, item.record_ref.version_id) in keys
-    )
+    governing_refs = set(refs)
+    selected = tuple(item for item in citations if item.record_ref in governing_refs)
     if not selected:
         raise DiagnosticEngineError("terminal exclusion lost its governing citation")
     return sorted_citations(selected)

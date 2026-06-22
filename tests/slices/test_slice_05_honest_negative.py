@@ -12,8 +12,11 @@ from gptl.core.canonical import canonical_bytes
 from gptl.core.directives import DisplayDirective
 from gptl.core.persistence import SLICE5_RUN_SCHEMA_VERSION, PostgresRunStore
 from gptl.core.semantic_types import TemplateId
+from gptl.mie import slice5_service
+from gptl.mie.diagnostics import DiagnosticEngineError
 from gptl.mie.predicates import EnumValue, EqualityComparison, Predicate
 from gptl.mie.schema import (
+    Citation,
     IndeterminateDecision,
     KnownArtifactsExcludedDecision,
     MethodArtifactDecision,
@@ -21,20 +24,27 @@ from gptl.mie.schema import (
     Tier1Output,
 )
 from gptl.mie.slice5_service import (
+    Slice5Policy,
     Slice5Runtime,
     build_honest_negative,
     execute_honest_negative,
     negative_bound_refs,
 )
 from gptl.slice4_fixture import FIELD_PEAK_SHAPE, FIELD_REFERENCE_RESCAN, PEAK_ISOLATED, RESCAN_REAL
-from gptl.slice5_fixture import slice5_policy, slice5_request, slice5_runtime
+from gptl.slice5_fixture import (
+    KNOWN_GAP_CATEGORY,
+    slice5_policy,
+    slice5_request,
+    slice5_runtime,
+)
 
 
 def test_complete_terminal_catalog_returns_honest_bounded_negative() -> None:
     policy = slice5_policy()
+    runtime = slice5_runtime("COMPLETE")
     result = build_honest_negative(
         slice5_request("complete"),
-        slice5_runtime("COMPLETE"),
+        runtime,
         policy,
     )
 
@@ -42,6 +52,13 @@ def test_complete_terminal_catalog_returns_honest_bounded_negative() -> None:
     decision = result.output.decision
     assert isinstance(decision, KnownArtifactsExcludedDecision)
     assert decision.operational_mode == "RESEARCH_ONLY"
+    assert decision.verdict == "KNOWN_ARTIFACTS_EXCLUDED"
+    assert decision.dispositional is False
+    assert decision.non_record_of_record is True
+    assert not (
+        set(KnownArtifactsExcludedDecision.model_fields)
+        & {"is_real", "real_behavior", "material_is_real", "confirmed_real"}
+    )
     assert decision.route_reason_id == policy.route_reasons.known_artifacts_excluded
     assert decision.evaluated_fraction_within_published_catalog == Decimal("0.6667")
     assert [item.status for item in decision.assessments] == ["ELIMINATED", "RULED_OUT"]
@@ -49,7 +66,11 @@ def test_complete_terminal_catalog_returns_honest_bounded_negative() -> None:
         "ELIMINATED",
         "RULED_OUT",
     ]
-    assert decision.known_unevaluated_gaps
+    assert [item.category_id for item in decision.known_unevaluated_gaps] == [KNOWN_GAP_CATEGORY]
+    gap = decision.known_unevaluated_gaps[0]
+    expected_gap = runtime.known_gaps[0]
+    assert gap.why_unevaluated == expected_gap.why_unevaluated
+    assert gap.what_would_enable == expected_gap.what_would_enable
     assert decision.catalog_boundary == policy.catalog_boundary
     assert decision.required_human_action == policy.known_artifacts_excluded_action
     assert all(item.ruling_citations for item in decision.artifacts_evaluated)
@@ -60,6 +81,47 @@ def test_complete_terminal_catalog_returns_honest_bounded_negative() -> None:
     }
     assert "elimination-rule.detector-drift-humid" in ruling_record_ids
     assert "rule-out-requirement.peak-overlap" in ruling_record_ids
+
+
+def test_missing_terminal_ruling_citation_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original = slice5_service._negative_citations
+
+    def without_elimination_rule(runtime: Slice5Runtime) -> tuple[Citation, ...]:
+        return tuple(
+            item
+            for item in original(runtime)
+            if item.record_ref.logical_id != "elimination-rule.detector-drift-humid"
+        )
+
+    monkeypatch.setattr(slice5_service, "_negative_citations", without_elimination_rule)
+    policy = slice5_policy()
+
+    result = build_honest_negative(
+        slice5_request("missing-ruling-citation"),
+        slice5_runtime("COMPLETE"),
+        policy,
+    )
+
+    assert isinstance(result.output, Tier1Output)
+    decision = result.output.decision
+    assert isinstance(decision, RefusalDecision)
+    assert decision.refusal_type == "ENGINE_FAILURE"
+    assert decision.route_reason_id == policy.slice4_policy.route_reasons.diagnostic_engine_failure
+
+
+def test_ruling_citation_intersection_requires_full_governed_identity() -> None:
+    runtime = slice5_runtime("COMPLETE")
+    citation = next(
+        item
+        for item in slice5_service._negative_citations(runtime)
+        if item.record_ref.logical_id == "elimination-rule.detector-drift-humid"
+    )
+    divergent = citation.record_ref.model_copy(update={"content_hash": "0" * 64})
+
+    with pytest.raises(DiagnosticEngineError, match="lost its governing citation"):
+        slice5_service._citations_for_refs((citation,), (divergent,))
 
 
 def test_zero_support_without_every_required_discriminator_never_rules_out() -> None:
@@ -224,6 +286,28 @@ def test_unknown_gap_template_is_configuration_invalid() -> None:
     assert isinstance(result.output, Tier1Output)
     assert isinstance(result.output.decision, RefusalDecision)
     assert result.output.decision.refusal_type == "CONFIGURATION_INVALID"
+
+
+@pytest.mark.parametrize(
+    "directive_field",
+    ("known_artifacts_excluded_action", "catalog_boundary"),
+)
+def test_unregistered_policy_directive_is_rejected_at_construction(
+    directive_field: str,
+) -> None:
+    policy = slice5_policy()
+    invalid = DisplayDirective(
+        template_id=TemplateId("directive.unregistered"),
+        params=(),
+    )
+
+    with pytest.raises(ValidationError, match="unknown template"):
+        Slice5Policy.model_validate(
+            {
+                **policy.model_dump(mode="python"),
+                directive_field: invalid,
+            }
+        )
 
 
 def test_rule_out_contract_must_cover_every_published_candidate() -> None:

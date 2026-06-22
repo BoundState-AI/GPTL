@@ -770,14 +770,8 @@ def _artifact_result(
         or prepared.msa.measured_uncertainty is None
     ):
         raise DiagnosticEngineError("artifact verdict lost required evidence")
-    confirm_refs = {
-        (item.logical_id, item.version_id) for item in dominant.confirmation.evidence_refs
-    }
-    confirm_citations = tuple(
-        item
-        for item in citations
-        if (item.record_ref.logical_id, item.record_ref.version_id) in confirm_refs
-    )
+    confirm_refs = set(dominant.confirmation.evidence_refs)
+    confirm_citations = tuple(item for item in citations if item.record_ref in confirm_refs)
     decision = MethodArtifactDecision.model_validate(
         {
             **investigation_header(
