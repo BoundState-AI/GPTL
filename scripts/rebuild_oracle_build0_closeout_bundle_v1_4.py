@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +13,7 @@ PLAN = ROOT / "docs" / "GPTL_BUILD_PLAN_v0.19.md"
 EVIDENCE_MD = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.3.md"
 EVIDENCE_JSON = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.3.json"
 OUTPUT = ROOT / "docs" / "GPTL_ORACLE_BUILD0_CLOSEOUT_REVIEW_v1.4.md"
+EVIDENCE_COMMIT = "2b0676b36475d8568e89a53275ea6d4489e73b1c"
 
 
 def _normalized(path: Path) -> str:
@@ -24,16 +24,6 @@ def _sha256(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def _git_value(*arguments: str) -> str:
-    return subprocess.run(
-        ["git", *arguments],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-    ).stdout.strip()
-
-
 def main() -> None:
     spec = _normalized(SPEC)
     plan = _normalized(PLAN)
@@ -41,7 +31,6 @@ def main() -> None:
     evidence_json = _normalized(EVIDENCE_JSON)
     evidence_record = json.loads(evidence_json)
     implementation_commit = evidence_record["implementation_commit"]
-    evidence_commit = _git_value("rev-parse", "HEAD")
 
     header = f"""# GPTL MIE Build 0 ORACLE Freeze Closeout Bundle
 ## Repository Self-Audited Specification, Plan, and Executed Evidence - v1.4
@@ -52,7 +41,7 @@ def main() -> None:
 
 **Audited implementation commit:** `{implementation_commit}`
 
-**Evidence commit:** `{evidence_commit}`
+**Evidence commit:** `{EVIDENCE_COMMIT}`
 
 **Spec SHA-256:** `{_sha256(spec)}`
 
