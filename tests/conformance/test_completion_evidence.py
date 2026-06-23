@@ -10,9 +10,9 @@ import pytest
 
 ROOT = Path(__file__).parents[2]
 evidence = SimpleNamespace(
-    **runpy.run_path(str(ROOT / "scripts" / "generate_build0_completion_evidence_v1_2.py"))
+    **runpy.run_path(str(ROOT / "scripts" / "generate_build0_completion_evidence_v1_3.py"))
 )
-PRIOR_EVIDENCE = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.1.json"
+PRIOR_EVIDENCE = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.2.json"
 
 
 def _criterion_test_ids() -> list[str]:
@@ -24,6 +24,7 @@ def _criterion_test_ids() -> list[str]:
             "test_ready_disposition_rejects_failed_or_incomplete_evidence",
             "test_replay_schema_artifacts_publish_nested_definitions",
             "test_canonical_wire_schemas_reject_numeric_decimals",
+            "test_canonical_wire_schemas_publish_canonical_decimal_semantics",
             "test_requirement_coverage_includes_every_matrix_row_and_criterion",
             "test_cross_minor_divergence_blocks_ready_disposition",
             "test_package_and_evidence_support_matrices_agree",
@@ -128,6 +129,48 @@ def test_canonical_wire_schemas_reject_numeric_decimals() -> None:
     )
     validation_text = json.dumps(artifacts, sort_keys=True)
     assert '"type": "number"' in validation_text
+
+
+def test_canonical_wire_schemas_publish_canonical_decimal_semantics() -> None:
+    artifacts = evidence._schema_artifacts()
+
+    assert any(
+        evidence._schema_contains_canonical_decimal(item["canonical_wire_schema"])
+        and any("canonical_decimal" in invariant for invariant in item["semantic_invariants"])
+        for item in artifacts
+    )
+    assert all(
+        not evidence._schema_contains_pydantic_decimal_pattern(item["canonical_wire_schema"])
+        for item in artifacts
+    )
+
+    invalid = _valid_disposition_input()
+    invalid["schema_artifacts"].append(  # type: ignore[union-attr]
+        {
+            "model": "gptl.test.DecimalWire",
+            "canonical_wire_schema": {
+                "type": "string",
+                "pattern": evidence.PYDANTIC_DECIMAL_PATTERN,
+            },
+            "semantic_invariants": ["extra fields prohibited"],
+        }
+    )
+    with pytest.raises(RuntimeError, match="validation Decimal regex"):
+        evidence._derive_disposition(invalid)
+
+    missing_invariant = _valid_disposition_input()
+    missing_invariant["schema_artifacts"].append(  # type: ignore[union-attr]
+        {
+            "model": "gptl.test.DecimalWire",
+            "canonical_wire_schema": {
+                "type": "string",
+                "pattern": evidence.CANONICAL_DECIMAL_PATTERN,
+            },
+            "semantic_invariants": ["extra fields prohibited"],
+        }
+    )
+    with pytest.raises(RuntimeError, match="canonical Decimal semantic invariants"):
+        evidence._derive_disposition(missing_invariant)
 
 
 def test_requirement_coverage_includes_every_matrix_row_and_criterion() -> None:

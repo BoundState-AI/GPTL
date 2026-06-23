@@ -150,6 +150,21 @@ def test_postgres_persists_atomic_run_and_audit_across_connections(
     assert len(persisted.audit_payloads) == 1
 
 
+def test_duplicate_run_id_is_not_an_idempotent_write(postgres_url: str) -> None:
+    policy = safe_refusal_policy()
+    request = safe_refusal_request()
+    store = PostgresRunStore(postgres_url, policy.canonicalization_policy)
+    store.initialize()
+
+    result = execute_safe_refusal(request, empty_pack_registry(), policy, store)
+    with pytest.raises(psycopg.errors.UniqueViolation):
+        execute_safe_refusal(request, empty_pack_registry(), policy, store)
+
+    persisted = store.load_run(request.run_id)
+    assert persisted is not None
+    assert persisted.payload == canonical_bytes(result.output, policy.canonicalization_policy)
+
+
 def test_migrations_are_ordered_checksummed_and_idempotent(postgres_url: str) -> None:
     policy = safe_refusal_policy()
     store = PostgresRunStore(postgres_url, policy.canonicalization_policy)

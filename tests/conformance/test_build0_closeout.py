@@ -38,6 +38,16 @@ def test_authoritative_source_does_not_generate_identity() -> None:
         assert not any(token in source for token in prohibited), path
 
 
+def test_authoritative_writes_do_not_upsert_identity() -> None:
+    source = (Path(__file__).parents[2] / "src" / "gptl" / "core" / "persistence.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ON CONFLICT" not in source
+    assert "DO NOTHING" not in source
+    assert "DO UPDATE" not in source
+
+
 def test_preflight_timestamp_width_is_explicitly_policy_bound() -> None:
     request = safe_refusal_request().model_dump(mode="python")
     request["as_of_time"] = "2026-06-21T12:00:00.00Z"
