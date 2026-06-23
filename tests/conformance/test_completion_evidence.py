@@ -10,9 +10,9 @@ import pytest
 
 ROOT = Path(__file__).parents[2]
 evidence = SimpleNamespace(
-    **runpy.run_path(str(ROOT / "scripts" / "generate_build0_completion_evidence_v1_3.py"))
+    **runpy.run_path(str(ROOT / "scripts" / "generate_build0_completion_evidence_v1_4.py"))
 )
-PRIOR_EVIDENCE = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.2.json"
+PRIOR_EVIDENCE = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.3.json"
 
 
 def _criterion_test_ids() -> list[str]:
@@ -23,6 +23,8 @@ def _criterion_test_ids() -> list[str]:
             "test_ready_disposition_is_derived_from_self_audit_evidence",
             "test_ready_disposition_rejects_failed_or_incomplete_evidence",
             "test_replay_schema_artifacts_publish_nested_definitions",
+            "test_replay_capsule_wrapper_schema_is_published",
+            "test_generator_identity_is_self_checked",
             "test_canonical_wire_schemas_reject_numeric_decimals",
             "test_canonical_wire_schemas_publish_canonical_decimal_semantics",
             "test_requirement_coverage_includes_every_matrix_row_and_criterion",
@@ -48,12 +50,23 @@ def _valid_disposition_input() -> dict[str, object]:
         }
         for index in range(6)
     ]
+    schemas.append(
+        {
+            "model": "gptl.core.persistence.ReplayCapsuleRecord",
+            "canonical_wire_schema": {"type": "object"},
+            "semantic_invariants": ["payload_hash equals canonical recipe bytes"],
+        }
+    )
     return {
+        "governing_documents": {
+            "generator_path": "scripts/generate_build0_completion_evidence_v1_4.py"
+        },
         "command_results": commands,
         "gates": [
             {
                 "gate_id": "COMPLETION_13_EVIDENCE_MANIFEST",
                 "exact_test_node_ids": _criterion_test_ids(),
+                "source_refs": ["scripts/generate_build0_completion_evidence_v1_4.py"],
             }
         ],
         "schema_artifacts": schemas,
@@ -118,6 +131,57 @@ def test_replay_schema_artifacts_publish_nested_definitions() -> None:
         "AdvisoryQuery",
     ):
         assert nested_model in serialized
+
+
+def test_replay_capsule_wrapper_schema_is_published() -> None:
+    artifacts = evidence._schema_artifacts()
+    wrapper = next(
+        item for item in artifacts if item["model"] == "gptl.core.persistence.ReplayCapsuleRecord"
+    )
+    serialized = json.dumps(wrapper, sort_keys=True)
+
+    for field in (
+        "run_id",
+        "algorithm_id",
+        "recipe_schema_version",
+        "replay_policy_ref",
+        "payload_hash",
+        "record_type",
+        "schema_version",
+        "hash_algorithm",
+    ):
+        assert field in serialized
+    assert any("payload_hash" in invariant for invariant in wrapper["semantic_invariants"])
+
+    missing_wrapper = _valid_disposition_input()
+    missing_wrapper["schema_artifacts"] = [  # type: ignore[index]
+        item
+        for item in missing_wrapper["schema_artifacts"]  # type: ignore[union-attr]
+        if item["model"] != "gptl.core.persistence.ReplayCapsuleRecord"
+    ]
+    with pytest.raises(RuntimeError, match="replay capsule wrapper schema is missing"):
+        evidence._derive_disposition(missing_wrapper)
+
+
+def test_generator_identity_is_self_checked() -> None:
+    prior = json.loads(PRIOR_EVIDENCE.read_text(encoding="utf-8"))
+    node_ids = sorted({*prior["test_inventory"]["exact_node_ids"], *_criterion_test_ids()})
+    _, gates = evidence._expand_gate_map(node_ids)
+    completion_gate = next(
+        gate for gate in gates if gate["gate_id"] == "COMPLETION_13_EVIDENCE_MANIFEST"
+    )
+
+    assert completion_gate["source_refs"] == [
+        "scripts/generate_build0_completion_evidence_v1_4.py",
+        "docs/evidence/BUILD0_GATE_MAP_v1.4.json",
+    ]
+
+    stale = _valid_disposition_input()
+    stale["gates"][0]["source_refs"] = [  # type: ignore[index]
+        "scripts/generate_build0_completion_evidence_v1_3.py"
+    ]
+    with pytest.raises(RuntimeError, match="stale generator identity"):
+        evidence._derive_disposition(stale)
 
 
 def test_canonical_wire_schemas_reject_numeric_decimals() -> None:

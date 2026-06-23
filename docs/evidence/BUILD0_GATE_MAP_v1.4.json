@@ -1,0 +1,233 @@
+{
+  "schema_version": "gptl.build0-gate-map.v1.4",
+  "gates": [
+    {
+      "gate_id": "SLICE_1_SAFE_REFUSAL",
+      "requirement": "Deterministic preflight refusal and atomic append-only PostgreSQL persistence",
+      "test_selectors": ["tests/slices/test_slice_01_safe_refusal.py::*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#5-slice-1--safe-refusal"]
+    },
+    {
+      "gate_id": "SLICE_2_CANDIDATE_PRESERVATION",
+      "requirement": "Candidate preservation, four-state applicability, ratification, and snapshot persistence",
+      "test_selectors": ["tests/slices/test_slice_02_candidate_preservation.py::*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#6-slice-2--candidate-preservation"]
+    },
+    {
+      "gate_id": "SLICE_3_MSA_CALIBRATION",
+      "requirement": "Calibration precedence and qualified scope-matched MSA hard gate",
+      "test_selectors": ["tests/slices/test_slice_03_msa_calibration_gate.py::*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#7-slice-3--msa-and-calibration-gate"]
+    },
+    {
+      "gate_id": "SLICE_4_ARTIFACT_CONFIRMATION",
+      "requirement": "Governed scoring, evidence gating, and structured or attested artifact confirmation",
+      "test_selectors": ["tests/slices/test_slice_04_artifact_confirmation.py::*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#8-slice-4--artifact-confirmation"]
+    },
+    {
+      "gate_id": "SLICE_5_HONEST_NEGATIVE",
+      "requirement": "Evidence-complete elimination and bounded-catalog negative verdict",
+      "test_selectors": ["tests/slices/test_slice_05_honest_negative.py::*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#9-slice-5--honest-negative"]
+    },
+    {
+      "gate_id": "SLICE_6_TIER2_ADVISORY",
+      "requirement": "Deterministic model-free Tier 2 advisory with one output per run",
+      "test_selectors": [
+        "tests/slices/test_slice_06_tier2_advisory.py::*",
+        "tests/conformance/test_build0_closeout.py::test_tier2_execution_has_one_output_envelope"
+      ],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#10-slice-6--tier-2-advisory"]
+    },
+    {
+      "gate_id": "SLICE_7_REPLAY_INTEGRITY",
+      "requirement": "Exact-input replay, tamper refusal, and immutable pack evolution",
+      "test_selectors": ["tests/slices/test_slice_07_replay_integrity.py::*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#11-slice-7--replay-and-integrity"]
+    },
+    {
+      "gate_id": "ORACLE_TIMESTAMP_IDENTITY_SCHEMA_CLOSEOUT",
+      "requirement": "Source-audited timestamp, identity, calibration, output, refusal, and replay-schema boundaries",
+      "test_selectors": ["tests/conformance/test_build0_closeout.py::*"],
+      "source_refs": [
+        "docs/GPTL_Manufacturing_Platform_v0.4.19.md#212-determinism-contract-with-numeric-representation-closes-finding-1",
+        "docs/GPTL_Manufacturing_Platform_v0.4.19.md#213-canonical-serialization-and-hashing-contract",
+        "docs/GPTL_Manufacturing_Platform_v0.4.19.md#77-cases-and-snapshots"
+      ]
+    },
+    {
+      "gate_id": "PERSISTENCE_ATOMICITY",
+      "requirement": "Dependent records and replay capsules commit or roll back as one PostgreSQL transaction",
+      "test_selectors": [
+        "*::test_failure_between_run_and_audit_insert_rolls_back",
+        "*::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "*::test_database_rejects_incomplete_snapshot_bound_commit",
+        "*::test_replay_capsule_and_run_commit_atomically"
+      ],
+      "source_refs": ["src/gptl/core/persistence.py", "src/gptl/core/migrations/0004_replay_capsules.sql"]
+    },
+    {
+      "gate_id": "PERSISTENCE_APPEND_ONLY",
+      "requirement": "Database triggers reject mutation, deletion, and truncation of immutable records",
+      "test_selectors": [
+        "*::test_database_rejects_update_and_delete_of_committed_rows",
+        "*::test_database_rejects_truncate_of_committed_rows",
+        "*::test_database_rejects_replay_capsule_mutation",
+        "tests/conformance/test_migrations.py::test_published_migrations_are_byte_immutable"
+      ],
+      "source_refs": ["src/gptl/core/migrations"]
+    },
+    {
+      "gate_id": "RESTART_CROSS_PROCESS_REPLAY",
+      "requirement": "Persisted decisions and exact recipes reconstruct after store reopen and in a fresh process",
+      "test_selectors": [
+        "*::test_persisted_run_is_readable_from_a_fresh_process",
+        "*::test_every_prior_slice_replays_exactly_after_store_reopen",
+        "*::test_cross_process_replay_uses_only_persisted_capsule"
+      ],
+      "source_refs": ["src/gptl/mie/replay.py"]
+    },
+    {
+      "gate_id": "TAMPER_MISSING_CONTENT_REFUSAL",
+      "requirement": "Altered, stale, absent, substituted, or non-canonical replay material fails closed",
+      "test_selectors": [
+        "*::test_tampered_replay_capsule_returns_integrity_failure",
+        "*::test_stale_run_payload_checksum_returns_stored_content_invalid",
+        "*::test_unavailable_bound_content_returns_integrity_failure",
+        "*::test_validly_rehashed_output_tamper_is_caught_by_reexecution",
+        "*::test_cross_run_capsule_substitution_fails_closed",
+        "*::test_noncanonical_replay_recipe_fails_closed"
+      ],
+      "source_refs": ["src/gptl/core/persistence.py", "src/gptl/mie/replay.py"]
+    },
+    {
+      "gate_id": "PACK_LIFECYCLE_EVOLUTION",
+      "requirement": "Upgrade, correction, revocation, and supersession affect new runs without rewriting history",
+      "test_selectors": [
+        "*::test_explicit_pack_evolution_never_resolves_latest",
+        "*::test_correction_creates_new_version_and_run_without_rewriting_history",
+        "*::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "*::test_snapshot_bound_discriminator_supersession_replays_exactly"
+      ],
+      "source_refs": ["src/gptl/mie/replay.py"]
+    },
+    {
+      "gate_id": "COMPLETION_1_ALL_ACCEPTANCE_GATES",
+      "requirement": "Every collected Build 0 acceptance and conformance test passes",
+      "test_selectors": ["tests/slices/*", "tests/conformance/*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#13-build-0-completion-gate"]
+    },
+    {
+      "gate_id": "COMPLETION_2_REQUIREMENT_OWNERSHIP",
+      "requirement": "Every Build 0 requirement has one implementation slice and executable coverage",
+      "test_selectors": ["tests/slices/*"],
+      "source_refs": ["docs/GPTL_BUILD_PLAN_v0.20.md#12-requirement-ownership-matrix"]
+    },
+    {
+      "gate_id": "COMPLETION_3_CANONICAL_REPRODUCTION",
+      "requirement": "Committed canonical results reproduce byte-identically",
+      "test_selectors": [
+        "*::test_identical_replay_is_byte_identical",
+        "*::test_identical_negative_run_replays_byte_identically",
+        "*::test_identical_advisory_replays_byte_identically",
+        "tests/conformance/test_canonical.py::*"
+      ],
+      "source_refs": ["src/gptl/core/canonical.py"]
+    },
+    {
+      "gate_id": "COMPLETION_4_MODEL_INDEPENDENCE",
+      "requirement": "Removing model and renderer adapters cannot alter authoritative structured output",
+      "test_selectors": [
+        "*::test_slice4_authoritative_path_has_no_renderer_dependency",
+        "*::test_authoritative_advisory_path_has_no_model_adapter_surface",
+        "*::test_rendered_prose_is_separate_and_cannot_modify_advisory_hash"
+      ],
+      "source_refs": ["tests/conformance/test_source_boundaries.py"]
+    },
+    {
+      "gate_id": "COMPLETION_5_SOURCE_BOUNDARIES",
+      "requirement": "Static scans find no vector/model authority or domain numeric constants in generic modules",
+      "test_selectors": ["tests/conformance/test_source_boundaries.py::*"],
+      "source_refs": ["src/gptl"]
+    },
+    {
+      "gate_id": "COMPLETION_6_RESEARCH_ONLY_OUTPUT",
+      "requirement": "Build 0 outputs remain non-dispositional, non-record-of-record, and RESEARCH_ONLY",
+      "test_selectors": [
+        "*::test_absent_pack_produces_deterministic_preflight_refusal",
+        "*::test_structured_confirmation_returns_cited_method_artifact",
+        "*::test_complete_terminal_catalog_returns_honest_bounded_negative",
+        "*::test_each_ineligible_case_returns_typed_nonverdict_advisory*"
+      ],
+      "source_refs": ["src/gptl/mie/schema.py"]
+    },
+    {
+      "gate_id": "COMPLETION_7_FIXTURE_LABELING",
+      "requirement": "Synthetic/reference evidence remains honestly scoped and cannot imply production fidelity",
+      "test_selectors": [
+        "*::test_snapshot_binds_calibration_msa_scope_capability_and_route_policy",
+        "*::test_test_fixture_msa_cannot_satisfy_a_non_test_scope"
+      ],
+      "source_refs": ["src/gptl/slice3_fixture.py"]
+    },
+    {
+      "gate_id": "COMPLETION_8_SCOPE_ISOLATION",
+      "requirement": "TEST_FIXTURE MSA and evidence cannot satisfy another scope",
+      "test_selectors": [
+        "*::test_test_fixture_msa_cannot_satisfy_a_non_test_scope",
+        "*::test_msa_failure_routes_are_explicit_and_stop_before_candidates*SCOPE_MISMATCH*",
+        "*::test_msa_failure_routes_are_explicit_and_stop_before_candidates*NON_TEST_SCOPE*"
+      ],
+      "source_refs": ["src/gptl/mie/msa.py"]
+    },
+    {
+      "gate_id": "COMPLETION_9_GOVERNED_CONFIRMATION_ROUTING",
+      "requirement": "Confirmation, ratification, calibration, MSA, and display-template gates are fail-closed",
+      "test_selectors": [
+        "*::test_attested_confirmation_enforces_authority_and_lifecycle*",
+        "*::test_ratification_lookup_requires_the_exact_governed_event_identity",
+        "*::test_intake_calibration_matrix_has_one_deterministic_route*",
+        "*::test_unknown_display_template_is_rejected"
+      ],
+      "source_refs": ["src/gptl/mie/diagnostics.py", "src/gptl/mie/calibration.py"]
+    },
+    {
+      "gate_id": "COMPLETION_10_PERSISTENCE_CONTRACT",
+      "requirement": "Atomicity, append-only, checksum, schema, recovery, and record-set constraints pass",
+      "test_selectors": [
+        "tests/slices/test_slice_01_safe_refusal.py::*",
+        "*::test_snapshot_write_failure_rolls_back_every_dependent_record",
+        "*::test_store_rejects_output_snapshot_hash_mismatch",
+        "*::test_replay_capsule_and_run_commit_atomically"
+      ],
+      "source_refs": ["src/gptl/core/persistence.py", "src/gptl/core/migrations"]
+    },
+    {
+      "gate_id": "COMPLETION_11_HISTORICAL_REPLAY",
+      "requirement": "Replay uses original bound state and never live/latest state",
+      "test_selectors": [
+        "*::test_replay_has_no_network_or_implicit_latest_surface",
+        "*::test_explicit_pack_evolution_never_resolves_latest",
+        "*::test_later_attestation_revocation_changes_new_run_not_historical_replay",
+        "*::test_cross_process_replay_uses_only_persisted_capsule"
+      ],
+      "source_refs": ["src/gptl/mie/replay.py"]
+    },
+    {
+      "gate_id": "COMPLETION_12_DOCUMENTED_DEMOS",
+      "requirement": "Every documented slice demonstration executes against explicit PostgreSQL",
+      "test_selectors": ["*::test_documented*demo*"],
+      "source_refs": ["scripts/run_slice.py"]
+    },
+    {
+      "gate_id": "COMPLETION_13_EVIDENCE_MANIFEST",
+      "requirement": "The closeout generator validates mappings and derives all result state from executed artifacts",
+      "test_selectors": ["tests/conformance/test_completion_evidence.py::*"],
+      "source_refs": [
+        "scripts/generate_build0_completion_evidence_v1_4.py",
+        "docs/evidence/BUILD0_GATE_MAP_v1.4.json"
+      ]
+    }
+  ]
+}

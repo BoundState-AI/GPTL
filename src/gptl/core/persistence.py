@@ -7,15 +7,22 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from importlib.resources import files
-from typing import Final, Protocol, cast
+from typing import Final, Literal, Protocol, cast
 
 import psycopg
 from psycopg import sql
+from pydantic import BaseModel, ConfigDict
 
 from gptl.core.audit import PreflightRefusalAuditEvent, SnapshotDecisionAuditEvent
 from gptl.core.canonical import canonical_bytes, canonical_sha256, verify_sha256
 from gptl.core.records import GovernedRef, sorted_unique_refs
-from gptl.core.semantic_types import CanonicalizationPolicy, LogicalId, VersionId
+from gptl.core.semantic_types import (
+    CanonicalizationPolicy,
+    LogicalId,
+    OpaqueId,
+    Sha256Hex,
+    VersionId,
+)
 from gptl.core.snapshot import KnowledgeSnapshot, snapshot_hash
 from gptl.mie.schema import (
     AdvisoryDecision,
@@ -83,6 +90,19 @@ class ReplayCapsulePayload:
     recipe_schema_version: str
     replay_policy_ref: GovernedRef
     payload: bytes
+
+
+class ReplayCapsuleRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    run_id: OpaqueId
+    algorithm_id: Literal["BUILD0_EXACT_REPLAY_V1"]
+    recipe_schema_version: Literal["gptl.replay-recipe.v1"]
+    replay_policy_ref: GovernedRef
+    payload_hash: Sha256Hex
+    record_type: Literal["REPLAY_CAPSULE"]
+    schema_version: OpaqueId
+    hash_algorithm: Literal["SHA-256"]
 
 
 @dataclass(frozen=True)
