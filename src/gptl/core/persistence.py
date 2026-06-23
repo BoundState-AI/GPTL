@@ -54,6 +54,8 @@ SUPPORTED_SNAPSHOT_RUN_SCHEMA_VERSIONS: Final = frozenset(
     }
 )
 HASH_ALGORITHM: Final = "SHA-256"
+BUILD0_WRITER_LOCK_NAMESPACE: Final = "gptl.build0"
+BUILD0_WRITER_LOCK_NAME: Final = "single-writer"
 TIER1_OUTPUT_RECORD_TYPE: Final = "TIER1_OUTPUT"
 TIER2_OUTPUT_RECORD_TYPE: Final = "TIER2_OUTPUT"
 PREFLIGHT_AUDIT_RECORD_TYPE: Final = "PREFLIGHT_REFUSAL_AUDIT_EVENT"
@@ -145,6 +147,7 @@ class PostgresRunStore:
             with connection.transaction():
                 with connection.cursor() as cursor:
                     self._pin_search_path(cursor)
+                    self._acquire_build0_writer_lock(cursor)
                     cursor.execute(
                         """
                         SELECT to_regclass('gptl_schema_migrations')
@@ -247,6 +250,16 @@ class PostgresRunStore:
         )
 
     @staticmethod
+    def _acquire_build0_writer_lock(cursor: psycopg.Cursor[tuple[object, ...]]) -> None:
+        cursor.execute(
+            "SELECT pg_try_advisory_xact_lock(hashtext(%s), hashtext(%s))",
+            (BUILD0_WRITER_LOCK_NAMESPACE, BUILD0_WRITER_LOCK_NAME),
+        )
+        row = cursor.fetchone()
+        if row is None or row[0] is not True:
+            raise PersistenceIntegrityError("concurrent Build 0 writer is not allowed")
+
+    @staticmethod
     def _validate_record_metadata(
         record_type: object,
         schema_version: object,
@@ -316,6 +329,7 @@ class PostgresRunStore:
             with connection.transaction():
                 with connection.cursor() as cursor:
                     self._pin_search_path(cursor)
+                    self._acquire_build0_writer_lock(cursor)
                     cursor.execute(
                         """
                         INSERT INTO gptl_runs (
@@ -447,6 +461,7 @@ class PostgresRunStore:
             with connection.transaction():
                 with connection.cursor() as cursor:
                     self._pin_search_path(cursor)
+                    self._acquire_build0_writer_lock(cursor)
                     cursor.execute(
                         """
                         INSERT INTO gptl_runs (

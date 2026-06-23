@@ -10,9 +10,9 @@ import pytest
 
 ROOT = Path(__file__).parents[2]
 evidence = SimpleNamespace(
-    **runpy.run_path(str(ROOT / "scripts" / "generate_build0_completion_evidence_v1_4.py"))
+    **runpy.run_path(str(ROOT / "scripts" / "generate_build0_completion_evidence_v1_5.py"))
 )
-PRIOR_EVIDENCE = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.3.json"
+PRIOR_EVIDENCE = ROOT / "docs" / "evidence" / "GPTL_BUILD0_COMPLETION_EVIDENCE_v1.4.json"
 
 
 def _criterion_test_ids() -> list[str]:
@@ -30,6 +30,7 @@ def _criterion_test_ids() -> list[str]:
             "test_requirement_coverage_includes_every_matrix_row_and_criterion",
             "test_cross_minor_divergence_blocks_ready_disposition",
             "test_package_and_evidence_support_matrices_agree",
+            "test_dependency_lockfile_is_bound_to_freeze_evidence",
         )
     ]
 
@@ -59,14 +60,20 @@ def _valid_disposition_input() -> dict[str, object]:
     )
     return {
         "governing_documents": {
-            "generator_path": "scripts/generate_build0_completion_evidence_v1_4.py"
+            "generator_path": "scripts/generate_build0_completion_evidence_v1_5.py"
+        },
+        "dependency_lockfile": {
+            "path": "uv.lock",
+            "sha256": "0" * 64,
+            "package_count": 1,
+            "packages": [{"name": "boundstate-gptl", "version": "0.1.0"}],
         },
         "command_results": commands,
         "gates": [
             {
                 "gate_id": "COMPLETION_13_EVIDENCE_MANIFEST",
                 "exact_test_node_ids": _criterion_test_ids(),
-                "source_refs": ["scripts/generate_build0_completion_evidence_v1_4.py"],
+                "source_refs": ["scripts/generate_build0_completion_evidence_v1_5.py"],
             }
         ],
         "schema_artifacts": schemas,
@@ -172,8 +179,8 @@ def test_generator_identity_is_self_checked() -> None:
     )
 
     assert completion_gate["source_refs"] == [
-        "scripts/generate_build0_completion_evidence_v1_4.py",
-        "docs/evidence/BUILD0_GATE_MAP_v1.4.json",
+        "scripts/generate_build0_completion_evidence_v1_5.py",
+        "docs/evidence/BUILD0_GATE_MAP_v1.5.json",
     ]
 
     stale = _valid_disposition_input()
@@ -267,3 +274,27 @@ def test_package_and_evidence_support_matrices_agree() -> None:
         assert any(
             f"--python {minor}" in command and command.endswith("pytest -q") for command in commands
         )
+
+
+def test_dependency_lockfile_is_bound_to_freeze_evidence() -> None:
+    lockfile = evidence._dependency_lockfile()
+
+    assert lockfile["path"] == "uv.lock"
+    assert len(lockfile["sha256"]) == 64
+    assert lockfile["package_count"] == len(lockfile["packages"])
+    assert {"name": "boundstate-gptl", "version": "0.1.0"} in lockfile["packages"]
+
+    missing = _valid_disposition_input()
+    missing.pop("dependency_lockfile")
+    with pytest.raises(RuntimeError, match="dependency lockfile"):
+        evidence._derive_disposition(missing)
+
+    empty = _valid_disposition_input()
+    empty["dependency_lockfile"] = {
+        "path": "uv.lock",
+        "sha256": "0" * 64,
+        "package_count": 0,
+        "packages": [],
+    }
+    with pytest.raises(RuntimeError, match="dependency lockfile"):
+        evidence._derive_disposition(empty)

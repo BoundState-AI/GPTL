@@ -13,6 +13,8 @@ from psycopg import sql
 from gptl.core.canonical import canonical_bytes, canonical_sha256
 from gptl.core.pack_registry import ExactPackRegistry
 from gptl.core.persistence import (
+    BUILD0_WRITER_LOCK_NAME,
+    BUILD0_WRITER_LOCK_NAMESPACE,
     HASH_ALGORITHM,
     PREFLIGHT_AUDIT_RECORD_TYPE,
     SCHEMA_VERSION,
@@ -163,6 +165,24 @@ def test_duplicate_run_id_is_not_an_idempotent_write(postgres_url: str) -> None:
     persisted = store.load_run(request.run_id)
     assert persisted is not None
     assert persisted.payload == canonical_bytes(result.output, policy.canonicalization_policy)
+
+
+def test_store_rejects_a_concurrent_build0_writer(postgres_url: str) -> None:
+    policy = safe_refusal_policy()
+    request = safe_refusal_request()
+    store = PostgresRunStore(postgres_url, policy.canonicalization_policy)
+    store.initialize()
+
+    with psycopg.connect(postgres_url) as connection:
+        with connection.transaction():
+            connection.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%s), hashtext(%s))",
+                (BUILD0_WRITER_LOCK_NAMESPACE, BUILD0_WRITER_LOCK_NAME),
+            )
+            with pytest.raises(PersistenceIntegrityError, match="concurrent Build 0 writer"):
+                execute_safe_refusal(request, empty_pack_registry(), policy, store)
+
+    assert store.load_run(request.run_id) is None
 
 
 def test_migrations_are_ordered_checksummed_and_idempotent(postgres_url: str) -> None:
