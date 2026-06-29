@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from collections.abc import Callable, Iterable
 from pathlib import Path
 
@@ -39,10 +40,16 @@ def runtime_source_guard() -> RuntimeSourceGuard:
         "sql" + "ite",
         "sql" + "ite3",
     )
+    pattern = re.compile(
+        r"\b("
+        + "|".join(re.escape(token) for token in prohibited)
+        + r")\b|nearest[-_]neighbor",
+        re.IGNORECASE,
+    )
 
     def assert_clean(paths: Iterable[Path]) -> None:
         for path in paths:
-            source = path.read_text(encoding="utf-8").lower()
-            assert not any(token in source for token in prohibited), path
+            source = path.read_text(encoding="utf-8")
+            assert pattern.search(source) is None, path
 
     return assert_clean

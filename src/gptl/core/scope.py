@@ -11,6 +11,7 @@ from gptl.core.semantic_types import TermId
 
 EVIDENCE_SCOPE_MATCH_ALGORITHM_ID: Final = "EVIDENCE_SCOPE_MATCH_V1"
 SCOPE_INCOMPATIBLE_REASON_ID: Final = TermId("build1.scope.incompatible")
+SCOPE_TERM_UNKNOWN_REASON_ID: Final = TermId("build1.scope.term-unknown")
 
 SCOPE_CLASS_DIMENSION_ID: Final = TermId("scope.scope_class")
 ORGANIZATION_DIMENSION_ID: Final = TermId("scope.organization_id")
@@ -48,6 +49,7 @@ class EvidenceScopeV1(BaseModel):
 
     schema_version: Literal["gptl.build1.evidence-scope.v1"]
     scope_ref: GovernedRef
+    canonicalization_policy_ref: GovernedRef
     lifecycle_state: Literal["ACTIVE", "INACTIVE"]
     scope_class: Literal["TEST_FIXTURE", "RESEARCH_CORPUS"]
     organization_id: TermId
@@ -62,6 +64,86 @@ class EvidenceScopeV1(BaseModel):
             if value in _PROHIBITED_SCOPE_TERM_IDS:
                 raise ValueError(f"{dimension_id} cannot use an unscoped or default sentinel")
         return self
+
+
+class ScopeTermSet(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    dimension_id: TermId
+    allowed_term_ids: tuple[TermId, ...]
+
+    @model_validator(mode="before")
+    @classmethod
+    def sort_allowed_terms(cls, value: object) -> object:
+        if not isinstance(value, dict):
+            return value
+        normalized = dict(value)
+        if "allowed_term_ids" in normalized:
+            normalized["allowed_term_ids"] = tuple(sorted(normalized["allowed_term_ids"]))
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_allowed_terms(self) -> ScopeTermSet:
+        if not self.allowed_term_ids:
+            raise ValueError("scope term set requires allowed terms")
+        if self.allowed_term_ids != tuple(sorted(set(self.allowed_term_ids))):
+            raise ValueError("scope term IDs must be unique and sorted")
+        return self
+
+
+class ScopeTermRegistry(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    registry_ref: GovernedRef
+    term_sets: tuple[ScopeTermSet, ...]
+
+    @model_validator(mode="before")
+    @classmethod
+    def sort_term_sets(cls, value: object) -> object:
+        if not isinstance(value, dict):
+            return value
+        normalized = dict(value)
+        if "term_sets" in normalized:
+            normalized["term_sets"] = tuple(
+                sorted(normalized["term_sets"], key=_term_set_sort_key)
+            )
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_term_sets(self) -> ScopeTermRegistry:
+        dimensions = tuple(item.dimension_id for item in self.term_sets)
+        if dimensions != tuple(sorted(SCOPE_DIMENSION_IDS)):
+            raise ValueError("scope term registry must cover the closed Build 1 dimensions")
+        return self
+
+
+class ScopeTermsResolved(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: Literal["TERMS_RESOLVED"]
+    registry_ref: GovernedRef
+    scope_ref: GovernedRef
+
+
+class ScopeTermUnknown(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: Literal["SCOPE_TERM_UNKNOWN"]
+    reason_id: TermId
+    registry_ref: GovernedRef
+    scope_ref: GovernedRef
+    unknown_dimension_ids: tuple[TermId, ...]
+
+    @model_validator(mode="after")
+    def validate_unknown_dimensions(self) -> ScopeTermUnknown:
+        if not self.unknown_dimension_ids:
+            raise ValueError("unknown scope term result requires dimensions")
+        if self.unknown_dimension_ids != tuple(sorted(set(self.unknown_dimension_ids))):
+            raise ValueError("unknown scope dimensions must be unique and sorted")
+        return self
+
+
+ScopeTermResolution = ScopeTermsResolved | ScopeTermUnknown
 
 
 class EvidenceScopeMatched(BaseModel):
@@ -95,7 +177,40 @@ class ScopeIncompatible(BaseModel):
 EvidenceScopeMatchResult = EvidenceScopeMatched | ScopeIncompatible
 
 
-def scope_matches(candidate_scope: EvidenceScopeV1, run_scope: EvidenceScopeV1) -> EvidenceScopeMatchResult:
+def validate_scope_terms(
+    scope: EvidenceScopeV1,
+    registry: ScopeTermRegistry,
+) -> ScopeTermResolution:
+    allowed_by_dimension = {
+        term_set.dimension_id: set(term_set.allowed_term_ids) for term_set in registry.term_sets
+    }
+    unknown_dimensions = tuple(
+        sorted(
+            dimension_id
+            for dimension_id, term_id in _dimension_values(scope)
+            if term_id not in allowed_by_dimension.get(dimension_id, set())
+        )
+    )
+    if unknown_dimensions:
+        return ScopeTermUnknown(
+            status="SCOPE_TERM_UNKNOWN",
+            reason_id=SCOPE_TERM_UNKNOWN_REASON_ID,
+            registry_ref=registry.registry_ref,
+            scope_ref=scope.scope_ref,
+            unknown_dimension_ids=unknown_dimensions,
+        )
+
+    return ScopeTermsResolved(
+        status="TERMS_RESOLVED",
+        registry_ref=registry.registry_ref,
+        scope_ref=scope.scope_ref,
+    )
+
+
+def scope_matches(
+    candidate_scope: EvidenceScopeV1,
+    run_scope: EvidenceScopeV1,
+) -> EvidenceScopeMatchResult:
     mismatches: list[TermId] = []
     if candidate_scope.lifecycle_state != "ACTIVE" or run_scope.lifecycle_state != "ACTIVE":
         mismatches.append(LIFECYCLE_DIMENSION_ID)
@@ -154,3 +269,11 @@ def _paired_dimension_values(
         ),
         (CONTEXT_DIMENSION_ID, candidate_scope.context_id, run_scope.context_id),
     )
+
+
+def _term_set_sort_key(value: object) -> str:
+    if isinstance(value, ScopeTermSet):
+        return str(value.dimension_id)
+    if isinstance(value, dict):
+        return str(value["dimension_id"])
+    raise ValueError("scope term set must be a model or mapping value")
