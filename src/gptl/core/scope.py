@@ -243,8 +243,9 @@ def scope_ref_for_build0(scope: EvidenceScopeV1) -> GovernedRef:
     return scope.scope_ref
 
 
-def _dimension_values(scope: EvidenceScopeV1) -> tuple[tuple[TermId, TermId], ...]:
+def _dimension_values(scope: EvidenceScopeV1) -> tuple[tuple[TermId, object], ...]:
     return (
+        (SCOPE_CLASS_DIMENSION_ID, scope.scope_class),
         (ORGANIZATION_DIMENSION_ID, scope.organization_id),
         (SITE_DIMENSION_ID, scope.site_id),
         (WORKSPACE_DIMENSION_ID, scope.workspace_id),

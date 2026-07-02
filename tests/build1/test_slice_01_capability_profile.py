@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from gptl.core.canonical import canonical_bytes
 from gptl.core.capabilities import (
+    CAPABILITY_CONFIGURATION_INVALID_REASON_ID,
     CAPABILITY_PROFILE_EXPIRED_REASON_ID,
     CAPABILITY_PROFILE_INACTIVE_REASON_ID,
     SOURCE_CLASS_UNKNOWN_REASON_ID,
@@ -123,6 +124,23 @@ def test_scope_term_registry_fails_closed_on_unknown_dimension_term(
     assert isinstance(result.scope_result, ScopeTermUnknown)
     assert result.reason_id == "build1.scope.term-unknown"
     assert result.scope_result.unknown_dimension_ids == (ORGANIZATION_DIMENSION_ID,)
+
+
+def test_scope_term_registry_checks_scope_class_dimension(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    result = evaluate_capture_profile(
+        _profile(build1_ref_factory),
+        _scope(build1_ref_factory, scope_class="RESEARCH_CORPUS"),
+        _scope(build1_ref_factory, ref_id="build1.scope.run"),
+        _term_registry(build1_ref_factory, scope_classes=("TEST_FIXTURE",)),
+        TermId("source-class.test-report"),
+        AS_OF,
+    )
+
+    assert isinstance(result, CaptureProfileNotReady)
+    assert isinstance(result.scope_result, ScopeTermUnknown)
+    assert result.scope_result.unknown_dimension_ids == (SCOPE_CLASS_DIMENSION_ID,)
 
 
 def test_wildcard_character_is_rejected_by_the_scalar_type(
@@ -263,6 +281,24 @@ def test_expired_profile_fails_before_source_selection(
     assert result.capability_failure.status == "UNAVAILABLE"
 
 
+def test_expired_profile_takes_precedence_over_unsupported_source_class(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    result = evaluate_capture_profile(
+        _profile(build1_ref_factory),
+        _scope(build1_ref_factory),
+        _scope(build1_ref_factory, ref_id="build1.scope.run"),
+        _term_registry(build1_ref_factory),
+        TermId("source-class.vendor-binary"),
+        "2027-01-01T00:00:00.000Z",
+    )
+
+    assert isinstance(result, CaptureProfileNotReady)
+    assert result.reason_id == CAPABILITY_PROFILE_EXPIRED_REASON_ID
+    assert result.capability_failure is not None
+    assert result.capability_failure.status == "UNAVAILABLE"
+
+
 def test_scope_failure_stops_before_source_class_resolution(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
@@ -317,6 +353,38 @@ def test_unknown_and_unsupported_source_classes_are_distinct(
     assert unsupported.capability_failure is not None
     assert unknown.capability_failure.status == "UNKNOWN"
     assert unsupported.capability_failure.status == "UNSUPPORTED"
+
+
+@pytest.mark.parametrize("broken_reference", ("source_system", "storage_policy"))
+def test_configuration_invalid_is_defensive_for_bypassed_profile_validation(
+    build1_ref_factory: Callable[[str], GovernedRef],
+    broken_reference: str,
+) -> None:
+    profile = _profile(build1_ref_factory)
+    accepted = profile.accepted_source_classes[0]
+    if broken_reference == "source_system":
+        broken_accepted = accepted.model_copy(
+            update={"source_system_id": TermId("source-system.not-declared")}
+        )
+    else:
+        broken_accepted = accepted.model_copy(
+            update={"storage_policy_ref": build1_ref_factory("build1.storage.not-declared")}
+        )
+    broken_profile = profile.model_copy(update={"accepted_source_classes": (broken_accepted,)})
+
+    result = evaluate_capture_profile(
+        broken_profile,
+        _scope(build1_ref_factory),
+        _scope(build1_ref_factory, ref_id="build1.scope.run"),
+        _term_registry(build1_ref_factory),
+        accepted.source_class_id,
+        AS_OF,
+    )
+
+    assert isinstance(result, CaptureProfileNotReady)
+    assert result.reason_id == CAPABILITY_CONFIGURATION_INVALID_REASON_ID
+    assert result.capability_failure is not None
+    assert result.capability_failure.status == "CONFIGURATION_INVALID"
 
 
 @pytest.mark.parametrize("field", ("owner_ref", "authority_policy_ref"))
@@ -426,6 +494,7 @@ def _scope(
 def _term_registry(
     build1_ref_factory: Callable[[str], GovernedRef],
     *,
+    scope_classes: tuple[str, ...] = ("TEST_FIXTURE", "RESEARCH_CORPUS"),
     organization_id: TermId = DEFAULT_ORGANIZATION_ID,
 ) -> ScopeTermRegistry:
     organization_terms = tuple(sorted({DEFAULT_ORGANIZATION_ID, organization_id}))
@@ -435,7 +504,7 @@ def _term_registry(
             "term_sets": (
                 {
                     "dimension_id": SCOPE_CLASS_DIMENSION_ID,
-                    "allowed_term_ids": ("TEST_FIXTURE", "RESEARCH_CORPUS"),
+                    "allowed_term_ids": scope_classes,
                 },
                 {
                     "dimension_id": ORGANIZATION_DIMENSION_ID,
