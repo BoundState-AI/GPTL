@@ -24,6 +24,16 @@ from gptl.core.semantic_types import (
     VersionId,
 )
 from gptl.core.snapshot import KnowledgeSnapshot, snapshot_hash
+from gptl.core.source_artifacts import (
+    HASH_ALGORITHM as SOURCE_HASH_ALGORITHM,
+)
+from gptl.core.source_artifacts import (
+    SOURCE_ARTIFACT_RECORD_TYPE,
+    SOURCE_ARTIFACT_SCHEMA_VERSION,
+    SOURCE_RAW_BYTES_RECORD_TYPE,
+    SourceRegistrationAccepted,
+    verify_source_registration,
+)
 from gptl.mie.schema import (
     AdvisoryDecision,
     Citation,
@@ -130,6 +140,18 @@ class StoredRun:
     citation_payloads: tuple[bytes, ...]
     bound_version_payloads: tuple[bytes, ...]
     replay_capsule: StoredReplayCapsule | None
+
+
+@dataclass(frozen=True)
+class StoredSourceArtifact:
+    source_artifact_id: str
+    source_logical_id: str
+    source_version_id: str
+    raw_byte_hash: str
+    byte_length: int
+    parser_status: str
+    payload: bytes
+    raw_bytes: bytes
 
 
 class PostgresRunStore:
@@ -273,6 +295,173 @@ class PostgresRunStore:
             raise PersistenceIntegrityError("persisted schema version mismatch")
         if hash_algorithm != HASH_ALGORITHM:
             raise PersistenceIntegrityError("persisted hash algorithm mismatch")
+
+    def persist_source_registration(self, registration: SourceRegistrationAccepted) -> None:
+        record = registration.source_record
+        payload = canonical_bytes(record, self._policy)
+        payload_hash = hashlib.sha256(payload).hexdigest()
+        with psycopg.connect(self._database_url) as connection:
+            with connection.transaction():
+                with connection.cursor() as cursor:
+                    self._pin_search_path(cursor)
+                    cursor.execute(
+                        """
+                        INSERT INTO gptl_source_artifacts (
+                            source_artifact_id, source_logical_id, source_version_id,
+                            source_version_number, source_content_hash, raw_byte_hash,
+                            byte_length, media_type, source_class_id, parser_status,
+                            payload_hash, payload, record_type, schema_version,
+                            hash_algorithm
+                        ) VALUES (
+                            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                            %s, %s, %s, %s, %s
+                        )
+                        """,
+                        (
+                            record.source_artifact_id,
+                            record.source_ref.logical_id,
+                            record.source_ref.version_id,
+                            record.source_ref.version_number,
+                            record.source_ref.content_hash,
+                            record.raw_byte_hash,
+                            record.byte_length,
+                            record.media_type,
+                            record.source_class_id,
+                            record.parser_eligibility.status,
+                            payload_hash,
+                            payload,
+                            SOURCE_ARTIFACT_RECORD_TYPE,
+                            SOURCE_ARTIFACT_SCHEMA_VERSION,
+                            SOURCE_HASH_ALGORITHM,
+                        ),
+                    )
+                    cursor.execute(
+                        """
+                        INSERT INTO gptl_source_raw_bytes (
+                            source_artifact_id, raw_byte_hash, byte_length, raw_bytes,
+                            record_type, schema_version, hash_algorithm
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            record.source_artifact_id,
+                            record.raw_byte_hash,
+                            record.byte_length,
+                            registration.raw_bytes,
+                            SOURCE_RAW_BYTES_RECORD_TYPE,
+                            SOURCE_ARTIFACT_SCHEMA_VERSION,
+                            SOURCE_HASH_ALGORITHM,
+                        ),
+                    )
+                    cursor.execute(
+                        """
+                        SELECT raw_bytes, raw_byte_hash, byte_length
+                        FROM gptl_source_raw_bytes
+                        WHERE source_artifact_id = %s
+                        """,
+                        (record.source_artifact_id,),
+                    )
+                    row = cursor.fetchone()
+                    if row is None:
+                        raise PersistenceIntegrityError("source raw bytes were not persisted")
+                    stored_raw_bytes = bytes(row[0])
+                    if (
+                        hashlib.sha256(stored_raw_bytes).hexdigest() != row[1].strip()
+                        or row[1].strip() != record.raw_byte_hash
+                        or row[2] != len(stored_raw_bytes)
+                    ):
+                        raise PersistenceIntegrityError("source raw byte verification failed")
+                    verify_source_registration(registration, self._policy)
+
+    def load_source_artifact(self, source_artifact_id: str) -> StoredSourceArtifact | None:
+        with psycopg.connect(self._database_url) as connection:
+            with connection.cursor() as cursor:
+                self._pin_search_path(cursor)
+                cursor.execute(
+                    """
+                    SELECT
+                        source.source_artifact_id,
+                        source.source_logical_id,
+                        source.source_version_id,
+                        source.raw_byte_hash,
+                        source.byte_length,
+                        source.parser_status,
+                        source.payload,
+                        source.payload_hash,
+                        source.record_type,
+                        source.schema_version,
+                        source.hash_algorithm,
+                        raw.raw_bytes,
+                        raw.raw_byte_hash,
+                        raw.byte_length,
+                        raw.record_type,
+                        raw.schema_version,
+                        raw.hash_algorithm
+                    FROM gptl_source_artifacts AS source
+                    JOIN gptl_source_raw_bytes AS raw
+                        ON raw.source_artifact_id = source.source_artifact_id
+                    WHERE source.source_artifact_id = %s
+                    """,
+                    (source_artifact_id,),
+                )
+                row = cursor.fetchone()
+                if row is None:
+                    return None
+                typed_row = cast(
+                    tuple[
+                        str,
+                        str,
+                        str,
+                        str,
+                        int,
+                        str,
+                        bytes,
+                        str,
+                        str,
+                        str,
+                        str,
+                        bytes,
+                        str,
+                        int,
+                        str,
+                        str,
+                        str,
+                    ],
+                    row,
+                )
+                self._validate_record_metadata(
+                    typed_row[8],
+                    typed_row[9],
+                    typed_row[10],
+                    SOURCE_ARTIFACT_RECORD_TYPE,
+                    SOURCE_ARTIFACT_SCHEMA_VERSION,
+                )
+                self._validate_record_metadata(
+                    typed_row[14],
+                    typed_row[15],
+                    typed_row[16],
+                    SOURCE_RAW_BYTES_RECORD_TYPE,
+                    SOURCE_ARTIFACT_SCHEMA_VERSION,
+                )
+                payload = bytes(typed_row[6])
+                raw_bytes = bytes(typed_row[11])
+                verify_sha256(payload, typed_row[7].strip())
+                verify_sha256(raw_bytes, typed_row[12].strip())
+                if (
+                    typed_row[3].strip() != typed_row[12].strip()
+                    or typed_row[4] != typed_row[13]
+                    or typed_row[13] != len(raw_bytes)
+                ):
+                    raise PersistenceIntegrityError("source artifact row is inconsistent")
+                return StoredSourceArtifact(
+                    source_artifact_id=typed_row[0],
+                    source_logical_id=typed_row[1],
+                    source_version_id=typed_row[2],
+                    raw_byte_hash=typed_row[3].strip(),
+                    byte_length=typed_row[4],
+                    parser_status=typed_row[5],
+                    payload=payload,
+                    raw_bytes=raw_bytes,
+                )
 
     def persist_preflight_run(
         self,

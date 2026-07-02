@@ -16,6 +16,12 @@ PUBLISHED_MIGRATION_SHA256 = {
     "0004_replay_capsules.sql": (
         "a21fb28046652ce2e40d3b0de9836bb758d2f85839e8ed766b4dee43bb825ad0"
     ),
+    "0005_build1_capability_scope.sql": (
+        "3cdb13ca80d88f7e089517a63645d6484391f57f85469bdc2b13b1cdedca2af2"
+    ),
+    "0006_build1_sources.sql": (
+        "55dc0616e780e5a4a8b61f121d369a5d28dd50dfe52ca2fe840ac6b822562bdd"
+    ),
 }
 
 
