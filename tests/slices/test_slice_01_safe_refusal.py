@@ -203,6 +203,7 @@ def test_migrations_are_ordered_checksummed_and_idempotent(postgres_url: str) ->
         "0004_replay_capsules",
         "0005_build1_capability_scope",
         "0006_build1_sources",
+        "0007_build1_source_integrity",
     ]
     assert all(len(payload_hash.strip()) == 64 for _, payload_hash in rows)
 

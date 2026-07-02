@@ -397,7 +397,7 @@ class PostgresRunStore:
                         raw.schema_version,
                         raw.hash_algorithm
                     FROM gptl_source_artifacts AS source
-                    JOIN gptl_source_raw_bytes AS raw
+                    LEFT JOIN gptl_source_raw_bytes AS raw
                         ON raw.source_artifact_id = source.source_artifact_id
                     WHERE source.source_artifact_id = %s
                     """,
@@ -406,6 +406,8 @@ class PostgresRunStore:
                 row = cursor.fetchone()
                 if row is None:
                     return None
+                if row[11] is None:
+                    raise PersistenceIntegrityError("source artifact raw bytes are missing")
                 typed_row = cast(
                     tuple[
                         str,

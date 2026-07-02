@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 from collections.abc import Callable
 
@@ -201,6 +202,94 @@ def test_failed_source_registration_leaves_no_rows_or_raw_bytes(
     assert raw_count == (0,)
 
 
+def test_database_rejects_source_artifact_without_raw_bytes(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    store = PostgresRunStore(postgres_url, policy)
+    store.initialize()
+    registration = _accepted_registration(build1_ref_factory)
+
+    with psycopg.connect(postgres_url) as connection:
+        with pytest.raises(psycopg.Error, match="raw byte pair"), connection.transaction():
+            _insert_source_artifact_metadata(connection, registration, policy)
+
+
+def test_database_rejects_source_raw_byte_metadata_mismatch(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    store = PostgresRunStore(postgres_url, policy)
+    store.initialize()
+    registration = _accepted_registration(build1_ref_factory)
+
+    with psycopg.connect(postgres_url) as connection:
+        with pytest.raises(psycopg.Error, match="raw byte metadata mismatch"), connection.transaction():
+            _insert_source_artifact_metadata(connection, registration, policy)
+            _insert_source_raw_bytes(
+                connection,
+                registration,
+                raw_byte_hash="0" * 64,
+                byte_length=len(registration.raw_bytes),
+                raw_bytes=registration.raw_bytes,
+            )
+
+
+def test_load_source_artifact_fails_loud_for_historical_orphan_metadata(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    store = PostgresRunStore(postgres_url, policy)
+    store.initialize()
+    registration = _accepted_registration(build1_ref_factory)
+
+    with psycopg.connect(postgres_url) as connection:
+        with connection.transaction():
+            connection.execute(
+                """
+                ALTER TABLE gptl_source_artifacts
+                DISABLE TRIGGER gptl_source_artifacts_validate_raw_byte_pair
+                """
+            )
+            _insert_source_artifact_metadata(connection, registration, policy)
+            connection.execute(
+                """
+                ALTER TABLE gptl_source_artifacts
+                ENABLE TRIGGER gptl_source_artifacts_validate_raw_byte_pair
+                """
+            )
+
+    with pytest.raises(PersistenceIntegrityError, match="raw bytes are missing"):
+        store.load_source_artifact(registration.source_record.source_artifact_id)
+
+
+def test_load_source_artifact_fails_loud_for_tampered_raw_bytes(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    store = PostgresRunStore(postgres_url, policy)
+    store.initialize()
+    registration = _accepted_registration(build1_ref_factory)
+
+    with psycopg.connect(postgres_url) as connection:
+        with connection.transaction():
+            _insert_source_artifact_metadata(connection, registration, policy)
+            _insert_source_raw_bytes(
+                connection,
+                registration,
+                raw_byte_hash=registration.source_record.raw_byte_hash,
+                byte_length=len(registration.raw_bytes),
+                raw_bytes=b"tamper-data",
+            )
+
+    with pytest.raises(ValueError, match="checksum mismatch"):
+        store.load_source_artifact(registration.source_record.source_artifact_id)
+
+
 def _accepted_registration(
     build1_ref_factory: Callable[[str], GovernedRef],
     *,
@@ -385,3 +474,69 @@ class _TrackingStream:
         self._offset += len(chunk)
         self.bytes_returned += len(chunk)
         return chunk
+
+
+def _insert_source_artifact_metadata(
+    connection: psycopg.Connection[tuple[object, ...]],
+    registration: SourceRegistrationAccepted,
+    policy,
+) -> None:
+    record = registration.source_record
+    payload = canonical_bytes(record, policy)
+    connection.execute(
+        """
+        INSERT INTO gptl_source_artifacts (
+            source_artifact_id, source_logical_id, source_version_id,
+            source_version_number, source_content_hash, raw_byte_hash,
+            byte_length, media_type, source_class_id, parser_status,
+            payload_hash, payload, record_type, schema_version, hash_algorithm
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s
+        )
+        """,
+        (
+            record.source_artifact_id,
+            record.source_ref.logical_id,
+            record.source_ref.version_id,
+            record.source_ref.version_number,
+            record.source_ref.content_hash,
+            record.raw_byte_hash,
+            record.byte_length,
+            record.media_type,
+            record.source_class_id,
+            record.parser_eligibility.status,
+            hashlib.sha256(payload).hexdigest(),
+            payload,
+            record.record_type,
+            record.schema_version,
+            record.hash_algorithm,
+        ),
+    )
+
+
+def _insert_source_raw_bytes(
+    connection: psycopg.Connection[tuple[object, ...]],
+    registration: SourceRegistrationAccepted,
+    *,
+    raw_byte_hash: str,
+    byte_length: int,
+    raw_bytes: bytes,
+) -> None:
+    connection.execute(
+        """
+        INSERT INTO gptl_source_raw_bytes (
+            source_artifact_id, raw_byte_hash, byte_length, raw_bytes,
+            record_type, schema_version, hash_algorithm
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            registration.source_record.source_artifact_id,
+            raw_byte_hash,
+            byte_length,
+            raw_bytes,
+            "SOURCE_RAW_BYTES",
+            "gptl.build1.source-artifact.v1",
+            "SHA-256",
+        ),
+    )
