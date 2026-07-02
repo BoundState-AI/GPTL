@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from importlib.resources import files
 from typing import Final, Literal, Protocol, cast
@@ -159,12 +160,39 @@ class StoredSourceArtifact:
     audit_payload: bytes
 
 
+def _governed_ref_key(ref: GovernedRef) -> tuple[str, str, int, str]:
+    return (
+        ref.logical_id,
+        ref.version_id,
+        ref.version_number,
+        ref.content_hash,
+    )
+
+
+def _source_policy_ref_from_payload(payload: bytes) -> GovernedRef:
+    try:
+        decoded = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise PersistenceIntegrityError(
+            "source artifact payload is not valid canonical JSON"
+        ) from exc
+    if not isinstance(decoded, dict):
+        raise PersistenceIntegrityError("source artifact payload is not an object")
+    try:
+        return GovernedRef.model_validate(decoded["canonicalization_policy_ref"])
+    except (KeyError, ValueError) as exc:
+        raise PersistenceIntegrityError(
+            "source artifact payload lacks valid canonicalization policy ref"
+        ) from exc
+
+
 class PostgresRunStore:
     def __init__(
         self,
         database_url: str,
         policy: CanonicalizationPolicy,
         policy_ref: GovernedRef | None = None,
+        source_policy_registry: Mapping[GovernedRef, CanonicalizationPolicy] | None = None,
     ) -> None:
         if not database_url:
             raise ValueError("an explicit PostgreSQL database URL is required")
@@ -172,7 +200,23 @@ class PostgresRunStore:
             raise ValueError("database URL must select PostgreSQL")
         self._database_url = database_url
         self._policy = policy
-        self._policy_ref = policy_ref
+        self._source_policies: dict[tuple[str, str, int, str], CanonicalizationPolicy] = {}
+        if policy_ref is not None:
+            self._register_source_policy(policy_ref, policy)
+        if source_policy_registry is not None:
+            for source_policy_ref, source_policy in source_policy_registry.items():
+                self._register_source_policy(source_policy_ref, source_policy)
+
+    def _register_source_policy(
+        self,
+        policy_ref: GovernedRef,
+        policy: CanonicalizationPolicy,
+    ) -> None:
+        key = _governed_ref_key(policy_ref)
+        existing = self._source_policies.get(key)
+        if existing is not None and existing != policy:
+            raise ValueError("conflicting canonicalization policies for one governed ref")
+        self._source_policies[key] = policy
 
     def initialize(self) -> None:
         migrations = self._load_migrations()
@@ -307,22 +351,21 @@ class PostgresRunStore:
         if hash_algorithm != HASH_ALGORITHM:
             raise PersistenceIntegrityError("persisted hash algorithm mismatch")
 
-    def _source_policy_ref(self) -> GovernedRef:
-        if self._policy_ref is None:
+    def _source_policy_for_ref(self, policy_ref: GovernedRef) -> CanonicalizationPolicy:
+        policy = self._source_policies.get(_governed_ref_key(policy_ref))
+        if policy is None:
             raise PersistenceIntegrityError(
-                "source registration requires canonicalization policy ref"
+                "source canonicalization policy ref is not registered"
             )
-        return self._policy_ref
+        return policy
 
     def persist_source_registration(self, registration: SourceRegistrationAccepted) -> None:
         record = registration.source_record
-        source_policy_ref = self._source_policy_ref()
-        if record.canonicalization_policy_ref != source_policy_ref:
-            raise PersistenceIntegrityError("source canonicalization policy ref mismatch")
-        verify_source_registration(registration, self._policy)
-        payload = canonical_bytes(record, self._policy)
+        source_policy = self._source_policy_for_ref(record.canonicalization_policy_ref)
+        verify_source_registration(registration, source_policy)
+        payload = canonical_bytes(record, source_policy)
         payload_hash = hashlib.sha256(payload).hexdigest()
-        audit_payload = canonical_bytes(registration.audit_event, self._policy)
+        audit_payload = canonical_bytes(registration.audit_event, source_policy)
         audit_payload_hash = hashlib.sha256(audit_payload).hexdigest()
         with psycopg.connect(self._database_url) as connection:
             # Source metadata, raw bytes, and registration audit are one governed
@@ -534,18 +577,16 @@ class PostgresRunStore:
                 verify_sha256(payload, typed_row[11].strip())
                 verify_sha256(raw_bytes, typed_row[16].strip())
                 verify_sha256(audit_payload, typed_row[22].strip())
+                source_policy_ref = _source_policy_ref_from_payload(payload)
+                source_policy = self._source_policy_for_ref(source_policy_ref)
                 source_record = SourceArtifactRecord.model_validate_json(
                     payload,
-                    context={"canonicalization_policy": self._policy},
+                    context={"canonicalization_policy": source_policy},
                 )
                 audit_event = SourceRegistrationAuditEvent.model_validate_json(
                     audit_payload,
-                    context={"canonicalization_policy": self._policy},
+                    context={"canonicalization_policy": source_policy},
                 )
-                if source_record.canonicalization_policy_ref != self._source_policy_ref():
-                    raise PersistenceIntegrityError(
-                        "source canonicalization policy ref mismatch"
-                    )
                 if (
                     typed_row[0] != source_record.source_artifact_id
                     or typed_row[1] != source_record.source_ref.logical_id
@@ -584,7 +625,7 @@ class PostgresRunStore:
                         raw_bytes=raw_bytes,
                         audit_event=audit_event,
                     ),
-                    self._policy,
+                    source_policy,
                 )
                 return StoredSourceArtifact(
                     source_artifact_id=typed_row[0],

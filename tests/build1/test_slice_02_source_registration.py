@@ -285,6 +285,39 @@ def test_raw_bytes_round_trip_exactly_from_postgres(
     assert stored.audit_payload == canonical_bytes(registration.audit_event, policy)
 
 
+def test_source_load_resolves_historical_record_policy_ref(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    historical_policy = canonicalization_policy()
+    historical_policy_ref = build1_ref_factory("build1.canonicalization.policy")
+    historical_store = PostgresRunStore(
+        postgres_url,
+        historical_policy,
+        historical_policy_ref,
+    )
+    historical_store.initialize()
+    registration = _accepted_registration(build1_ref_factory, raw_bytes=BINARY_SOURCE_BYTES)
+    historical_store.persist_source_registration(registration)
+
+    current_policy = historical_policy.model_copy(update={"policy_version": "2"})
+    current_policy_ref = build1_ref_factory("build1.canonicalization.policy.v2")
+    current_only_store = PostgresRunStore(postgres_url, current_policy, current_policy_ref)
+    with pytest.raises(PersistenceIntegrityError, match="policy ref is not registered"):
+        current_only_store.load_source_artifact(registration.source_record.source_artifact_id)
+
+    registry_store = PostgresRunStore(
+        postgres_url,
+        current_policy,
+        current_policy_ref,
+        source_policy_registry={historical_policy_ref: historical_policy},
+    )
+    stored = registry_store.load_source_artifact(registration.source_record.source_artifact_id)
+
+    assert stored is not None
+    assert stored.raw_bytes == BINARY_SOURCE_BYTES
+
+
 def test_failed_source_registration_leaves_no_rows_or_raw_bytes(
     postgres_url: str,
     build1_ref_factory: Callable[[str], GovernedRef],
@@ -503,6 +536,55 @@ def test_load_source_artifact_fails_loud_for_query_column_payload_mismatch(
 
     with pytest.raises(PersistenceIntegrityError, match="columns do not match"):
         store.load_source_artifact(registration.source_record.source_artifact_id)
+
+
+def test_pre_0008_source_rows_require_explicit_backfill(
+    postgres_url: str,
+) -> None:
+    _apply_migrations_through(postgres_url, "0007_build1_source_integrity")
+    raw_bytes = b"legacy-source"
+    raw_hash = hashlib.sha256(raw_bytes).hexdigest()
+
+    with psycopg.connect(postgres_url) as connection:
+        with connection.transaction():
+            connection.execute(
+                """
+                INSERT INTO gptl_source_artifacts (
+                    source_artifact_id, source_logical_id, source_version_id,
+                    source_version_number, source_content_hash, raw_byte_hash,
+                    byte_length, media_type, source_class_id, parser_status,
+                    payload_hash, payload, record_type, schema_version, hash_algorithm
+                ) VALUES (
+                    'legacy-source-1', 'legacy.source', 'legacy.source.v1',
+                    1, %s, %s, %s, 'text/csv', 'source-class.test-report',
+                    'PARSER_UNSUPPORTED', %s, %s, 'SOURCE_ARTIFACT',
+                    'gptl.build1.source-artifact.v1', 'SHA-256'
+                )
+                """,
+                (
+                    "1" * 64,
+                    raw_hash,
+                    len(raw_bytes),
+                    hashlib.sha256(b"{}").hexdigest(),
+                    b"{}",
+                ),
+            )
+            connection.execute(
+                """
+                INSERT INTO gptl_source_raw_bytes (
+                    source_artifact_id, raw_byte_hash, byte_length, raw_bytes,
+                    record_type, schema_version, hash_algorithm
+                ) VALUES (
+                    'legacy-source-1', %s, %s, %s, 'SOURCE_RAW_BYTES',
+                    'gptl.build1.source-artifact.v1', 'SHA-256'
+                )
+                """,
+                (raw_hash, len(raw_bytes), raw_bytes),
+            )
+
+    store = PostgresRunStore(postgres_url, canonicalization_policy())
+    with pytest.raises(psycopg.Error, match="requires greenfield"):
+        store.initialize()
 
 
 def _accepted_registration(
@@ -823,3 +905,21 @@ def _insert_source_raw_bytes(
             "SHA-256",
         ),
     )
+
+
+def _apply_migrations_through(postgres_url: str, terminal_migration_id: str) -> None:
+    migrations = PostgresRunStore._load_migrations()
+    with psycopg.connect(postgres_url) as connection:
+        with connection.transaction():
+            for migration in migrations:
+                connection.execute(migration.payload)
+                connection.execute(
+                    """
+                    INSERT INTO gptl_schema_migrations (migration_id, migration_hash)
+                    VALUES (%s, %s)
+                    """,
+                    (migration.migration_id, migration.payload_hash),
+                )
+                if migration.migration_id == terminal_migration_id:
+                    return
+    raise AssertionError(f"migration not found: {terminal_migration_id}")

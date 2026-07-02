@@ -28,6 +28,9 @@ PUBLISHED_MIGRATION_SHA256 = {
     "0008_build1_source_registration_audit.sql": (
         "9902a715d3af0279a733c36d860b50deb86ca42a2a06be4c48feb9cd627c4ec7"
     ),
+    "0009_build1_source_registration_greenfield_guard.sql": (
+        "c7c0de7f3f999893cd35ebf4962b1c67473b183234935b5e6be79d99a4f35092"
+    ),
 }
 
 
