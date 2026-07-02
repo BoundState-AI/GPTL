@@ -25,6 +25,9 @@ PUBLISHED_MIGRATION_SHA256 = {
     "0007_build1_source_integrity.sql": (
         "2244e9204718c985d7462f65cf0d377f1ff3aefed052281731b857bc17e654a7"
     ),
+    "0008_build1_source_registration_audit.sql": (
+        "9902a715d3af0279a733c36d860b50deb86ca42a2a06be4c48feb9cd627c4ec7"
+    ),
 }
 
 

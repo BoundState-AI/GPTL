@@ -24,14 +24,20 @@ from gptl.core.scope import (
 )
 from gptl.core.semantic_types import TermId
 from gptl.core.source_artifacts import (
+    SOURCE_GOVERNANCE_REF_MISMATCH_REASON_ID,
+    SOURCE_PARSER_ELIGIBILITY_UNKNOWN_REASON_ID,
     ParserEligibility,
+    ParserEligibilityPolicy,
     SourceArtifactRegistrationRequest,
+    SourceConfigurationInvalid,
     SourcePayloadTooLarge,
     SourceRegistrationAccepted,
     SourceRegistrationRejected,
     SourceRegistrationResult,
+    SourceStreamContractViolation,
     compute_raw_byte_hash,
     prepare_source_registration,
+    verify_source_registration,
 )
 from gptl.slice1_fixture import canonicalization_policy
 
@@ -94,6 +100,20 @@ def test_over_limit_payload_fails_before_full_buffer_read(
     assert stream.bytes_returned < len(OVERSIZE_SOURCE_BYTES)
 
 
+def test_nonconforming_stream_is_a_typed_fail_closed_result(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    result = _prepare_registration(
+        build1_ref_factory,
+        raw_stream=_NonConformingStream(b"0123456789"),
+        max_source_bytes=DEFAULT_MAX_SOURCE_BYTES,
+    )
+
+    assert isinstance(result, SourceStreamContractViolation)
+    assert result.reason_id == "build1.source.stream-contract-violation"
+    assert result.requested_read_bytes < result.observed_chunk_bytes
+
+
 def test_unsupported_source_class_returns_governed_capture_gap(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
@@ -105,6 +125,74 @@ def test_unsupported_source_class_returns_governed_capture_gap(
     assert isinstance(result, SourceRegistrationRejected)
     assert result.capture_result.capability_failure is not None
     assert result.capture_result.capability_failure.status == "UNSUPPORTED"
+
+
+def test_parser_eligibility_is_derived_from_governed_policy(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    registration = _accepted_registration(build1_ref_factory)
+
+    assert registration.source_record.parser_eligibility_policy_ref == build1_ref_factory(
+        "build1.parser-eligibility.policy"
+    )
+    assert registration.source_record.parser_eligibility.status == "PARSER_UNSUPPORTED"
+    assert (
+        registration.source_record.parser_eligibility.reason_id
+        == "build1.parser.no-governed-parser"
+    )
+
+
+def test_missing_parser_eligibility_rule_fails_closed(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    result = _prepare_registration(build1_ref_factory, media_type="application/pdf")
+
+    assert isinstance(result, SourceConfigurationInvalid)
+    assert result.reason_id == "build1.source.configuration-invalid"
+    assert result.issue_id == SOURCE_PARSER_ELIGIBILITY_UNKNOWN_REASON_ID
+
+
+@pytest.mark.parametrize(
+    "field_name,expected_ref_id",
+    (
+        ("capability_profile_ref", "build1.capability.profile"),
+        ("evidence_scope_ref", "build1.scope.candidate"),
+        ("canonicalization_policy_ref", "build1.canonicalization.policy"),
+        ("parser_eligibility_policy_ref", "build1.parser-eligibility.policy"),
+    ),
+)
+def test_registration_governance_refs_must_bind_to_actual_gate_inputs(
+    build1_ref_factory: Callable[[str], GovernedRef],
+    field_name: str,
+    expected_ref_id: str,
+) -> None:
+    policy = canonicalization_policy()
+    wrong_ref_id = f"wrong.{field_name.replace('_', '-')}"
+    request = _request(
+        build1_ref_factory,
+        filename="source.csv",
+        source_class_id=DEFAULT_SOURCE_CLASS_ID,
+    ).model_copy(
+        update={field_name: build1_ref_factory(wrong_ref_id)},
+    )
+
+    result = prepare_source_registration(
+        request,
+        io.BytesIO(TEXT_LINE_FEED_BYTES),
+        _profile(build1_ref_factory, max_source_bytes=DEFAULT_MAX_SOURCE_BYTES),
+        _scope(build1_ref_factory),
+        _scope(build1_ref_factory, ref_id="build1.scope.run"),
+        _term_registry(build1_ref_factory),
+        _parser_policy(build1_ref_factory),
+        AS_OF,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
+
+    assert isinstance(result, SourceConfigurationInvalid)
+    assert result.issue_id == SOURCE_GOVERNANCE_REF_MISMATCH_REASON_ID
+    assert result.expected_ref == build1_ref_factory(expected_ref_id)
+    assert result.actual_ref == build1_ref_factory(wrong_ref_id)
 
 
 def test_parser_eligibility_state_is_deterministic_and_replayable(
@@ -157,12 +245,33 @@ def test_parser_eligibility_requires_algorithm_or_reason_by_state(
         ParserEligibility.model_validate(payload)
 
 
+def test_registration_audit_reason_is_pinned_to_accepted_reason(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    registration = _accepted_registration(build1_ref_factory)
+    tampered = registration.model_copy(
+        update={
+            "audit_event": registration.audit_event.model_copy(
+                update={"reason_id": "build1.source.wrong-reason"}
+            )
+        }
+    )
+
+    with pytest.raises(ValueError, match="reason mismatch"):
+        verify_source_registration(tampered, policy)
+
+
 def test_raw_bytes_round_trip_exactly_from_postgres(
     postgres_url: str,
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
     policy = canonicalization_policy()
-    store = PostgresRunStore(postgres_url, policy)
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
     store.initialize()
     registration = _accepted_registration(build1_ref_factory, raw_bytes=BINARY_SOURCE_BYTES)
 
@@ -173,6 +282,7 @@ def test_raw_bytes_round_trip_exactly_from_postgres(
     assert stored.raw_bytes == BINARY_SOURCE_BYTES
     assert stored.raw_byte_hash == compute_raw_byte_hash(BINARY_SOURCE_BYTES)
     assert stored.payload == canonical_bytes(registration.source_record, policy)
+    assert stored.audit_payload == canonical_bytes(registration.audit_event, policy)
 
 
 def test_failed_source_registration_leaves_no_rows_or_raw_bytes(
@@ -180,7 +290,11 @@ def test_failed_source_registration_leaves_no_rows_or_raw_bytes(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
     policy = canonicalization_policy()
-    store = PostgresRunStore(postgres_url, policy)
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
     store.initialize()
     registration = _accepted_registration(build1_ref_factory)
     tampered = registration.model_copy(
@@ -197,9 +311,13 @@ def test_failed_source_registration_leaves_no_rows_or_raw_bytes(
     with psycopg.connect(postgres_url) as connection:
         source_count = connection.execute("SELECT count(*) FROM gptl_source_artifacts").fetchone()
         raw_count = connection.execute("SELECT count(*) FROM gptl_source_raw_bytes").fetchone()
+        audit_count = connection.execute(
+            "SELECT count(*) FROM gptl_source_registration_audit_events"
+        ).fetchone()
 
     assert source_count == (0,)
     assert raw_count == (0,)
+    assert audit_count == (0,)
 
 
 def test_database_rejects_source_artifact_without_raw_bytes(
@@ -207,13 +325,43 @@ def test_database_rejects_source_artifact_without_raw_bytes(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
     policy = canonicalization_policy()
-    store = PostgresRunStore(postgres_url, policy)
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
     store.initialize()
     registration = _accepted_registration(build1_ref_factory)
 
     with psycopg.connect(postgres_url) as connection:
         with pytest.raises(psycopg.Error, match="raw byte pair"), connection.transaction():
             _insert_source_artifact_metadata(connection, registration, policy)
+            _insert_source_registration_audit_event(connection, registration, policy)
+
+
+def test_database_rejects_source_artifact_without_audit_event(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
+    store.initialize()
+    registration = _accepted_registration(build1_ref_factory)
+
+    with psycopg.connect(postgres_url) as connection:
+        with pytest.raises(psycopg.Error, match="audit count"), connection.transaction():
+            _insert_source_artifact_metadata(connection, registration, policy)
+            _insert_source_raw_bytes(
+                connection,
+                registration,
+                raw_byte_hash=registration.source_record.raw_byte_hash,
+                byte_length=len(registration.raw_bytes),
+                raw_bytes=registration.raw_bytes,
+            )
 
 
 def test_database_rejects_source_raw_byte_metadata_mismatch(
@@ -221,7 +369,11 @@ def test_database_rejects_source_raw_byte_metadata_mismatch(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
     policy = canonicalization_policy()
-    store = PostgresRunStore(postgres_url, policy)
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
     store.initialize()
     registration = _accepted_registration(build1_ref_factory)
 
@@ -235,6 +387,7 @@ def test_database_rejects_source_raw_byte_metadata_mismatch(
                 byte_length=len(registration.raw_bytes),
                 raw_bytes=registration.raw_bytes,
             )
+            _insert_source_registration_audit_event(connection, registration, policy)
 
 
 def test_load_source_artifact_fails_loud_for_historical_orphan_metadata(
@@ -242,7 +395,11 @@ def test_load_source_artifact_fails_loud_for_historical_orphan_metadata(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
     policy = canonicalization_policy()
-    store = PostgresRunStore(postgres_url, policy)
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
     store.initialize()
     registration = _accepted_registration(build1_ref_factory)
 
@@ -254,11 +411,23 @@ def test_load_source_artifact_fails_loud_for_historical_orphan_metadata(
                 DISABLE TRIGGER gptl_source_artifacts_validate_raw_byte_pair
                 """
             )
+            connection.execute(
+                """
+                ALTER TABLE gptl_source_artifacts
+                DISABLE TRIGGER gptl_source_artifacts_validate_audit_count
+                """
+            )
             _insert_source_artifact_metadata(connection, registration, policy)
             connection.execute(
                 """
                 ALTER TABLE gptl_source_artifacts
                 ENABLE TRIGGER gptl_source_artifacts_validate_raw_byte_pair
+                """
+            )
+            connection.execute(
+                """
+                ALTER TABLE gptl_source_artifacts
+                ENABLE TRIGGER gptl_source_artifacts_validate_audit_count
                 """
             )
 
@@ -271,7 +440,11 @@ def test_load_source_artifact_fails_loud_for_tampered_raw_bytes(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
     policy = canonicalization_policy()
-    store = PostgresRunStore(postgres_url, policy)
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
     store.initialize()
     registration = _accepted_registration(build1_ref_factory)
 
@@ -285,8 +458,50 @@ def test_load_source_artifact_fails_loud_for_tampered_raw_bytes(
                 byte_length=len(registration.raw_bytes),
                 raw_bytes=b"tamper-data",
             )
+            _insert_source_registration_audit_event(connection, registration, policy)
 
     with pytest.raises(ValueError, match="checksum mismatch"):
+        store.load_source_artifact(registration.source_record.source_artifact_id)
+
+
+def test_load_source_artifact_fails_loud_for_query_column_payload_mismatch(
+    postgres_url: str,
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    policy = canonicalization_policy()
+    store = PostgresRunStore(
+        postgres_url,
+        policy,
+        build1_ref_factory("build1.canonicalization.policy"),
+    )
+    store.initialize()
+    registration = _accepted_registration(build1_ref_factory)
+    store.persist_source_registration(registration)
+
+    with psycopg.connect(postgres_url) as connection:
+        with connection.transaction():
+            connection.execute(
+                """
+                ALTER TABLE gptl_source_artifacts
+                DISABLE TRIGGER gptl_source_artifacts_append_only
+                """
+            )
+            connection.execute(
+                """
+                UPDATE gptl_source_artifacts
+                SET source_class_id = 'source-class.tampered'
+                WHERE source_artifact_id = %s
+                """,
+                (registration.source_record.source_artifact_id,),
+            )
+            connection.execute(
+                """
+                ALTER TABLE gptl_source_artifacts
+                ENABLE TRIGGER gptl_source_artifacts_append_only
+                """
+            )
+
+    with pytest.raises(PersistenceIntegrityError, match="columns do not match"):
         store.load_source_artifact(registration.source_record.source_artifact_id)
 
 
@@ -308,21 +523,29 @@ def _accepted_registration(
 def _prepare_registration(
     build1_ref_factory: Callable[[str], GovernedRef],
     *,
-    raw_stream: io.BytesIO | _TrackingStream | None = None,
+    raw_stream: io.BytesIO | _TrackingStream | _NonConformingStream | None = None,
     filename: str = "source.csv",
     source_class_id: TermId = DEFAULT_SOURCE_CLASS_ID,
+    media_type: str = "text/csv",
     max_source_bytes: int = DEFAULT_MAX_SOURCE_BYTES,
 ) -> SourceRegistrationResult:
     policy = canonicalization_policy()
     return prepare_source_registration(
-        _request(build1_ref_factory, filename=filename, source_class_id=source_class_id),
+        _request(
+            build1_ref_factory,
+            filename=filename,
+            source_class_id=source_class_id,
+            media_type=media_type,
+        ),
         raw_stream or io.BytesIO(TEXT_LINE_FEED_BYTES),
         _profile(build1_ref_factory, max_source_bytes=max_source_bytes),
         _scope(build1_ref_factory),
         _scope(build1_ref_factory, ref_id="build1.scope.run"),
         _term_registry(build1_ref_factory),
+        _parser_policy(build1_ref_factory),
         AS_OF,
         policy,
+        build1_ref_factory("build1.canonicalization.policy"),
     )
 
 
@@ -331,6 +554,7 @@ def _request(
     *,
     filename: str,
     source_class_id: TermId,
+    media_type: str = "text/csv",
 ) -> SourceArtifactRegistrationRequest:
     policy = canonicalization_policy()
     return SourceArtifactRegistrationRequest.model_validate(
@@ -339,7 +563,7 @@ def _request(
             "source_ref": build1_ref_factory("build1.source.fixture-1"),
             "canonicalization_policy_ref": build1_ref_factory("build1.canonicalization.policy"),
             "lifecycle_state": "ACTIVE",
-            "media_type": "text/csv",
+            "media_type": media_type,
             "filename": filename,
             "external_identifier": "external.fixture-1",
             "source_class_id": source_class_id,
@@ -348,12 +572,29 @@ def _request(
             "received_at": RECEIVED_AT,
             "evidence_scope_ref": build1_ref_factory("build1.scope.candidate"),
             "capability_profile_ref": build1_ref_factory("build1.capability.profile"),
-            "parser_eligibility": {
-                "status": "PARSER_UNSUPPORTED",
-                "reason_id": "build1.parser.no-governed-parser",
-            },
+            "parser_eligibility_policy_ref": build1_ref_factory(
+                "build1.parser-eligibility.policy"
+            ),
         },
         context={"canonicalization_policy": policy},
+    )
+
+
+def _parser_policy(build1_ref_factory: Callable[[str], GovernedRef]) -> ParserEligibilityPolicy:
+    return ParserEligibilityPolicy.model_validate(
+        {
+            "policy_ref": build1_ref_factory("build1.parser-eligibility.policy"),
+            "rules": (
+                {
+                    "source_class_id": DEFAULT_SOURCE_CLASS_ID,
+                    "media_type": "text/csv",
+                    "parser_eligibility": {
+                        "status": "PARSER_UNSUPPORTED",
+                        "reason_id": "build1.parser.no-governed-parser",
+                    },
+                },
+            ),
+        }
     )
 
 
@@ -476,6 +717,20 @@ class _TrackingStream:
         return chunk
 
 
+class _NonConformingStream:
+    def __init__(self, payload: bytes) -> None:
+        self._payload = payload
+        self._has_read = False
+
+    def read(self, size: int = -1) -> bytes:
+        if self._has_read:
+            return b""
+        self._has_read = True
+        if size < 0:
+            return self._payload
+        return self._payload + (b"x" * (size + 1))
+
+
 def _insert_source_artifact_metadata(
     connection: psycopg.Connection[tuple[object, ...]],
     registration: SourceRegistrationAccepted,
@@ -511,6 +766,34 @@ def _insert_source_artifact_metadata(
             record.record_type,
             record.schema_version,
             record.hash_algorithm,
+        ),
+    )
+
+
+def _insert_source_registration_audit_event(
+    connection: psycopg.Connection[tuple[object, ...]],
+    registration: SourceRegistrationAccepted,
+    policy,
+) -> None:
+    audit_event = registration.audit_event
+    payload = canonical_bytes(audit_event, policy)
+    connection.execute(
+        """
+        INSERT INTO gptl_source_registration_audit_events (
+            event_id, source_artifact_id, sequence, reason_id,
+            payload_hash, payload, record_type, schema_version, hash_algorithm
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """,
+        (
+            audit_event.event_id,
+            audit_event.source_artifact_id,
+            audit_event.sequence,
+            audit_event.reason_id,
+            hashlib.sha256(payload).hexdigest(),
+            payload,
+            audit_event.record_type,
+            audit_event.schema_version,
+            audit_event.hash_algorithm,
         ),
     )
 

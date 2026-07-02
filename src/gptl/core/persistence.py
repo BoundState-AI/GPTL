@@ -31,7 +31,11 @@ from gptl.core.source_artifacts import (
     SOURCE_ARTIFACT_RECORD_TYPE,
     SOURCE_ARTIFACT_SCHEMA_VERSION,
     SOURCE_RAW_BYTES_RECORD_TYPE,
+    SOURCE_REGISTRATION_AUDIT_EVENT_RECORD_TYPE,
+    SOURCE_REGISTRATION_AUDIT_SCHEMA_VERSION,
+    SourceArtifactRecord,
     SourceRegistrationAccepted,
+    SourceRegistrationAuditEvent,
     verify_source_registration,
 )
 from gptl.mie.schema import (
@@ -152,16 +156,23 @@ class StoredSourceArtifact:
     parser_status: str
     payload: bytes
     raw_bytes: bytes
+    audit_payload: bytes
 
 
 class PostgresRunStore:
-    def __init__(self, database_url: str, policy: CanonicalizationPolicy) -> None:
+    def __init__(
+        self,
+        database_url: str,
+        policy: CanonicalizationPolicy,
+        policy_ref: GovernedRef | None = None,
+    ) -> None:
         if not database_url:
             raise ValueError("an explicit PostgreSQL database URL is required")
         if not database_url.startswith(("postgresql://", "postgres://")):
             raise ValueError("database URL must select PostgreSQL")
         self._database_url = database_url
         self._policy = policy
+        self._policy_ref = policy_ref
 
     def initialize(self) -> None:
         migrations = self._load_migrations()
@@ -296,11 +307,27 @@ class PostgresRunStore:
         if hash_algorithm != HASH_ALGORITHM:
             raise PersistenceIntegrityError("persisted hash algorithm mismatch")
 
+    def _source_policy_ref(self) -> GovernedRef:
+        if self._policy_ref is None:
+            raise PersistenceIntegrityError(
+                "source registration requires canonicalization policy ref"
+            )
+        return self._policy_ref
+
     def persist_source_registration(self, registration: SourceRegistrationAccepted) -> None:
         record = registration.source_record
+        source_policy_ref = self._source_policy_ref()
+        if record.canonicalization_policy_ref != source_policy_ref:
+            raise PersistenceIntegrityError("source canonicalization policy ref mismatch")
+        verify_source_registration(registration, self._policy)
         payload = canonical_bytes(record, self._policy)
         payload_hash = hashlib.sha256(payload).hexdigest()
+        audit_payload = canonical_bytes(registration.audit_event, self._policy)
+        audit_payload_hash = hashlib.sha256(audit_payload).hexdigest()
         with psycopg.connect(self._database_url) as connection:
+            # Source metadata, raw bytes, and registration audit are one governed
+            # fact. Splitting them would let a later reader observe evidence whose
+            # gate/hashing provenance was never committed.
             with connection.transaction():
                 with connection.cursor() as cursor:
                     self._pin_search_path(cursor)
@@ -352,6 +379,27 @@ class PostgresRunStore:
                             SOURCE_HASH_ALGORITHM,
                         ),
                     )
+                    audit_event = registration.audit_event
+                    cursor.execute(
+                        """
+                        INSERT INTO gptl_source_registration_audit_events (
+                            event_id, source_artifact_id, sequence, reason_id,
+                            payload_hash, payload, record_type, schema_version,
+                            hash_algorithm
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        (
+                            audit_event.event_id,
+                            audit_event.source_artifact_id,
+                            audit_event.sequence,
+                            audit_event.reason_id,
+                            audit_payload_hash,
+                            audit_payload,
+                            SOURCE_REGISTRATION_AUDIT_EVENT_RECORD_TYPE,
+                            SOURCE_REGISTRATION_AUDIT_SCHEMA_VERSION,
+                            SOURCE_HASH_ALGORITHM,
+                        ),
+                    )
                     cursor.execute(
                         """
                         SELECT raw_bytes, raw_byte_hash, byte_length
@@ -370,7 +418,6 @@ class PostgresRunStore:
                         or row[2] != len(stored_raw_bytes)
                     ):
                         raise PersistenceIntegrityError("source raw byte verification failed")
-                    verify_source_registration(registration, self._policy)
 
     def load_source_artifact(self, source_artifact_id: str) -> StoredSourceArtifact | None:
         with psycopg.connect(self._database_url) as connection:
@@ -382,8 +429,12 @@ class PostgresRunStore:
                         source.source_artifact_id,
                         source.source_logical_id,
                         source.source_version_id,
+                        source.source_version_number,
+                        source.source_content_hash,
                         source.raw_byte_hash,
                         source.byte_length,
+                        source.media_type,
+                        source.source_class_id,
                         source.parser_status,
                         source.payload,
                         source.payload_hash,
@@ -395,10 +446,20 @@ class PostgresRunStore:
                         raw.byte_length,
                         raw.record_type,
                         raw.schema_version,
-                        raw.hash_algorithm
+                        raw.hash_algorithm,
+                        audit.payload,
+                        audit.payload_hash,
+                        audit.event_id,
+                        audit.sequence,
+                        audit.reason_id,
+                        audit.record_type,
+                        audit.schema_version,
+                        audit.hash_algorithm
                     FROM gptl_source_artifacts AS source
                     LEFT JOIN gptl_source_raw_bytes AS raw
                         ON raw.source_artifact_id = source.source_artifact_id
+                    LEFT JOIN gptl_source_registration_audit_events AS audit
+                        ON audit.source_artifact_id = source.source_artifact_id
                     WHERE source.source_artifact_id = %s
                     """,
                     (source_artifact_id,),
@@ -406,15 +467,23 @@ class PostgresRunStore:
                 row = cursor.fetchone()
                 if row is None:
                     return None
-                if row[11] is None:
+                if row[15] is None:
                     raise PersistenceIntegrityError("source artifact raw bytes are missing")
+                if row[21] is None:
+                    raise PersistenceIntegrityError(
+                        "source registration audit event is missing"
+                    )
                 typed_row = cast(
                     tuple[
                         str,
                         str,
                         str,
+                        int,
+                        str,
                         str,
                         int,
+                        str,
+                        str,
                         str,
                         bytes,
                         str,
@@ -424,6 +493,14 @@ class PostgresRunStore:
                         bytes,
                         str,
                         int,
+                        str,
+                        str,
+                        str,
+                        bytes,
+                        str,
+                        str,
+                        int,
+                        str,
                         str,
                         str,
                         str,
@@ -431,38 +508,94 @@ class PostgresRunStore:
                     row,
                 )
                 self._validate_record_metadata(
-                    typed_row[8],
-                    typed_row[9],
-                    typed_row[10],
+                    typed_row[12],
+                    typed_row[13],
+                    typed_row[14],
                     SOURCE_ARTIFACT_RECORD_TYPE,
                     SOURCE_ARTIFACT_SCHEMA_VERSION,
                 )
                 self._validate_record_metadata(
-                    typed_row[14],
-                    typed_row[15],
-                    typed_row[16],
+                    typed_row[18],
+                    typed_row[19],
+                    typed_row[20],
                     SOURCE_RAW_BYTES_RECORD_TYPE,
                     SOURCE_ARTIFACT_SCHEMA_VERSION,
                 )
-                payload = bytes(typed_row[6])
-                raw_bytes = bytes(typed_row[11])
-                verify_sha256(payload, typed_row[7].strip())
-                verify_sha256(raw_bytes, typed_row[12].strip())
+                self._validate_record_metadata(
+                    typed_row[26],
+                    typed_row[27],
+                    typed_row[28],
+                    SOURCE_REGISTRATION_AUDIT_EVENT_RECORD_TYPE,
+                    SOURCE_REGISTRATION_AUDIT_SCHEMA_VERSION,
+                )
+                payload = bytes(typed_row[10])
+                raw_bytes = bytes(typed_row[15])
+                audit_payload = bytes(typed_row[21])
+                verify_sha256(payload, typed_row[11].strip())
+                verify_sha256(raw_bytes, typed_row[16].strip())
+                verify_sha256(audit_payload, typed_row[22].strip())
+                source_record = SourceArtifactRecord.model_validate_json(
+                    payload,
+                    context={"canonicalization_policy": self._policy},
+                )
+                audit_event = SourceRegistrationAuditEvent.model_validate_json(
+                    audit_payload,
+                    context={"canonicalization_policy": self._policy},
+                )
+                if source_record.canonicalization_policy_ref != self._source_policy_ref():
+                    raise PersistenceIntegrityError(
+                        "source canonicalization policy ref mismatch"
+                    )
                 if (
-                    typed_row[3].strip() != typed_row[12].strip()
-                    or typed_row[4] != typed_row[13]
-                    or typed_row[13] != len(raw_bytes)
+                    typed_row[0] != source_record.source_artifact_id
+                    or typed_row[1] != source_record.source_ref.logical_id
+                    or typed_row[2] != source_record.source_ref.version_id
+                    or typed_row[3] != source_record.source_ref.version_number
+                    or typed_row[4].strip() != source_record.source_ref.content_hash
+                    or typed_row[5].strip() != source_record.raw_byte_hash
+                    or typed_row[6] != source_record.byte_length
+                    or typed_row[7] != source_record.media_type
+                    or typed_row[8] != source_record.source_class_id
+                    or typed_row[9] != source_record.parser_eligibility.status
+                ):
+                    raise PersistenceIntegrityError(
+                        "source artifact columns do not match canonical payload"
+                    )
+                if (
+                    typed_row[5].strip() != typed_row[16].strip()
+                    or typed_row[6] != typed_row[17]
+                    or typed_row[17] != len(raw_bytes)
                 ):
                     raise PersistenceIntegrityError("source artifact row is inconsistent")
+                if (
+                    typed_row[23] != audit_event.event_id
+                    or typed_row[0] != audit_event.source_artifact_id
+                    or typed_row[24] != audit_event.sequence
+                    or typed_row[25] != audit_event.reason_id
+                ):
+                    raise PersistenceIntegrityError(
+                        "source audit columns do not match canonical payload"
+                    )
+                verify_source_registration(
+                    SourceRegistrationAccepted(
+                        status="REGISTERED",
+                        reason_id=audit_event.reason_id,
+                        source_record=source_record,
+                        raw_bytes=raw_bytes,
+                        audit_event=audit_event,
+                    ),
+                    self._policy,
+                )
                 return StoredSourceArtifact(
                     source_artifact_id=typed_row[0],
                     source_logical_id=typed_row[1],
                     source_version_id=typed_row[2],
-                    raw_byte_hash=typed_row[3].strip(),
-                    byte_length=typed_row[4],
-                    parser_status=typed_row[5],
+                    raw_byte_hash=typed_row[5].strip(),
+                    byte_length=typed_row[6],
+                    parser_status=typed_row[9],
                     payload=payload,
                     raw_bytes=raw_bytes,
+                    audit_payload=audit_payload,
                 )
 
     def persist_preflight_run(

@@ -31,11 +31,24 @@ from gptl.core.semantic_types import (
 SOURCE_ARTIFACT_SCHEMA_VERSION: Final = "gptl.build1.source-artifact.v1"
 SOURCE_ARTIFACT_RECORD_TYPE: Final = "SOURCE_ARTIFACT"
 SOURCE_RAW_BYTES_RECORD_TYPE: Final = "SOURCE_RAW_BYTES"
+SOURCE_REGISTRATION_AUDIT_SCHEMA_VERSION: Final = "gptl.build1.source-registration-audit.v1"
+SOURCE_REGISTRATION_AUDIT_EVENT_RECORD_TYPE: Final = "SOURCE_REGISTRATION_AUDIT_EVENT"
 SOURCE_REGISTRATION_ACCEPTED_REASON_ID: Final = TermId("build1.source.registration-accepted")
 SOURCE_PAYLOAD_TOO_LARGE_REASON_ID: Final = TermId("build1.source.payload-too-large")
+SOURCE_CONFIGURATION_INVALID_REASON_ID: Final = TermId("build1.source.configuration-invalid")
+SOURCE_GOVERNANCE_REF_MISMATCH_REASON_ID: Final = TermId(
+    "build1.source.governance-ref-mismatch"
+)
+SOURCE_PARSER_ELIGIBILITY_UNKNOWN_REASON_ID: Final = TermId(
+    "build1.source.parser-eligibility-unknown"
+)
+SOURCE_STREAM_CONTRACT_VIOLATION_REASON_ID: Final = TermId(
+    "build1.source.stream-contract-violation"
+)
 HASH_ALGORITHM: Final = "SHA-256"
 SOURCE_STREAM_CHUNK_BYTES: Final = io.DEFAULT_BUFFER_SIZE
 OVER_LIMIT_PROBE_BYTES: Final = 1
+SOURCE_REGISTRATION_AUDIT_SEQUENCE: Final = 0
 
 
 class RawByteStream(Protocol):
@@ -85,6 +98,47 @@ class ParserEligibility(BaseModel):
         return self
 
 
+class ParserEligibilityRule(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    source_class_id: TermId
+    media_type: OpaqueId
+    parser_eligibility: ParserEligibility
+
+
+class ParserEligibilityPolicy(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    policy_ref: GovernedRef
+    rules: tuple[ParserEligibilityRule, ...]
+
+    @model_validator(mode="before")
+    @classmethod
+    def sort_rules(cls, value: object) -> object:
+        if not isinstance(value, dict) or "rules" not in value:
+            return value
+        normalized = dict(value)
+        normalized["rules"] = tuple(
+            sorted(
+                normalized["rules"],
+                key=lambda item: (
+                    str(_field_value(item, "source_class_id")),
+                    str(_field_value(item, "media_type")),
+                ),
+            )
+        )
+        return normalized
+
+    @model_validator(mode="after")
+    def validate_rules(self) -> ParserEligibilityPolicy:
+        if not self.rules:
+            raise ValueError("parser eligibility policy requires at least one rule")
+        keys = tuple((rule.source_class_id, rule.media_type) for rule in self.rules)
+        if keys != tuple(sorted(set(keys))):
+            raise ValueError("parser eligibility rules must be unique and sorted")
+        return self
+
+
 class SourceArtifactRegistrationRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -102,7 +156,7 @@ class SourceArtifactRegistrationRequest(BaseModel):
     asserted_source_time: CanonicalTimestamp | None = None
     evidence_scope_ref: GovernedRef
     capability_profile_ref: GovernedRef
-    parser_eligibility: ParserEligibility
+    parser_eligibility_policy_ref: GovernedRef
 
     @model_validator(mode="after")
     def validate_metadata(self) -> SourceArtifactRegistrationRequest:
@@ -136,6 +190,7 @@ class SourceArtifactRecord(BaseModel):
     evidence_scope_ref: GovernedRef
     capability_profile_ref: GovernedRef
     storage_policy_ref: GovernedRef
+    parser_eligibility_policy_ref: GovernedRef
     parser_eligibility: ParserEligibility
 
 
@@ -149,6 +204,47 @@ class SourcePayloadTooLarge(BaseModel):
     observed_bytes_before_rejection: PositiveInt
 
 
+class SourceStreamContractViolation(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: Literal["STREAM_CONTRACT_VIOLATION"]
+    reason_id: TermId
+    source_artifact_id: OpaqueId
+    requested_read_bytes: PositiveInt
+    observed_chunk_bytes: PositiveInt
+
+
+class SourceConfigurationInvalid(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    status: Literal["CONFIGURATION_INVALID"]
+    reason_id: TermId
+    source_artifact_id: OpaqueId
+    issue_id: TermId
+    expected_ref: GovernedRef | None = None
+    actual_ref: GovernedRef | None = None
+
+
+class SourceRegistrationAuditEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    event_id: OpaqueId
+    source_artifact_id: OpaqueId
+    sequence: NonNegativeInt
+    schema_version: Literal["gptl.build1.source-registration-audit.v1"]
+    record_type: Literal["SOURCE_REGISTRATION_AUDIT_EVENT"]
+    hash_algorithm: Literal["SHA-256"]
+    reason_id: TermId
+    source_ref: GovernedRef
+    raw_byte_hash: Sha256Hex
+    byte_length: NonNegativeInt
+    capability_profile_ref: GovernedRef
+    evidence_scope_ref: GovernedRef
+    canonicalization_policy_ref: GovernedRef
+    parser_eligibility_policy_ref: GovernedRef
+    event_time: CanonicalTimestamp
+
+
 class SourceRegistrationAccepted(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
@@ -156,6 +252,7 @@ class SourceRegistrationAccepted(BaseModel):
     reason_id: TermId
     source_record: SourceArtifactRecord
     raw_bytes: bytes
+    audit_event: SourceRegistrationAuditEvent
 
 
 class SourceRegistrationRejected(BaseModel):
@@ -168,7 +265,11 @@ class SourceRegistrationRejected(BaseModel):
 
 
 SourceRegistrationResult = (
-    SourceRegistrationAccepted | SourceRegistrationRejected | SourcePayloadTooLarge
+    SourceRegistrationAccepted
+    | SourceRegistrationRejected
+    | SourcePayloadTooLarge
+    | SourceStreamContractViolation
+    | SourceConfigurationInvalid
 )
 
 
@@ -187,12 +288,20 @@ def read_raw_payload_with_limit(
     stream: RawByteStream,
     max_bytes_per_source_record: PositiveInt,
     source_artifact_id: OpaqueId,
-) -> RawPayload | SourcePayloadTooLarge:
+) -> RawPayload | SourcePayloadTooLarge | SourceStreamContractViolation:
     payload = bytearray()
     while True:
         remaining = max_bytes_per_source_record - len(payload)
         read_size = min(SOURCE_STREAM_CHUNK_BYTES, remaining + OVER_LIMIT_PROBE_BYTES)
         chunk = stream.read(read_size)
+        if len(chunk) > read_size:
+            return SourceStreamContractViolation(
+                status="STREAM_CONTRACT_VIOLATION",
+                reason_id=SOURCE_STREAM_CONTRACT_VIOLATION_REASON_ID,
+                source_artifact_id=source_artifact_id,
+                requested_read_bytes=read_size,
+                observed_chunk_bytes=len(chunk),
+            )
         if not chunk:
             raw_bytes = bytes(payload)
             return RawPayload(
@@ -218,9 +327,21 @@ def prepare_source_registration(
     candidate_scope: EvidenceScopeV1,
     run_scope: EvidenceScopeV1,
     scope_term_registry: ScopeTermRegistry,
+    parser_eligibility_policy: ParserEligibilityPolicy,
     as_of_time: CanonicalTimestamp,
     canonicalization_policy: CanonicalizationPolicy,
+    canonicalization_policy_ref: GovernedRef,
 ) -> SourceRegistrationResult:
+    mismatch = _validate_registration_refs(
+        request,
+        capability_profile,
+        candidate_scope,
+        parser_eligibility_policy,
+        canonicalization_policy_ref,
+    )
+    if mismatch is not None:
+        return mismatch
+
     readiness = evaluate_capture_profile(
         capability_profile,
         candidate_scope,
@@ -238,12 +359,21 @@ def prepare_source_registration(
         )
 
     storage_policy = _storage_policy_for_readiness(capability_profile, readiness)
+    parser_eligibility = govern_parser_eligibility(
+        parser_eligibility_policy,
+        request.source_class_id,
+        request.media_type,
+        request.source_artifact_id,
+    )
+    if isinstance(parser_eligibility, SourceConfigurationInvalid):
+        return parser_eligibility
+
     raw_payload = read_raw_payload_with_limit(
         raw_stream,
         storage_policy.max_bytes_per_source_record,
         request.source_artifact_id,
     )
-    if isinstance(raw_payload, SourcePayloadTooLarge):
+    if isinstance(raw_payload, (SourcePayloadTooLarge, SourceStreamContractViolation)):
         return raw_payload
 
     source_record = SourceArtifactRecord.model_validate(
@@ -268,15 +398,35 @@ def prepare_source_registration(
             "evidence_scope_ref": request.evidence_scope_ref,
             "capability_profile_ref": request.capability_profile_ref,
             "storage_policy_ref": readiness.storage_policy_ref,
-            "parser_eligibility": request.parser_eligibility,
+            "parser_eligibility_policy_ref": request.parser_eligibility_policy_ref,
+            "parser_eligibility": parser_eligibility,
         },
         context={"canonicalization_policy": canonicalization_policy},
     )
+    finalized_record = finalize_source_artifact_record(source_record, canonicalization_policy)
     return SourceRegistrationAccepted(
         status="REGISTERED",
         reason_id=SOURCE_REGISTRATION_ACCEPTED_REASON_ID,
-        source_record=finalize_source_artifact_record(source_record, canonicalization_policy),
+        source_record=finalized_record,
         raw_bytes=raw_payload.raw_bytes,
+        audit_event=_source_registration_audit_event(finalized_record, canonicalization_policy),
+    )
+
+
+def govern_parser_eligibility(
+    policy: ParserEligibilityPolicy,
+    source_class_id: TermId,
+    media_type: OpaqueId,
+    source_artifact_id: OpaqueId,
+) -> ParserEligibility | SourceConfigurationInvalid:
+    for rule in policy.rules:
+        if rule.source_class_id == source_class_id and rule.media_type == media_type:
+            return rule.parser_eligibility
+    return SourceConfigurationInvalid(
+        status="CONFIGURATION_INVALID",
+        reason_id=SOURCE_CONFIGURATION_INVALID_REASON_ID,
+        source_artifact_id=source_artifact_id,
+        issue_id=SOURCE_PARSER_ELIGIBILITY_UNKNOWN_REASON_ID,
     )
 
 
@@ -300,6 +450,12 @@ def verify_source_registration(
     registration: SourceRegistrationAccepted,
     canonicalization_policy: CanonicalizationPolicy,
 ) -> None:
+    record = registration.source_record
+    if (
+        registration.reason_id != SOURCE_REGISTRATION_ACCEPTED_REASON_ID
+        or registration.audit_event.reason_id != SOURCE_REGISTRATION_ACCEPTED_REASON_ID
+    ):
+        raise ValueError("source registration reason mismatch")
     if registration.source_record.raw_byte_hash != compute_raw_byte_hash(registration.raw_bytes):
         raise ValueError("source raw bytes do not match raw byte hash")
     expected_content_hash = source_artifact_content_hash(
@@ -308,6 +464,18 @@ def verify_source_registration(
     )
     if registration.source_record.source_ref.content_hash != expected_content_hash:
         raise ValueError("source artifact content hash mismatch")
+    if (
+        registration.audit_event.source_artifact_id != record.source_artifact_id
+        or registration.audit_event.source_ref != record.source_ref
+        or registration.audit_event.raw_byte_hash != record.raw_byte_hash
+        or registration.audit_event.byte_length != record.byte_length
+        or registration.audit_event.capability_profile_ref != record.capability_profile_ref
+        or registration.audit_event.evidence_scope_ref != record.evidence_scope_ref
+        or registration.audit_event.canonicalization_policy_ref != record.canonicalization_policy_ref
+        or registration.audit_event.parser_eligibility_policy_ref
+        != record.parser_eligibility_policy_ref
+    ):
+        raise ValueError("source registration audit event does not match source record")
 
 
 def _storage_policy_for_readiness(
@@ -318,3 +486,63 @@ def _storage_policy_for_readiness(
         if storage_policy.storage_policy_ref == readiness.storage_policy_ref:
             return storage_policy
     raise ValueError("capture readiness resolved an undeclared storage policy")
+
+
+def _validate_registration_refs(
+    request: SourceArtifactRegistrationRequest,
+    capability_profile: CapabilityProfile,
+    candidate_scope: EvidenceScopeV1,
+    parser_eligibility_policy: ParserEligibilityPolicy,
+    canonicalization_policy_ref: GovernedRef,
+) -> SourceConfigurationInvalid | None:
+    checks = (
+        (request.capability_profile_ref, capability_profile.profile_ref),
+        (request.evidence_scope_ref, candidate_scope.scope_ref),
+        (request.parser_eligibility_policy_ref, parser_eligibility_policy.policy_ref),
+        (request.canonicalization_policy_ref, canonicalization_policy_ref),
+    )
+    for actual_ref, expected_ref in checks:
+        if actual_ref != expected_ref:
+            return SourceConfigurationInvalid(
+                status="CONFIGURATION_INVALID",
+                reason_id=SOURCE_CONFIGURATION_INVALID_REASON_ID,
+                source_artifact_id=request.source_artifact_id,
+                issue_id=SOURCE_GOVERNANCE_REF_MISMATCH_REASON_ID,
+                expected_ref=expected_ref,
+                actual_ref=actual_ref,
+            )
+    return None
+
+
+def _source_registration_audit_event(
+    source_record: SourceArtifactRecord,
+    canonicalization_policy: CanonicalizationPolicy,
+) -> SourceRegistrationAuditEvent:
+    return SourceRegistrationAuditEvent.model_validate(
+        {
+            "event_id": f"{source_record.source_artifact_id}:registration-audit",
+            "source_artifact_id": source_record.source_artifact_id,
+            "sequence": SOURCE_REGISTRATION_AUDIT_SEQUENCE,
+            "schema_version": SOURCE_REGISTRATION_AUDIT_SCHEMA_VERSION,
+            "record_type": SOURCE_REGISTRATION_AUDIT_EVENT_RECORD_TYPE,
+            "hash_algorithm": HASH_ALGORITHM,
+            "reason_id": SOURCE_REGISTRATION_ACCEPTED_REASON_ID,
+            "source_ref": source_record.source_ref,
+            "raw_byte_hash": source_record.raw_byte_hash,
+            "byte_length": source_record.byte_length,
+            "capability_profile_ref": source_record.capability_profile_ref,
+            "evidence_scope_ref": source_record.evidence_scope_ref,
+            "canonicalization_policy_ref": source_record.canonicalization_policy_ref,
+            "parser_eligibility_policy_ref": source_record.parser_eligibility_policy_ref,
+            "event_time": source_record.received_at,
+        },
+        context={"canonicalization_policy": canonicalization_policy},
+    )
+
+
+def _field_value(value: object, field_name: str) -> object:
+    if isinstance(value, BaseModel):
+        return getattr(value, field_name)
+    if isinstance(value, dict):
+        return value[field_name]
+    raise ValueError("parser eligibility rules must be model or mapping values")
