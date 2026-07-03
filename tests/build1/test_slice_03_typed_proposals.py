@@ -24,6 +24,7 @@ from gptl.core.proposals import (
     PROPOSAL_PARSE_ATTEMPT_REQUIRED_REASON_ID,
     PROPOSAL_UNIT_UNKNOWN_REASON_ID,
     PROPOSAL_VALIDATION_FAILED_REASON_ID,
+    PROPOSAL_VALUE_NON_CANONICAL_REASON_ID,
     TYPED_VALUE_PROPOSAL_RECORD_TYPE,
     TYPED_VALUE_PROPOSAL_SCHEMA_VERSION,
     AlgorithmRegistry,
@@ -126,6 +127,24 @@ def test_numeric_proposal_requires_bound_decimal_policy_and_canonical_unit(
         )
 
 
+def test_numeric_overflow_is_typed_validation_failure_not_hashing_exception(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    proposal = _proposal(
+        build1_ref_factory,
+        proposed_value={
+            "kind": "NUMERIC",
+            "value": Decimal("1000000000000000000.0000"),
+            "unit_id": "unit.hrc",
+        },
+    )
+
+    result = _evaluate(build1_ref_factory, proposal)
+
+    assert result.status == "VALIDATION_FAILED"
+    assert result.validation_errors == (PROPOSAL_VALUE_NON_CANONICAL_REASON_ID,)
+
+
 def test_parser_derived_proposal_requires_exact_successful_parse_attempt(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
@@ -184,6 +203,32 @@ def test_parser_and_locator_algorithms_must_resolve_to_active_registry_entries(
 
     assert unresolved.validation_errors == (PROPOSAL_ALGORITHM_UNRESOLVED_REASON_ID,)
     assert inactive.validation_errors == (PROPOSAL_ALGORITHM_UNRESOLVED_REASON_ID,)
+
+
+def test_model_assisted_proposal_can_be_ready_with_exact_raw_byte_evidence(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    proposal = _proposal(build1_ref_factory, proposal_method="MODEL_ASSISTED")
+
+    result = _evaluate(build1_ref_factory, proposal)
+
+    assert result.status == "READY_FOR_RATIFICATION"
+    assert result.validation_errors == ()
+
+
+def test_model_assisted_proposal_cannot_claim_parsed_locator_without_parse_attempt(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    proposal = _proposal(
+        build1_ref_factory,
+        proposal_method="MODEL_ASSISTED",
+        evidence_location=_csv_evidence(build1_ref_factory),
+    )
+
+    result = _evaluate(build1_ref_factory, proposal)
+
+    assert result.status == "VALIDATION_FAILED"
+    assert result.validation_errors == (PROPOSAL_PARSE_ATTEMPT_REQUIRED_REASON_ID,)
 
 
 def test_proposal_only_evidence_location_cannot_be_ready_for_ratification(

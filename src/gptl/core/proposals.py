@@ -6,7 +6,7 @@ from typing import Annotated, Final, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from gptl.core.canonical import canonical_sha256
+from gptl.core.canonical import CanonicalizationError, canonical_decimal, canonical_sha256
 from gptl.core.records import GovernedRef, governed_record_content_hash, sorted_unique_refs
 from gptl.core.semantic_types import (
     CanonicalizationPolicy,
@@ -42,6 +42,9 @@ PROPOSAL_TARGET_SCHEMA_MISMATCH_REASON_ID: Final = TermId(
     "build1.proposal.target-schema-mismatch"
 )
 PROPOSAL_VALUE_KIND_INVALID_REASON_ID: Final = TermId("build1.proposal.value-kind-invalid")
+PROPOSAL_VALUE_NON_CANONICAL_REASON_ID: Final = TermId(
+    "build1.proposal.value-non-canonical"
+)
 PROPOSAL_UNIT_UNKNOWN_REASON_ID: Final = TermId("build1.proposal.unit-unknown")
 PROPOSAL_ENUM_TERM_UNKNOWN_REASON_ID: Final = TermId("build1.proposal.enum-term-unknown")
 PROPOSAL_SOURCE_MISMATCH_REASON_ID: Final = TermId("build1.proposal.source-mismatch")
@@ -535,7 +538,7 @@ def evaluate_typed_value_proposal(
     if proposal.canonicalization_policy_ref != target_schema.canonicalization_policy_ref:
         issues.add(PROPOSAL_TARGET_SCHEMA_MISMATCH_REASON_ID)
     issues.update(_target_issues(proposal.target, target_schema))
-    issues.update(_value_issues(proposal.proposed_value, target_schema))
+    issues.update(_value_issues(proposal.proposed_value, target_schema, canonicalization_policy))
     issues.update(
         _evidence_issues(
             proposal.evidence_location,
@@ -645,13 +648,22 @@ def _target_issues(target: ProposalTarget, schema: TargetFieldSchema) -> set[Ter
     return issues
 
 
-def _value_issues(value: ScalarValue, schema: TargetFieldSchema) -> set[TermId]:
+def _value_issues(
+    value: ScalarValue,
+    schema: TargetFieldSchema,
+    canonicalization_policy: CanonicalizationPolicy,
+) -> set[TermId]:
     if isinstance(value, NumericValue):
         if schema.value_kind != "NUMERIC":
             return {PROPOSAL_VALUE_KIND_INVALID_REASON_ID}
+        issues: set[TermId] = set()
         if value.unit_id != schema.canonical_unit_id:
-            return {PROPOSAL_UNIT_UNKNOWN_REASON_ID}
-        return set()
+            issues.add(PROPOSAL_UNIT_UNKNOWN_REASON_ID)
+        try:
+            canonical_decimal(value.value, canonicalization_policy)
+        except CanonicalizationError:
+            issues.add(PROPOSAL_VALUE_NON_CANONICAL_REASON_ID)
+        return issues
     if schema.value_kind != "ENUM":
         return {PROPOSAL_VALUE_KIND_INVALID_REASON_ID}
     enum_value = value
