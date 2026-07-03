@@ -24,6 +24,7 @@ from gptl.core.proposal_ratification import (
     PROPOSAL_NOT_READY_REASON_ID,
     PROPOSAL_RATIFICATION_RECORD_TYPE,
     PROPOSAL_RATIFICATION_SCHEMA_VERSION,
+    RATIFICATION_INTEGRITY_FAILURE_REASON_ID,
     RATIFY_PROPOSAL_ACTION_ID,
     ROLE_ASSIGNMENT_RECORD_TYPE,
     ROLE_ASSIGNMENT_SCHEMA_VERSION,
@@ -92,6 +93,7 @@ def test_ratification_verifies_proposal_content_hash_before_eligibility(
     result = _evaluate(build1_ref_factory, (proposal,), (event,))
 
     assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
     assert result.diagnostics == (PROPOSAL_HASH_MISMATCH_REASON_ID,)
     assert result.active_proposal_refs == ()
 
@@ -105,6 +107,7 @@ def test_ratification_rejects_proposal_not_ready_for_ratification(
     result = _evaluate(build1_ref_factory, (proposal,), (event,))
 
     assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
     assert result.diagnostics == (PROPOSAL_NOT_READY_REASON_ID,)
     assert result.active_proposal_refs == ()
 
@@ -123,6 +126,7 @@ def test_authority_role_authorization_and_separation_of_duties_are_required(
     result = _evaluate(build1_ref_factory, (proposal,), (same_actor_event,))
 
     assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
     assert result.diagnostics == (AUTHORITY_INELIGIBLE_REASON_ID,)
 
 
@@ -135,7 +139,46 @@ def test_ratification_requires_active_local_actor_records(
     result = _evaluate(build1_ref_factory, (proposal,), (event,), actor_records=())
 
     assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
     assert result.diagnostics == (AUTHORITY_INELIGIBLE_REASON_ID,)
+
+
+def test_ineligible_ratification_fails_entire_snapshot_bind(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    valid = _proposal(build1_ref_factory)
+    unrelated_invalid = _proposal(
+        build1_ref_factory,
+        proposal_ref=_proposal_ref("build1.proposal.width", 1),
+        target_ref=build1_ref_factory("build1.target.specimen-2"),
+        value=Decimal("10.0000"),
+    )
+    valid_event = _ratification_event(
+        build1_ref_factory,
+        valid,
+        event_ref=build1_ref_factory("build1.ratification.valid"),
+    )
+    invalid_event = _ratification_event(
+        build1_ref_factory,
+        unrelated_invalid,
+        event_ref=build1_ref_factory("build1.ratification.invalid"),
+        ratifier_ref=build1_ref_factory("build1.actor.unassigned"),
+        claimed_proposer_ref=build1_ref_factory("build1.actor.proposer"),
+    )
+
+    result = _evaluate(
+        build1_ref_factory,
+        (valid, unrelated_invalid),
+        (valid_event, invalid_event),
+    )
+
+    assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
+    assert result.diagnostics == (AUTHORITY_INELIGIBLE_REASON_ID,)
+    assert result.active_proposal_refs == ()
+    assert result.target_states[0].active_ratified_event_refs == (
+        valid_event.ratification_event_ref,
+    )
 
 
 def test_single_actor_ratification_requires_explicit_policy_basis(
@@ -358,6 +401,7 @@ def _proposal(
     build1_ref_factory: Callable[[str], GovernedRef],
     *,
     proposal_ref: GovernedRef | None = None,
+    target_ref: GovernedRef | None = None,
     value: Decimal = Decimal("41.2500"),
     validation_state: Literal[
         "PROPOSED",
@@ -367,6 +411,7 @@ def _proposal(
         "SUPERSEDED",
     ] = "READY_FOR_RATIFICATION",
 ) -> TypedValueProposal:
+    target = target_ref or build1_ref_factory("build1.target.specimen-1")
     proposal = TypedValueProposal.model_validate(
         {
             "schema_version": TYPED_VALUE_PROPOSAL_SCHEMA_VERSION,
@@ -379,11 +424,11 @@ def _proposal(
             "source_raw_byte_hash": SOURCE_RAW_HASH,
             "identity": {
                 "identity_mode": "EXISTING_GOVERNED_REF",
-                "target_ref": build1_ref_factory("build1.target.specimen-1"),
+                "target_ref": target,
             },
             "proposal_method": "MANUAL_TRANSLATION",
             "creation_event_ref": build1_ref_factory("build1.proposal.creation-event"),
-            "target": _target(build1_ref_factory),
+            "target": _target(target),
             "proposed_value": {"kind": "NUMERIC", "value": value, "unit_id": "unit.hrc"},
             "evidence_location": {
                 "locator_class": "RAW_BYTE_RANGE",
@@ -399,11 +444,11 @@ def _proposal(
     return finalize_typed_value_proposal(proposal, canonicalization_policy())
 
 
-def _target(build1_ref_factory: Callable[[str], GovernedRef]) -> ProposalTarget:
+def _target(target_ref: GovernedRef) -> ProposalTarget:
     return ProposalTarget.model_validate(
         {
             "target_record_type": "record.material-specimen",
-            "target_logical_id": build1_ref_factory("build1.target.specimen-1").logical_id,
+            "target_logical_id": target_ref.logical_id,
             "target_schema_version": "schema.specimen.v1",
             "semantic_field_path": "field.hardness",
             "context_key": {"side": "side.left", "replicate": 1},

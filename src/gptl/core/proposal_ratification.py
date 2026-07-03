@@ -41,6 +41,9 @@ RATIFY_PROPOSAL_ACTION_ID: Final = TermId("build1.action.ratify-proposal")
 ACTIVE_VALUE_RESOLVED_REASON_ID: Final = TermId("build1.active-value.resolved")
 ACTIVE_VALUE_CONFLICT_REASON_ID: Final = TermId("build1.active-value.conflict")
 AUTHORITY_INELIGIBLE_REASON_ID: Final = TermId("build1.authority.ineligible")
+RATIFICATION_INTEGRITY_FAILURE_REASON_ID: Final = TermId(
+    "build1.ratification.integrity-failure"
+)
 PROPOSAL_HASH_MISMATCH_REASON_ID: Final = TermId("build1.ratification.proposal-hash-mismatch")
 PROPOSAL_NOT_READY_REASON_ID: Final = TermId("build1.ratification.proposal-not-ready")
 
@@ -390,9 +393,11 @@ def evaluate_active_values(
             diagnostics=tuple(sorted(diagnostics)),
         )
     if diagnostics:
+        # Snapshot binding is all-or-nothing: silently excluding a malformed or
+        # unauthorized ratification would let a run ignore evidence it actually bound.
         return ActiveValueResolutionResult(
             status="INTEGRITY_FAILURE",
-            reason_id=AUTHORITY_INELIGIBLE_REASON_ID,
+            reason_id=RATIFICATION_INTEGRITY_FAILURE_REASON_ID,
             target_states=states,
             active_value_state_hash=state_hash,
             active_proposal_refs=(),
