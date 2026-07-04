@@ -134,13 +134,33 @@ def test_observation_promotion_requires_governed_basis_and_ratification_next(
     assert promotion.required_next_record_type == PROPOSAL_RATIFICATION_RECORD_TYPE
 
 
+@pytest.mark.parametrize(
+    "metadata_key",
+    (
+        "operator.confidence",
+        "operator.confidence_interval",
+        "operator.probability",
+        "operator.likelihood",
+        "operator.sigma",
+        "operator.p_value",
+        "operator.pvalue",
+        "operator.percentile",
+        "operator.stddev",
+        "operator.variance",
+        "operator.weight",
+        "operator.rank",
+        "operator.posterior",
+        "operator.risk_score",
+    ),
+)
 def test_confidence_metadata_is_rejected(
     build1_ref_factory: Callable[[str], GovernedRef],
+    metadata_key: str,
 ) -> None:
     with pytest.raises(ValidationError, match="confidence or score"):
         _observation(
             build1_ref_factory,
-            metadata=(ObservationMetadataEntry(key="operator.confidence", value="high"),),
+            metadata=(ObservationMetadataEntry(key=metadata_key, value="high"),),
         )
 
 

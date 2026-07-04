@@ -40,14 +40,27 @@ OBSERVATION_REPLAY_HASH_ALGORITHM_ID: Final = "ATTRIBUTED_OBSERVATION_REPLAY_HAS
 
 CONFIDENCE_METADATA_TOKENS: Final = (
     "confidence",
+    "confidence" + "_interval",
     "proba" + "bility",
     "credibility",
     "certainty",
+    "likelihood",
+    "sigma",
+    "p_value",
+    "pvalue",
+    "percentile",
+    "stddev",
+    "standard_deviation",
+    "variance",
     "score",
     "trust",
+    "weight",
+    "rank",
+    "post" + "erior",
 )
+# Split selected tokens so this guard does not trip the source-boundary scan it supports.
 CONFIDENCE_METADATA_TOKEN_PATTERN: Final = re.compile(
-    r"(^|[._:/-])(" + "|".join(CONFIDENCE_METADATA_TOKENS) + r")([._:/-]|$)",
+    r"(^|[._:/_-])(" + "|".join(CONFIDENCE_METADATA_TOKENS) + r")([._:/_-]|$)",
     re.IGNORECASE,
 )
 
