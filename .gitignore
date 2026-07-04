@@ -4,3 +4,6 @@ __pycache__/
 .pytest_cache/
 .pgdata/
 .pgsocket/
+
+# ORACLE review packets: track the .md review records, ignore polished .docx renderings
+docs/*_polished.docx
