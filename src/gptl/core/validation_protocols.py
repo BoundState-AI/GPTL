@@ -281,6 +281,9 @@ class DesignedValidationProtocol(BaseModel):
         _validate_ref_order(predicate_refs, "acceptance criteria")
         if self.root_predicate_ref not in predicate_refs:
             raise ValueError("root predicate must be one of the acceptance criteria")
+        criteria_by_ref = {item.predicate_ref: item for item in self.acceptance_criteria}
+        if _reachable_predicate_refs(criteria_by_ref, self.root_predicate_ref) != predicate_refs:
+            raise ValueError("root predicate must reach every acceptance criterion")
         if not self.allowed_terminal_states:
             raise ValueError("protocol requires allowed terminal states")
         _validate_unique_sorted(self.allowed_terminal_states, "allowed terminal states")
@@ -885,7 +888,7 @@ def _terminal_state(
         return "INVALID_PROTOCOL_EXECUTION"
     if any(field_id not in values_by_field for field_id in required_field_ids):
         return "NOT_VALIDATED"
-    if root_evaluation.result == "TRUE":
+    if all(item.result == "TRUE" for item in evaluations):
         return "VALIDATED"
     return "NOT_VALIDATED"
 
@@ -946,6 +949,25 @@ def _duplicate_field_ids(values: tuple[ValidationFieldValue, ...]) -> tuple[Fiel
             duplicates.add(value.field_id)
         seen.add(value.field_id)
     return tuple(sorted(duplicates))
+
+
+def _reachable_predicate_refs(
+    criteria_by_ref: dict[GovernedRef, ValidationPredicate],
+    root_predicate_ref: GovernedRef,
+) -> tuple[GovernedRef, ...]:
+    reachable: set[GovernedRef] = set()
+    pending = [root_predicate_ref]
+    while pending:
+        predicate_ref = pending.pop()
+        if predicate_ref in reachable:
+            continue
+        predicate = criteria_by_ref.get(predicate_ref)
+        if predicate is None:
+            continue
+        reachable.add(predicate_ref)
+        if isinstance(predicate, AllOfPredicate):
+            pending.extend(predicate.predicate_refs)
+    return sorted_unique_refs(tuple(reachable))
 
 
 def _evaluation_key(evaluation: ValidationPredicateEvaluation) -> tuple[str, str]:

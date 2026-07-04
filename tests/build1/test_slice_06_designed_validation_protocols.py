@@ -4,6 +4,9 @@ from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+from pydantic import ValidationError
+
 from gptl.core.proposal_ratification import PROPOSAL_RATIFICATION_RECORD_TYPE
 from gptl.core.proposals import TYPED_VALUE_PROPOSAL_RECORD_TYPE
 from gptl.core.records import GovernedRef
@@ -117,6 +120,40 @@ def test_unsupported_predicate_template_is_configuration_invalid(
 
     assert result.terminal_state == "INVALID_PROTOCOL_EXECUTION"
     assert result.predicate_evaluations[0].result == "CONFIGURATION_INVALID"
+
+
+def test_root_predicate_must_reach_every_acceptance_criterion(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    with pytest.raises(ValidationError, match="root predicate must reach every"):
+        _protocol(
+            build1_ref_factory,
+            root_predicate_ref=_ref("build1.validation-predicate.present", 1),
+        )
+
+
+def test_bypassed_orphan_root_returns_typed_non_validation_not_exception(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    protocol = _protocol(build1_ref_factory)
+    bypassed_protocol = protocol.model_copy(
+        update={"root_predicate_ref": _ref("build1.validation-predicate.present", 1)}
+    )
+
+    result = evaluate_designed_validation_protocol(
+        bypassed_protocol,
+        _execution(build1_ref_factory),
+        (
+            _numeric_value(build1_ref_factory, TEMP_FIELD, Decimal("99.0000")),
+            _term_value(build1_ref_factory, STATUS_FIELD, TermId("visual-status.acceptable")),
+        ),
+        _unit_registry(build1_ref_factory),
+        canonicalization_policy(),
+    )
+
+    assert result.terminal_state == "NOT_VALIDATED"
+    assert result.created_proposal_refs == ()
+    assert any(item.result == "FALSE" for item in result.predicate_evaluations)
 
 
 def test_observation_promotion_target_must_be_allowed_by_protocol(
