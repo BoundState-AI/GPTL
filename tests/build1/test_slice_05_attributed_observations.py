@@ -164,6 +164,53 @@ def test_confidence_metadata_is_rejected(
         )
 
 
+@pytest.mark.parametrize(
+    "metadata_key",
+    (
+        "modelConfidence",
+        "operator.modelConfidence",
+        "confidenceScore",
+        "confidence1",
+        "operator.riskScore2",
+        "posteriorWeight",
+    ),
+)
+def test_camelcase_and_digit_confidence_metadata_is_rejected(
+    build1_ref_factory: Callable[[str], GovernedRef],
+    metadata_key: str,
+) -> None:
+    # NFC-1: the token scan must catch camelCase and digit-adjacent confidence/score keys,
+    # not only delimiter-separated forms — OpaqueId admits these shapes.
+    with pytest.raises(ValidationError, match="confidence or score"):
+        _observation(
+            build1_ref_factory,
+            metadata=(ObservationMetadataEntry(key=metadata_key, value="high"),),
+        )
+
+
+def test_render_fails_closed_when_context_observation_is_not_supplied(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    # OBS-RENDER-KEYERROR: a render context referencing an observation absent from the
+    # supplied set must fail closed with a diagnostic error, not a bare KeyError.
+    observation = _observation(build1_ref_factory)
+    context = build_observation_advisory_context(
+        (observation,),
+        build1_ref_factory("build1.canonicalization.policy"),
+        AS_OF,
+        canonicalization_policy(),
+    )
+
+    with pytest.raises(ValueError, match="not supplied"):
+        render_observation_artifact(
+            context,
+            (),
+            ADVISORY_HASH,
+            "renderer.observation.v1",
+            "1.0.0",
+        )
+
+
 def test_observations_are_append_only_and_replay_hash_is_order_independent(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:

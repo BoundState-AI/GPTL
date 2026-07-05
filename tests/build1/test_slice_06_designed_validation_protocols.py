@@ -156,6 +156,38 @@ def test_bypassed_orphan_root_returns_typed_non_validation_not_exception(
     assert any(item.result == "FALSE" for item in result.predicate_evaluations)
 
 
+def test_all_of_false_aggregate_with_missing_child_is_typed_not_an_exception(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    # TEMP is out of the 45-55 range (range child FALSE) while STATUS is omitted (term
+    # child MISSING_DATA), so the ALL_OF aggregates {TRUE, FALSE, MISSING_DATA}. The
+    # aggregate must resolve to a typed FALSE and must NOT forward the child missing
+    # fields onto a non-missing-data evaluation, which the schema rejects as an exception.
+    protocol = _protocol(build1_ref_factory)
+
+    result = evaluate_designed_validation_protocol(
+        protocol,
+        _execution(build1_ref_factory),
+        (_numeric_value(build1_ref_factory, TEMP_FIELD, Decimal("99.0000")),),
+        _unit_registry(build1_ref_factory),
+        canonicalization_policy(),
+    )
+
+    assert result.terminal_state == "NOT_VALIDATED"
+    assert result.created_proposal_refs == ()
+    # The MISSING_DATA leaf still carries its missing field...
+    assert any(
+        item.result == "MISSING_DATA" and item.missing_field_ids
+        for item in result.predicate_evaluations
+    )
+    # ...but no non-missing-data evaluation (including the FALSE aggregate) leaks them.
+    assert all(
+        item.missing_field_ids == ()
+        for item in result.predicate_evaluations
+        if item.result != "MISSING_DATA"
+    )
+
+
 def test_observation_promotion_target_must_be_allowed_by_protocol(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:

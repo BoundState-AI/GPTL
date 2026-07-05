@@ -465,6 +465,17 @@ def _event_eligibility_issue(
         or event.proposed_value_hash != proposed_value_hash(proposal, canonicalization_policy)
     ):
         return PROPOSAL_HASH_MISMATCH_REASON_ID
+    # Separation of duties must anchor on the authorship the system already holds on the
+    # bound proposal, not on the event's self-declaration. A proposal with no recorded
+    # author cannot be independence-checked, so it is ineligible for ratification (fail
+    # closed); when an author IS recorded, the event must declare exactly that actor.
+    # Together these stop an author from self-ratifying by either omitting the author on
+    # the proposal or altering the declared proposer on the event.
+    if (
+        proposal.claimed_proposer_ref is None
+        or event.claimed_proposer_ref != proposal.claimed_proposer_ref
+    ):
+        return AUTHORITY_INELIGIBLE_REASON_ID
     if not _claimed_actors_active(actor_records, event, as_of_time):
         return AUTHORITY_INELIGIBLE_REASON_ID
     if not _authority_policy_active(authority_policy, scope_ref, as_of_time):

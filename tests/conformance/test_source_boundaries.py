@@ -21,9 +21,10 @@ def test_authoritative_source_has_no_prohibited_runtime_dependencies() -> None:
 
 
 def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7() -> None:
-    source_root = Path(__file__).parents[2] / "src" / "gptl" / "mie"
-    source = "\n".join(
-        (source_root / name).read_text(encoding="utf-8")
+    gptl_root = Path(__file__).parents[2] / "src" / "gptl"
+    mie_root = gptl_root / "mie"
+    mie_sources = [
+        (mie_root / name).read_text(encoding="utf-8")
         for name in (
             "diagnostics.py",
             "advisory.py",
@@ -33,7 +34,16 @@ def test_diagnostic_engine_has_no_domain_numeric_constants_through_slice7() -> N
             "slice5_service.py",
             "slice6_service.py",
         )
-    )
+    ]
+    # Build 1 governed-record engines (src/gptl/core) must likewise carry no hardcoded
+    # domain numeric constants: all bounds live in governed protocol/proposal/policy data,
+    # never in engine code. rglob so new core modules are covered automatically — the guard,
+    # not manual inspection, enforces the no-magic-numbers invariant over Build 1.
+    core_sources = [
+        path.read_text(encoding="utf-8")
+        for path in sorted((gptl_root / "core").rglob("*.py"))
+    ]
+    source = "\n".join([*mie_sources, *core_sources])
     decimal_literals = {
         value
         for marker in ('Decimal("', "Decimal('")

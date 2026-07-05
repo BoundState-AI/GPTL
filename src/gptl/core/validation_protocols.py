@@ -802,7 +802,11 @@ def _all_of_evaluation(
     return _predicate_evaluation(
         predicate,
         result,
-        missing_field_ids=missing_fields,
+        # Missing fields are valid only on a MISSING_DATA result (schema invariant);
+        # a FALSE/INVALID/CONFIGURATION_INVALID aggregate must not forward child
+        # missing fields, or ValidationPredicateEvaluation rejects it as an exception
+        # instead of a typed fail-closed result.
+        missing_field_ids=missing_fields if result == "MISSING_DATA" else (),
         operand_refs=operand_refs,
         evidence_refs=evidence_refs,
     )

@@ -36,6 +36,7 @@ from gptl.core.build0_bridge import (
     evaluate_capture_gate,
     reconcile_bridge_retry,
 )
+from gptl.core.canonical import canonical_sha256
 from gptl.core.observations import (
     ATTRIBUTED_OBSERVATION_RECORD_TYPE,
     ATTRIBUTED_OBSERVATION_SCHEMA_VERSION,
@@ -381,6 +382,66 @@ def test_replay_capsule_binds_upstream_chain_order_independently(
     )
 
 
+def test_calibration_and_msa_labels_have_zero_build0_influence(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    # Calibration/MSA capability labels are advisory capture-readiness signals (Slice 1
+    # §4 exit gate); they must never thread into a Build 0-bound structure. The bridge
+    # consumes only an abstracted capability_status, so the labels are absent by
+    # construction — this pins that no future wiring leaks them into the request/snapshot.
+    proposal = _proposal(build1_ref_factory)
+    active_values = _evaluate_active(build1_ref_factory, (proposal,), (_ratification(build1_ref_factory, proposal),))
+    gate = _gate(build1_ref_factory, active_values, (proposal,))
+    request = assemble_build0_bridge_request(
+        request_ref=build1_ref_factory("build1.bridge.request"),
+        caller_ids=_caller_ids(),
+        capture_gate=gate,
+        snapshot_binding=_snapshot_binding(build1_ref_factory),
+        canonicalization_policy=canonicalization_policy(),
+    )
+
+    assert request is not None
+    request_dump = repr(request.model_dump(mode="python"))
+    for calibration_label in (
+        "capability-label.calibration-records-present",
+        "capability-label.msa-records-present",
+    ):
+        assert calibration_label not in request_dump
+
+
+def test_proposal_method_does_not_change_structured_build0_value(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    # §10 exit gate: removing all model adapters changes no structured output. A
+    # MODEL_ASSISTED and a MANUAL_TRANSLATION proposal for the same value must bind
+    # byte-identical structured output at the Build 0 choke point — Build0BoundValueRow
+    # carries no proposal_method and the model path earns no confidence/weight. Provenance
+    # (proposal_content_hash) legitimately differs; the decision-bearing value does not.
+    manual = _proposal(build1_ref_factory, proposal_method="MANUAL_TRANSLATION")
+    model_assisted = _proposal(build1_ref_factory, proposal_method="MODEL_ASSISTED")
+
+    manual_rows = _gate(
+        build1_ref_factory,
+        _evaluate_active(build1_ref_factory, (manual,), (_ratification(build1_ref_factory, manual),)),
+        (manual,),
+    ).bound_value_rows
+    model_rows = _gate(
+        build1_ref_factory,
+        _evaluate_active(
+            build1_ref_factory, (model_assisted,), (_ratification(build1_ref_factory, model_assisted),)
+        ),
+        (model_assisted,),
+    ).bound_value_rows
+
+    assert len(manual_rows) == 1
+    assert len(model_rows) == 1
+    assert manual_rows[0].typed_canonical_value == model_rows[0].typed_canonical_value
+    assert manual_rows[0].target_key == model_rows[0].target_key
+    assert canonical_sha256(
+        manual_rows[0].typed_canonical_value, canonicalization_policy()
+    ) == canonical_sha256(model_rows[0].typed_canonical_value, canonicalization_policy())
+
+
 def test_slice_7_runtime_source_guard(
     runtime_source_guard: Callable[[tuple[Path, ...]], None],
 ) -> None:
@@ -489,6 +550,9 @@ def _proposal(
     proposal_ref: GovernedRef | None = None,
     value: Decimal = Decimal("41.2500"),
     canonicalization_policy_ref: GovernedRef | None = None,
+    proposal_method: Literal[
+        "DETERMINISTIC_PARSER", "MODEL_ASSISTED", "MANUAL_TRANSLATION"
+    ] = "MANUAL_TRANSLATION",
 ) -> TypedValueProposal:
     proposal = TypedValueProposal.model_validate(
         {
@@ -505,7 +569,8 @@ def _proposal(
                 "identity_mode": "EXISTING_GOVERNED_REF",
                 "target_ref": build1_ref_factory("build1.target.specimen-1"),
             },
-            "proposal_method": "MANUAL_TRANSLATION",
+            "claimed_proposer_ref": build1_ref_factory("build1.actor.proposer"),
+            "proposal_method": proposal_method,
             "creation_event_ref": build1_ref_factory("build1.proposal.creation-event"),
             "target": _target(build1_ref_factory),
             "proposed_value": {"kind": "NUMERIC", "value": value, "unit_id": "unit.hrc"},

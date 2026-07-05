@@ -339,6 +339,17 @@ class BridgeAttemptRecord(BaseModel):
 
 
 class Build1BridgeReplayCapsule(BaseModel):
+    """Binds the upstream provenance chain for exact Build 1 replay.
+
+    `upstream_refs` completeness is a CALLER-TRUST boundary in this build: the capsule
+    records the refs it is given (caller-supplied plus the capture-gate subset) and does
+    not structurally verify that every plan §551 provenance category is present. Structural
+    completeness / missing-record verification is scheduled for the Slice 8 replay engine
+    (BUILD1_EXACT_REPLAY_V1, plan §11), which fails closed on absent records. This capsule
+    never feeds `bound_value_rows`, so an incomplete upstream set is an auditability gap,
+    not a Tier 1 firewall path.
+    """
+
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     schema_version: Literal["gptl.build1.bridge-replay-capsule.v1"]
@@ -798,6 +809,11 @@ def _has_numeric_policy_mismatch(
         proposal = proposals_by_key.get(_ref_key(active_ref))
         if proposal is None:
             return True
+        # Intentional fail-closed strictness: Build 0 Tier 1 admits a proposal only when it
+        # was canonicalized under Build 0's own policy ref. The plan's byte-identical
+        # re-canonicalization fallback (§10) is deliberately NOT implemented here — re-
+        # canonicalizing under a differently-identified policy would sever content-hash
+        # provenance, so such a proposal fails closed (over-refusal, never a Tier 1 leak).
         if proposal.canonicalization_policy_ref != build0_canonicalization_policy_ref:
             return True
         try:

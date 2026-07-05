@@ -208,6 +208,67 @@ def test_single_actor_ratification_requires_explicit_policy_basis(
     assert result.active_proposal_refs == (proposal.proposal_ref,)
 
 
+def test_ratification_reconciles_event_proposer_against_recorded_proposal_author(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    # The proposal records its author; the same actor also happens to hold a valid
+    # reviewer role + authorization, so separation of duties is the ONLY remaining gate.
+    # The event tries to slip past it by naming a *different* proposer than the one the
+    # proposal actually records — which, absent reconciliation, reads as an independent
+    # reviewer and ratifies. The gate must reject the mismatch as authority-ineligible.
+    author = build1_ref_factory("build1.actor.proposer")
+    proposal = _proposal(build1_ref_factory, claimed_proposer_ref=author)
+    disguised_event = _ratification_event(
+        build1_ref_factory,
+        proposal,
+        ratifier_ref=author,
+        claimed_proposer_ref=build1_ref_factory("build1.actor.reviewer"),
+    )
+
+    result = _evaluate(
+        build1_ref_factory,
+        (proposal,),
+        (disguised_event,),
+        role_assignments=(_role_assignment(build1_ref_factory, actor_ref=author),),
+        authorizations=(_authorization_event(build1_ref_factory, actor_ref=author),),
+    )
+
+    assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
+    assert result.diagnostics == (AUTHORITY_INELIGIBLE_REASON_ID,)
+    assert result.active_proposal_refs == ()
+
+
+def test_ratification_rejects_proposal_with_no_recorded_author(
+    build1_ref_factory: Callable[[str], GovernedRef],
+) -> None:
+    # A proposal with no recorded author cannot be independence-checked, so it must be
+    # ineligible for ratification (fail closed) — otherwise a dual-hatted author self-
+    # ratifies by leaving the proposer OFF the proposal and naming any other actor on the
+    # event, and separation of duties (which reads the event) never fires. AUTH-1 omit path.
+    author = build1_ref_factory("build1.actor.proposer")
+    proposal = _proposal(build1_ref_factory, omit_proposer=True)
+    disguised_event = _ratification_event(
+        build1_ref_factory,
+        proposal,
+        ratifier_ref=author,
+        claimed_proposer_ref=build1_ref_factory("build1.actor.reviewer"),
+    )
+
+    result = _evaluate(
+        build1_ref_factory,
+        (proposal,),
+        (disguised_event,),
+        role_assignments=(_role_assignment(build1_ref_factory, actor_ref=author),),
+        authorizations=(_authorization_event(build1_ref_factory, actor_ref=author),),
+    )
+
+    assert result.status == "INTEGRITY_FAILURE"
+    assert result.reason_id == RATIFICATION_INTEGRITY_FAILURE_REASON_ID
+    assert result.diagnostics == (AUTHORITY_INELIGIBLE_REASON_ID,)
+    assert result.active_proposal_refs == ()
+
+
 def test_future_recorded_backdated_ratification_affects_only_later_run(
     build1_ref_factory: Callable[[str], GovernedRef],
 ) -> None:
@@ -410,10 +471,16 @@ def _proposal(
         "REJECTED",
         "SUPERSEDED",
     ] = "READY_FOR_RATIFICATION",
+    claimed_proposer_ref: GovernedRef | None = None,
+    omit_proposer: bool = False,
 ) -> TypedValueProposal:
     target = target_ref or build1_ref_factory("build1.target.specimen-1")
+    proposer_ref = (
+        None if omit_proposer else claimed_proposer_ref or build1_ref_factory("build1.actor.proposer")
+    )
     proposal = TypedValueProposal.model_validate(
         {
+            "claimed_proposer_ref": proposer_ref,
             "schema_version": TYPED_VALUE_PROPOSAL_SCHEMA_VERSION,
             "record_type": TYPED_VALUE_PROPOSAL_RECORD_TYPE,
             "hash_algorithm": PROPOSAL_HASH_ALGORITHM,

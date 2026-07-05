@@ -63,6 +63,23 @@ CONFIDENCE_METADATA_TOKEN_PATTERN: Final = re.compile(
     r"(^|[._:/_-])(" + "|".join(CONFIDENCE_METADATA_TOKENS) + r")([._:/_-]|$)",
     re.IGNORECASE,
 )
+_CAMEL_CASE_BOUNDARY: Final = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
+_LETTER_DIGIT_BOUNDARY: Final = re.compile(r"(?<=[A-Za-z])(?=[0-9])|(?<=[0-9])(?=[A-Za-z])")
+
+
+def _expand_token_boundaries(text: str) -> str:
+    """Insert delimiters at camelCase and letter/digit transitions so the confidence-token
+    scan catches modelConfidence, confidenceScore, and confidence1 — not only the
+    delimiter-separated forms. OpaqueId keys admit these camelCase/digit shapes.
+
+    Known limitation: an all-uppercase or all-lowercase concatenation with no case, digit,
+    or delimiter cue (e.g. MODELCONFIDENCE, modelconfidence) has no detectable internal
+    boundary and is not separable from an innocent compound word without over-rejecting
+    (``crankshaft`` contains ``rank``; ``uncertainty`` contains ``certainty``). This scan is
+    defense-in-depth hygiene on Tier-2 metadata keys, not the load-bearing control:
+    observations are non-record-of-record and never reach Build 0 Tier 1."""
+    with_case = _CAMEL_CASE_BOUNDARY.sub("_", text)
+    return _LETTER_DIGIT_BOUNDARY.sub("_", with_case)
 
 
 class ObservationMetadataEntry(BaseModel):
@@ -75,7 +92,7 @@ class ObservationMetadataEntry(BaseModel):
     def validate_metadata(self) -> ObservationMetadataEntry:
         if not self.value.strip():
             raise ValueError("observation metadata values must be nonempty")
-        if CONFIDENCE_METADATA_TOKEN_PATTERN.search(self.key):
+        if CONFIDENCE_METADATA_TOKEN_PATTERN.search(_expand_token_boundaries(self.key)):
             raise ValueError("observation metadata cannot carry confidence or score fields")
         return self
 
@@ -336,6 +353,18 @@ def render_observation_artifact(
     renderer_version: OpaqueId,
 ) -> ObservationRenderedArtifact:
     observations_by_ref = {_ref_key(item.observation_ref): item for item in observations}
+    # Fail closed with a diagnostic error, not a bare KeyError deep in the comprehension,
+    # if the render context references an observation that was not supplied.
+    missing_refs = tuple(
+        item.observation_ref
+        for item in context.observation_refs
+        if _ref_key(item.observation_ref) not in observations_by_ref
+    )
+    if missing_refs:
+        raise ValueError(
+            "render context references observations that were not supplied: "
+            + ", ".join(str(ref.logical_id) for ref in missing_refs)
+        )
     rendered = tuple(
         ObservationRenderedText(
             observation_ref=item.observation_ref,
