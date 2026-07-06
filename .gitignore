@@ -2,8 +2,15 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .pgdata/
 .pgsocket/
+
+# demo service build artifacts
+node_modules/
+demo/web/dist/
+.playwright-mcp/
 
 # ORACLE review packets: track the .md review records, ignore polished .docx renderings
 docs/*_polished.docx

@@ -1,0 +1,4 @@
+# Demo service deps (kept separate from the pure-Python engine's pyproject).
+# The engine itself (boundstate-gptl) is installed via `pip install -e .`.
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1

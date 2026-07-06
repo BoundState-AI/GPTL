@@ -1,0 +1,13 @@
+.venv/
+node_modules/
+demo/web/dist/
+dist/
+.git/
+**/__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pgdata/
+.pgsocket/
+.playwright-mcp/
+*.png

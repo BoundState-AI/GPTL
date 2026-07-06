@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* ── Design tokens: anodized metrology ─────────────────────────────────────
+   Cool graphite base, steel edges, three semantic signals: mint = governed /
+   crossed, amber = held at the boundary, cyan = provenance / schematic. */
+@theme {
+  --color-ink: #090d12;
+  --color-ink2: #0d131b;
+  --color-panel: #111a24;
+  --color-panel2: #16202c;
+  --color-edge: #22303f;
+  --color-edge2: #2f4356;
+  --color-mute: #7386a0;
+  --color-mute2: #4b596c;
+  --color-paper: #e7edf4;
+
+  --color-mint: #3fe0a8;
+  --color-mint-deep: #12805e;
+  --color-amber: #f0a93c;
+  --color-amber-deep: #8a5a12;
+  --color-cyan: #58b6e8;
+
+  --font-sans: "Archivo", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Consolas, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-ink);
+    /* faint schematic grid + a single cool light source above the firewall line */
+    background-image:
+      radial-gradient(
+        70% 55% at 66% 8%,
+        rgba(63, 224, 168, 0.06),
+        transparent 60%
+      ),
+      linear-gradient(rgba(47, 67, 86, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(47, 67, 86, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+    color: var(--color-paper);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: rgba(63, 224, 168, 0.24);
+    color: var(--color-paper);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-edge);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-edge2);
+  }
+}
+
+/* ── Motion: the "arming" run and the gate seam ──────────────────────────── */
+@keyframes arm {
+  0% {
+    opacity: 0.35;
+    transform: translateY(3px);
+    border-color: var(--color-edge);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes seam {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes pulse-mint {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(63, 224, 168, 0);
+  }
+  50% {
+    box-shadow: 0 0 26px 0 rgba(63, 224, 168, 0.35);
+  }
+}
+
+@keyframes sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.animate-arm {
+  animation: arm 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-seam {
+  animation: seam 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-arm,
+  .animate-seam {
+    animation: none;
+  }
+}
