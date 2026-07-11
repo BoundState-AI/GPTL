@@ -1,4 +1,15 @@
-"""Build 1 proposal ratification and active-value resolution."""
+"""
+Module: Proposal Ratification
+Purpose: Build 1 proposal ratification and active-value resolution.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

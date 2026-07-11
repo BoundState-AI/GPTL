@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Rebuild the immutable v0.1 ORACLE review bundle from its historical inputs."""
+"""
+Module: Oracle Review Bundle Builder (v0.1)
+Purpose: Rebuild the immutable v0.1 ORACLE review bundle from its historical inputs.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

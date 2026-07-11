@@ -1,4 +1,14 @@
-"""FastAPI server for the live GPTL Build 1 firewall demo.
+"""
+Module: Firewall Demo API Server
+Purpose: FastAPI server for the live GPTL Build 1 firewall demo.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
 
 Serves the JSON pipeline API and (in production) the built React SPA under one
 configurable public base path (default empty for local dev, ``/gptl`` in production),

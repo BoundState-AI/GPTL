@@ -1,4 +1,15 @@
-"""Deterministic Slice 3 calibration and MSA routing."""
+"""
+Module: Slice 3 Calibration and MSA Service
+Purpose: Deterministic Slice 3 calibration and MSA routing.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,14 @@
-"""Live GPTL Build 1 firewall demo — runs the REAL governed capture pipeline.
+"""
+Module: Firewall Demo Pipeline Harness
+Purpose: Live GPTL Build 1 firewall demo — runs the REAL governed capture pipeline.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
 
 This is a demo harness, NOT part of the packaged engine (``src/gptl``). It builds
 governed records from a user scenario and runs the actual Slice 4/7 pipeline

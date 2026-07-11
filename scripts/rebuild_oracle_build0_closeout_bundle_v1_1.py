@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Rebuild the single-file ORACLE Build 0 freeze-review bundle."""
+"""
+Module: Oracle Build 0 Closeout Bundle Builder (v1.1)
+Purpose: Rebuild the single-file ORACLE Build 0 freeze-review bundle.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

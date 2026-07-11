@@ -1,4 +1,14 @@
-"""Standard analytical tool pack: governed definitions for the common lab techniques.
+"""
+Module: Standard Analytical Tool Pack
+Purpose: Standard analytical tool pack: governed definitions for the common lab techniques.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
 
 Two modalities, per the platform taxonomy:
 

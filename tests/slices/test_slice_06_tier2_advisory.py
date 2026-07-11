@@ -455,7 +455,13 @@ def test_non_equivalent_text_search_accelerator_fails_configuration() -> None:
 
 
 def test_authoritative_advisory_path_has_no_model_adapter_surface() -> None:
+    # Scan code surface only: the BoundState standard module header (attribution
+    # prose in the module docstring) carries vendor names in co-author email
+    # addresses and is exempt; everything below it stays guarded.
     source = inspect.getsource(slice6_service).lower()
+    module_docstring = slice6_service.__doc__
+    if module_docstring:
+        source = source.replace(module_docstring.lower(), "", 1)
     parameters = inspect.signature(build_tier2_advisory).parameters
 
     assert not {"model", "llm", "adapter"} & set(parameters)

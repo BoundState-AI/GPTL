@@ -1,1 +1,12 @@
-"""Forward-only PostgreSQL schema migrations."""
+"""
+Module: Schema Migrations Package
+Purpose: Forward-only PostgreSQL schema migrations.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""

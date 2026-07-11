@@ -1,4 +1,15 @@
-"""Deterministic Slice 1 safe-refusal use case."""
+"""
+Module: Slice 1 Safe Refusal Service
+Purpose: Deterministic Slice 1 safe-refusal use case.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

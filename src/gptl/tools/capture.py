@@ -1,4 +1,14 @@
-"""Build 2 tool capture contract: backend findings become governed proposals.
+"""
+Module: Tool Capture Contract
+Purpose: Build 2 tool capture contract: backend findings become governed proposals.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
 
 ``assemble_tool_capture`` is the deterministic seam between an analysis backend (model,
 parser, or human transcription UI) and the Build 1 record system. Given validated

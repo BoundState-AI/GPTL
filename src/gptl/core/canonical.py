@@ -1,4 +1,15 @@
-"""RFC 8785 canonical serialization with GPTL pre-serialization rules."""
+"""
+Module: Canonical Serialization
+Purpose: RFC 8785 canonical serialization with GPTL pre-serialization rules.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

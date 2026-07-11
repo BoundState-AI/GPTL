@@ -1,4 +1,15 @@
-"""Governed signature, discriminator, and confirmation evaluation."""
+"""
+Module: Diagnostic Evaluation
+Purpose: Governed signature, discriminator, and confirmation evaluation.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

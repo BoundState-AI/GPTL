@@ -1,4 +1,15 @@
-"""Closed Build 1 evidence-scope contract."""
+"""
+Module: Evidence Scope
+Purpose: Closed Build 1 evidence-scope contract.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

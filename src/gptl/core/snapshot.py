@@ -1,4 +1,15 @@
-"""Immutable knowledge-snapshot binding."""
+"""
+Module: Knowledge Snapshot
+Purpose: Immutable knowledge-snapshot binding.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

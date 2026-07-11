@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Rebuild the final Build 0 ORACLE completion bundle from active contracts."""
+"""
+Module: Oracle Build 0 Completion Bundle Builder (v1.0)
+Purpose: Rebuild the final Build 0 ORACLE completion bundle from active contracts.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

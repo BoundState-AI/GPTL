@@ -1,4 +1,15 @@
-"""Build 1 raw source artifact registration contracts."""
+"""
+Module: Source Artifacts
+Purpose: Build 1 raw source artifact registration contracts.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

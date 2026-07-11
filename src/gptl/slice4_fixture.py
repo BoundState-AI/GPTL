@@ -1,4 +1,15 @@
-"""Governed synthetic Slice 4 EDS artifact-confirmation fixtures."""
+"""
+Module: Slice 4 Fixtures
+Purpose: Governed synthetic Slice 4 EDS artifact-confirmation fixtures.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,15 @@
-"""Fixed synthetic Slice 1 records used by the demo and acceptance tests."""
+"""
+Module: Slice 1 Fixtures
+Purpose: Fixed synthetic Slice 1 records used by the demo and acceptance tests.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 import hashlib
 

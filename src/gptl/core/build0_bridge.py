@@ -1,4 +1,15 @@
-"""Build 1 capture gate and Build 0 bridge contracts."""
+"""
+Module: Build 0 Bridge and Capture Gate
+Purpose: Build 1 capture gate and Build 0 bridge contracts.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

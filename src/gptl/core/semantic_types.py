@@ -1,4 +1,15 @@
-"""Constrained scalar types shared by deterministic GPTL records."""
+"""
+Module: Semantic Types
+Purpose: Constrained scalar types shared by deterministic GPTL records.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

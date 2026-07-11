@@ -1,4 +1,15 @@
-"""Deterministic Slice 5 bounded-catalog negative routing."""
+"""
+Module: Slice 5 Negative Routing Service
+Purpose: Deterministic Slice 5 bounded-catalog negative routing.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

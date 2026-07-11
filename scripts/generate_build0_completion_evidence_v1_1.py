@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Execute and record the source-audited MIE Build 0 completion gates."""
+"""
+Module: Build 0 Completion Evidence Generator (v1.1)
+Purpose: Execute and record the source-audited MIE Build 0 completion gates.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

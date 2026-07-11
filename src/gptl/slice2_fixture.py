@@ -1,4 +1,15 @@
-"""Governed synthetic Slice 2 pack, policy, and intake fixtures."""
+"""
+Module: Slice 2 Fixtures
+Purpose: Governed synthetic Slice 2 pack, policy, and intake fixtures.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

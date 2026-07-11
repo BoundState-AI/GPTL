@@ -1,4 +1,15 @@
-"""MIE canonical output schemas implemented through Slice 6."""
+"""
+Module: MIE Output Schemas
+Purpose: MIE canonical output schemas implemented through Slice 6.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

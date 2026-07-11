@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Local model-free slice demonstrations."""
+"""
+Module: Slice Demonstration Runner
+Purpose: Local model-free slice demonstrations.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

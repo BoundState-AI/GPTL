@@ -1,4 +1,14 @@
-"""Build 2 tool capture agents: the model boundary, wrapped fail-closed.
+"""
+Module: Tool Capture Agents
+Purpose: Build 2 tool capture agents: the model boundary, wrapped fail-closed.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
 
 A ``ToolCaptureAgent`` is a governed actor bound to one or more analytical tools and an
 analysis backend. The backend (a vision model for the visual family, a spectrum model

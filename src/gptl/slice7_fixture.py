@@ -1,4 +1,15 @@
-"""Governed synthetic Slice 7 replay and evolution fixtures."""
+"""
+Module: Slice 7 Fixtures
+Purpose: Governed synthetic Slice 7 replay and evolution fixtures.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: False
+"""
 
 from __future__ import annotations
 

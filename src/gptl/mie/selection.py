@@ -1,4 +1,15 @@
-"""Scoped candidate selection without cross-mechanism competition."""
+"""
+Module: Candidate Selection
+Purpose: Scoped candidate selection without cross-mechanism competition.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

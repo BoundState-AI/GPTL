@@ -1,4 +1,15 @@
-"""Build 1 facility/tool capability profile contracts."""
+"""
+Module: Capability Profiles
+Purpose: Build 1 facility/tool capability profile contracts.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

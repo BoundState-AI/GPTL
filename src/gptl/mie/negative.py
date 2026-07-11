@@ -1,4 +1,15 @@
-"""Governed elimination and bounded-catalog rule-out contracts."""
+"""
+Module: Negative Rule-Out Contracts
+Purpose: Governed elimination and bounded-catalog rule-out contracts.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

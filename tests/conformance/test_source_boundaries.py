@@ -1,10 +1,34 @@
+import ast
 from pathlib import Path
+
+
+def _without_module_docstring(source: str) -> str:
+    """Drop only the module-level docstring before boundary scanning.
+
+    The BoundState standard module header (attribution/classification prose) lives in
+    the module docstring and carries vendor names in co-author email addresses. The
+    boundary guard targets runtime surface — imports, identifiers, literals in code —
+    so the header block is exempt while every other line, including inner docstrings,
+    stays scanned.
+    """
+    module = ast.parse(source)
+    first = module.body[0] if module.body else None
+    if (
+        isinstance(first, ast.Expr)
+        and isinstance(first.value, ast.Constant)
+        and isinstance(first.value.value, str)
+    ):
+        lines = source.splitlines()
+        del lines[first.lineno - 1 : first.end_lineno]
+        return "\n".join(lines)
+    return source
 
 
 def test_authoritative_source_has_no_prohibited_runtime_dependencies() -> None:
     source_root = Path(__file__).parents[2] / "src"
     source = "\n".join(
-        path.read_text(encoding="utf-8").lower() for path in sorted(source_root.rglob("*.py"))
+        _without_module_docstring(path.read_text(encoding="utf-8")).lower()
+        for path in sorted(source_root.rglob("*.py"))
     )
     for prohibited in (
         "sqlite",

@@ -1,4 +1,14 @@
-"""Build 2 analytical tool layer: governed tool taxonomy, capture contract, agents.
+"""
+Module: Analytical Tool Layer Package
+Purpose: Build 2 analytical tool layer: governed tool taxonomy, capture contract, agents.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
 
 Every path through this package converges on the Build 1 firewall: tool agents emit
 MODEL_ASSISTED typed proposals and attributed observations, both of which require the

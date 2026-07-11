@@ -1,4 +1,14 @@
-"""Build 2 analytical tool taxonomy: governed tool definitions and fail-closed registry.
+"""
+Module: Analytical Tool Taxonomy
+Purpose: Build 2 analytical tool taxonomy: governed tool definitions and fail-closed registry.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
 
 An ``AnalyticalToolDefinition`` describes one analytical technique (XRD, SEM, ICP-MS,
 ...) as governed data: the measurement classes it may propose, the qualitative

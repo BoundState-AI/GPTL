@@ -1,4 +1,15 @@
-"""Published candidate loading with fail-open applicability preservation."""
+"""
+Module: Candidate Loading
+Purpose: Published candidate loading with fail-open applicability preservation.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

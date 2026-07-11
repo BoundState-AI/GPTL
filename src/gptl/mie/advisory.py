@@ -1,4 +1,15 @@
-"""Governed deterministic Tier 2 retrieval contracts."""
+"""
+Module: Tier 2 Advisory Retrieval
+Purpose: Governed deterministic Tier 2 retrieval contracts.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 

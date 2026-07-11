@@ -1,4 +1,15 @@
-"""Deterministic Slice 2 candidate-preservation orchestration."""
+"""
+Module: Slice 2 Candidate Preservation Service
+Purpose: Deterministic Slice 2 candidate-preservation orchestration.
+
+BoundState AI 2026
+Classification: BoundState Proprietary
+
+Co-Authored-By: Claude "Beth" <noreply@anthropic.com>
+Co-Authored-By: Dr. Joseph Wilde, BoundState AI
+
+Safety Critical: True
+"""
 
 from __future__ import annotations
 
